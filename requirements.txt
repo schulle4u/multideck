@@ -1,0 +1,20 @@
+# MultiDeck Audio Player - Dependencies
+
+# GUI Framework
+wxPython>=4.2.0
+
+# Audio Libraries
+sounddevice>=0.4.6
+soundfile>=0.12.1
+
+# Configuration
+configparser>=6.0.0
+
+# Audio Processing
+numpy>=1.24.0
+
+# External dependency: FFmpeg (for MP3 support and streaming)
+# Windows: Download from https://www.gyan.dev/ffmpeg/builds/ (ffmpeg-release-essentials.zip)
+#          Extract and add the bin folder to your PATH
+# Linux: sudo apt-get install ffmpeg (Ubuntu/Debian) or sudo dnf install ffmpeg (Fedora)
+# macOS: brew install ffmpeg

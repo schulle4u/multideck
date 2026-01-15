@@ -1,0 +1,12 @@
+# MultiDeck Audio Player - Development/Build Dependencies
+
+# Include main dependencies
+-r requirements.txt
+
+# Build tools
+pyinstaller>=6.0.0
+
+# Optional: Code quality tools
+# flake8>=6.0.0
+# black>=23.0.0
+# mypy>=1.0.0
