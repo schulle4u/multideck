@@ -200,13 +200,21 @@ class OptionsDialog(wx.Dialog):
         """Get list of available audio output devices"""
         try:
             devices = sd.query_devices()
+            hostapis = sd.query_hostapis()
             output_devices = []
 
             for idx, device in enumerate(devices):
                 if device['max_output_channels'] > 0:
+                    # Get host API name for this device
+                    hostapi_idx = device['hostapi']
+                    hostapi_name = hostapis[hostapi_idx]['name'] if hostapi_idx < len(hostapis) else ''
+
+                    # Format display name with host API
+                    display_name = f"{device['name']} ({hostapi_name})" if hostapi_name else device['name']
+
                     output_devices.append({
                         'index': idx,
-                        'name': device['name'],
+                        'name': display_name,
                     })
 
             return output_devices

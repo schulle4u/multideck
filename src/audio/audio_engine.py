@@ -46,7 +46,15 @@ class AudioEngine:
         """
         self.buffer_size = buffer_size
         self.sample_rate = sample_rate
-        self.device = device if device != 'default' else None
+
+        # Convert device to appropriate type for sounddevice
+        if device is None or device == 'default':
+            self.device = None
+        elif isinstance(device, str) and device.isdigit():
+            # Numeric string - convert to integer index
+            self.device = int(device)
+        else:
+            self.device = device
 
         self._stream: Optional[sd.OutputStream] = None
         self._lock = threading.Lock()
