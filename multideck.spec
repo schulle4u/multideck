@@ -57,7 +57,6 @@ a = Analysis(
         'xml',
         'pydoc',
         'doctest',
-        'argparse',
         'difflib',
         # 'inspect',
         'calendar',
