@@ -1,81 +1,41 @@
-# MultiDeck Audio Player - Configuration File
-#
-# Copy this file to 'config.ini' to use it.
-#
-# Portable Mode:
-# - If config.ini exists in the program directory: Uses portable mode
-# - Otherwise: Uses platform-specific user config directories
-#   - Windows: %APPDATA%\MultiDeckAudioPlayer\
-#   - Linux: ~/.config/multideck-audio-player/
-#   - macOS: ~/Library/Application Support/MultiDeckAudioPlayer/
-
 [General]
-# Language: en, de
-language = en
-
-# Theme: system, light, dark
-theme = system
-
-# Number of decks to display: 2, 4, 6, 8, 10
-deck_count = 10
+language = de
+theme = dark
+deck_count = 2
 
 [Audio]
-# Audio output device: 'default' or specific device name
 output_device = default
-
-# Buffer size in samples (affects latency)
-# Lower values = lower latency but higher CPU usage
-# Typical values: 512, 1024, 2048, 4096
 buffer_size = 2048
-
-# Sample rate in Hz
-sample_rate = 44100
+sample_rate = 48000
 
 [Automation]
-# Automatic mode: switch interval in seconds
 switch_interval = 10
-
-# Crossfade duration in seconds (Phase 2 feature)
-crossfade_duration = 2
+crossfade_duration = 2.0
+crossfade_enabled = True
 
 [UI]
-# Show status bar
 show_statusbar = true
-
-# Window dimensions
-window_width = 1200
-window_height = 800
-
-# Window position (empty = centered)
-window_x =
-window_y =
+window_width = 1936
+window_height = 1048
+window_x = 
+window_y = 
 
 [Recorder]
-# Default recording format: wav, mp3, ogg, flac (Phase 2: mp3, ogg, flac)
-format = wav
-
-# Default recording directory (empty = ask each time)
-output_directory =
-
-# Bit depth for WAV: 16, 24, 32
+format = mp3
+output_directory = 
 bit_depth = 16
+bitrate = 192
+pre_roll_seconds = 30
 
 [Streaming]
-# Auto-reconnect on connection loss
-auto_reconnect = true
-
-# Reconnect wait time in seconds
+auto_reconnect = True
 reconnect_wait = 5
-
-# Maximum reconnect attempts
 max_reconnect_attempts = 5
-
-# Connection timeout in seconds
 connection_timeout = 10
-
-# Read timeout in seconds
 read_timeout = 30
 
 [Recent]
-# Number of recent files/URLs to remember (Phase 2 feature)
 max_recent_items = 10
+
+[RecentFiles]
+
