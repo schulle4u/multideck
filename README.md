@@ -19,7 +19,7 @@ An accessible, cross-platform audio player that enables simultaneous playback of
   - Portable mode support
 - **Master Output Recorder**
   - Record combined audio output to WAV, mp3, ogg or flac files
-  - Real-time recording with status display
+  - Real-time recording with status display and optional pre-roll buffer
 - **Internet Streaming**
   - HTTP/HTTPS stream support
   - Automatic reconnection on connection loss

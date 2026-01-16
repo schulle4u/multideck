@@ -30,6 +30,7 @@ DEFAULT_CONFIG = {
         'output_directory': '',
         'bit_depth': 16,
         'bitrate': 192,
+        'pre_roll_seconds': 30,
     },
     'Streaming': {
         'auto_reconnect': True,

@@ -103,12 +103,17 @@ class Mixer:
             # Apply master volume
             audio_data *= self.master_volume
 
-            # Record to file if recording is active
-            if self.recorder and self.recorder.is_recording:
+            # Handle recorder: buffer for pre-roll and/or write to file
+            if self.recorder:
                 try:
-                    self.recorder.write_frames(audio_data)
+                    if self.recorder.is_recording:
+                        # Write directly to file during recording
+                        self.recorder.write_frames(audio_data)
+                    else:
+                        # Buffer for pre-roll when not recording
+                        self.recorder.buffer_frames(audio_data)
                 except Exception as rec_error:
-                    print(f"Error writing to recorder: {rec_error}")
+                    print(f"Error with recorder: {rec_error}")
 
             # Copy to output buffer
             outdata[:] = audio_data

@@ -42,7 +42,8 @@ class MainFrame(wx.Frame):
         bit_depth = self.config_manager.getint('Recorder', 'bit_depth', 16)
         rec_format = self.config_manager.get('Recorder', 'format', 'wav')
         rec_bitrate = self.config_manager.getint('Recorder', 'bitrate', 192)
-        self.recorder = Recorder(sample_rate, 2, bit_depth, rec_format, rec_bitrate)
+        pre_roll = self.config_manager.getfloat('Recorder', 'pre_roll_seconds', 30.0)
+        self.recorder = Recorder(sample_rate, 2, bit_depth, rec_format, rec_bitrate, pre_roll)
         self.recorder.on_recording_started = self._on_recording_started
         self.recorder.on_recording_stopped = self._on_recording_stopped
 

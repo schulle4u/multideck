@@ -333,6 +333,19 @@ class OptionsDialog(wx.Dialog):
 
         sizer.Add(depth_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
+        # Pre-roll duration
+        preroll_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        preroll_label = wx.StaticText(panel, label=_("Pre-Roll (seconds):"))
+        preroll_sizer.Add(preroll_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        current_preroll = self.config_manager.getint('Recorder', 'pre_roll_seconds', 30)
+        self.preroll_spin = wx.SpinCtrl(panel, value=str(current_preroll),
+                                        min=0, max=120, initial=current_preroll)
+        self.preroll_spin.SetToolTip(_("Buffer audio before recording starts (0 to disable)"))
+        preroll_sizer.Add(self.preroll_spin, 1, wx.EXPAND | wx.ALL, 5)
+
+        sizer.Add(preroll_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
         # Output directory
         dir_sizer = wx.BoxSizer(wx.HORIZONTAL)
         dir_label = wx.StaticText(panel, label=_("Output Directory:"))
@@ -430,6 +443,9 @@ class OptionsDialog(wx.Dialog):
         depth_choices = ['16', '24', '32']
         self.config_manager.set('Recorder', 'bit_depth',
                                depth_choices[self.depth_choice.GetSelection()])
+
+        self.config_manager.set('Recorder', 'pre_roll_seconds',
+                               self.preroll_spin.GetValue())
 
         self.config_manager.set('Recorder', 'output_directory',
                                self.output_dir_text.GetValue())
