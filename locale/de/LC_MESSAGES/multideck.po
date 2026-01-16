@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-15 10:58+0100\n"
-"PO-Revision-Date: 2026-01-15 15:38+0100\n"
+"POT-Creation-Date: 2026-01-16 10:35+0100\n"
+"PO-Revision-Date: 2026-01-16 10:38+0100\n"
 "Last-Translator: Steffen Schultz\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -108,7 +108,8 @@ msgstr "Pausiert"
 
 #: gui/deck_panel.py:258 gui/main_frame.py:347 gui/main_frame.py:370
 #: gui/main_frame.py:418 gui/main_frame.py:454 gui/main_frame.py:557
-#: gui/main_frame.py:569 gui/main_frame.py:574 gui/main_frame.py:621
+#: gui/main_frame.py:569 gui/main_frame.py:574 gui/main_frame.py:621 main.py:60
+#: main.py:68 main.py:81
 msgid "Error"
 msgstr "Fehler"
 
@@ -177,60 +178,60 @@ msgstr "Puffergröße:"
 msgid "Sample Rate:"
 msgstr "Abtastrate:"
 
-#: gui/dialogs.py:224
+#: gui/dialogs.py:232
 msgid "Switch Interval (seconds):"
 msgstr "Umschaltintervall (Sekunden):"
 
-#: gui/dialogs.py:235
+#: gui/dialogs.py:243
 msgid "Enable Crossfade"
 msgstr "Crossfade aktivieren"
 
-#: gui/dialogs.py:242
+#: gui/dialogs.py:250
 msgid "Crossfade Duration (seconds):"
 msgstr "Crossfade-Dauer (Sekunden):"
 
-#: gui/dialogs.py:263
+#: gui/dialogs.py:271
 msgid "Format:"
 msgstr "Format:"
 
-#: gui/dialogs.py:287
+#: gui/dialogs.py:295
 msgid "Bitrate (MP3/OGG):"
 msgstr "Bitrate (MP3/OGG):"
 
-#: gui/dialogs.py:308
+#: gui/dialogs.py:316
 msgid "Note: Install FFmpeg for MP3, OGG, and FLAC support."
 msgstr "Hinweis: Installiere FFmpeg für MP3-, OGG- und FLAC-Support."
 
-#: gui/dialogs.py:315
+#: gui/dialogs.py:323
 msgid "Bit Depth (WAV only):"
 msgstr "Bittiefe (nur WAV):"
 
-#: gui/dialogs.py:330
+#: gui/dialogs.py:338
 msgid "Output Directory:"
 msgstr "Ausgabeverzeichnis:"
 
-#: gui/dialogs.py:337
+#: gui/dialogs.py:345
 msgid "Browse..."
 msgstr "Durchsuchen..."
 
-#: gui/dialogs.py:348
+#: gui/dialogs.py:356
 msgid "Choose Recording Output Directory"
 msgstr "Aufnahme-Ausgabeverzeichnis wählen"
 
-#: gui/dialogs.py:359
+#: gui/dialogs.py:367
 msgid "Auto-reconnect on connection loss"
 msgstr "Automatisch neu verbinden bei Verbindungsabbruch"
 
-#: gui/dialogs.py:367
+#: gui/dialogs.py:375
 msgid "Reconnect Wait (seconds):"
 msgstr "Wartezeit für Neuverbindung (Sekunden):"
 
-#: gui/dialogs.py:439
+#: gui/dialogs.py:447
 msgid "Some settings may require restarting the application to take effect."
 msgstr ""
 "Einige Einstellungen erfordern möglicherweise einen Neustart der Anwendung."
 
-#: gui/dialogs.py:440
+#: gui/dialogs.py:448
 msgid "Settings Saved"
 msgstr "Einstellungen gespeichert"
 
@@ -408,12 +409,12 @@ msgstr "Fehler beim Laden des Streams"
 msgid "Open Project"
 msgstr "Projekt öffnen"
 
-#: gui/main_frame.py:416
+#: gui/main_frame.py:416 main.py:77
 #, python-brace-format
 msgid "Opened: {}"
 msgstr "Geöffnet: {}"
 
-#: gui/main_frame.py:418
+#: gui/main_frame.py:418 main.py:80
 #, python-brace-format
 msgid "Failed to open project: {}"
 msgstr "Fehler beim Öffnen des Projekts: {}"
@@ -477,6 +478,20 @@ msgstr "&Aufnahme beenden\tCtrl+R"
 #, python-brace-format
 msgid "Recording stopped: {}"
 msgstr "Aufnahme gestoppt: {}"
+
+#: main.py:59
+#, python-brace-format
+msgid "Project file not found: {}"
+msgstr "Projektdatei nicht gefunden: {}"
+
+#: main.py:67
+#, python-brace-format
+msgid ""
+"Invalid project file format: {}\n"
+"Expected .mdap file."
+msgstr ""
+"Ungültiges Projektdateiformat: {}\n"
+".mdap-Datei erwartet."
 
 #~ msgid "Load..."
 #~ msgstr "Laden..."

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-15 10:58+0100\n"
+"POT-Creation-Date: 2026-01-16 10:35+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -106,7 +106,8 @@ msgstr ""
 
 #: gui/deck_panel.py:258 gui/main_frame.py:347 gui/main_frame.py:370
 #: gui/main_frame.py:418 gui/main_frame.py:454 gui/main_frame.py:557
-#: gui/main_frame.py:569 gui/main_frame.py:574 gui/main_frame.py:621
+#: gui/main_frame.py:569 gui/main_frame.py:574 gui/main_frame.py:621 main.py:60
+#: main.py:68 main.py:81
 msgid "Error"
 msgstr ""
 
@@ -174,59 +175,59 @@ msgstr ""
 msgid "Sample Rate:"
 msgstr ""
 
-#: gui/dialogs.py:224
+#: gui/dialogs.py:232
 msgid "Switch Interval (seconds):"
 msgstr ""
 
-#: gui/dialogs.py:235
+#: gui/dialogs.py:243
 msgid "Enable Crossfade"
 msgstr ""
 
-#: gui/dialogs.py:242
+#: gui/dialogs.py:250
 msgid "Crossfade Duration (seconds):"
 msgstr ""
 
-#: gui/dialogs.py:263
+#: gui/dialogs.py:271
 msgid "Format:"
 msgstr ""
 
-#: gui/dialogs.py:287
+#: gui/dialogs.py:295
 msgid "Bitrate (MP3/OGG):"
 msgstr ""
 
-#: gui/dialogs.py:308
+#: gui/dialogs.py:316
 msgid "Note: Install FFmpeg for MP3, OGG, and FLAC support."
 msgstr ""
 
-#: gui/dialogs.py:315
+#: gui/dialogs.py:323
 msgid "Bit Depth (WAV only):"
 msgstr ""
 
-#: gui/dialogs.py:330
+#: gui/dialogs.py:338
 msgid "Output Directory:"
 msgstr ""
 
-#: gui/dialogs.py:337
+#: gui/dialogs.py:345
 msgid "Browse..."
 msgstr ""
 
-#: gui/dialogs.py:348
+#: gui/dialogs.py:356
 msgid "Choose Recording Output Directory"
 msgstr ""
 
-#: gui/dialogs.py:359
+#: gui/dialogs.py:367
 msgid "Auto-reconnect on connection loss"
 msgstr ""
 
-#: gui/dialogs.py:367
+#: gui/dialogs.py:375
 msgid "Reconnect Wait (seconds):"
 msgstr ""
 
-#: gui/dialogs.py:439
+#: gui/dialogs.py:447
 msgid "Some settings may require restarting the application to take effect."
 msgstr ""
 
-#: gui/dialogs.py:440
+#: gui/dialogs.py:448
 msgid "Settings Saved"
 msgstr ""
 
@@ -400,12 +401,12 @@ msgstr ""
 msgid "Open Project"
 msgstr ""
 
-#: gui/main_frame.py:416
+#: gui/main_frame.py:416 main.py:77
 #, python-brace-format
 msgid "Opened: {}"
 msgstr ""
 
-#: gui/main_frame.py:418
+#: gui/main_frame.py:418 main.py:80
 #, python-brace-format
 msgid "Failed to open project: {}"
 msgstr ""
@@ -466,4 +467,16 @@ msgstr ""
 #: gui/main_frame.py:762
 #, python-brace-format
 msgid "Recording stopped: {}"
+msgstr ""
+
+#: main.py:59
+#, python-brace-format
+msgid "Project file not found: {}"
+msgstr ""
+
+#: main.py:67
+#, python-brace-format
+msgid ""
+"Invalid project file format: {}\n"
+"Expected .mdap file."
 msgstr ""
