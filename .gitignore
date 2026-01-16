@@ -39,6 +39,7 @@ env/
 
 # MultiDeck specific
 docs_claude/
+CLAUDE.md
 config.ini
 *.mdap
 recordings/
