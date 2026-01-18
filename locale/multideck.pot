@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 21:49+0100\n"
+"POT-Creation-Date: 2026-01-18 11:13+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -143,99 +143,99 @@ msgstr ""
 msgid "Number of Decks:"
 msgstr ""
 
-#: gui/dialogs.py:116
+#: gui/dialogs.py:115
 msgid "Theme:"
 msgstr ""
 
-#: gui/dialogs.py:120
+#: gui/dialogs.py:119
 msgid "System"
 msgstr ""
 
-#: gui/dialogs.py:120
+#: gui/dialogs.py:119
 msgid "Light"
 msgstr ""
 
-#: gui/dialogs.py:120
+#: gui/dialogs.py:119
 msgid "Dark"
 msgstr ""
 
-#: gui/dialogs.py:142
+#: gui/dialogs.py:141
 msgid "Output Device:"
 msgstr ""
 
-#: gui/dialogs.py:147
+#: gui/dialogs.py:146
 msgid "System Default"
 msgstr ""
 
-#: gui/dialogs.py:168
+#: gui/dialogs.py:167
 msgid "Buffer Size:"
 msgstr ""
 
-#: gui/dialogs.py:183
+#: gui/dialogs.py:182
 msgid "Sample Rate:"
 msgstr ""
 
-#: gui/dialogs.py:232
+#: gui/dialogs.py:231
 msgid "Switch Interval (seconds):"
 msgstr ""
 
-#: gui/dialogs.py:243
+#: gui/dialogs.py:242
 msgid "Enable Crossfade"
 msgstr ""
 
-#: gui/dialogs.py:250
+#: gui/dialogs.py:249
 msgid "Crossfade Duration (seconds):"
 msgstr ""
 
-#: gui/dialogs.py:271
+#: gui/dialogs.py:270
 msgid "Format:"
 msgstr ""
 
-#: gui/dialogs.py:295
+#: gui/dialogs.py:294
 msgid "Bitrate (MP3/OGG):"
 msgstr ""
 
-#: gui/dialogs.py:316
+#: gui/dialogs.py:315
 msgid "Note: Install FFmpeg for MP3, OGG, and FLAC support."
 msgstr ""
 
-#: gui/dialogs.py:323
+#: gui/dialogs.py:322
 msgid "Bit Depth (WAV only):"
 msgstr ""
 
-#: gui/dialogs.py:338
+#: gui/dialogs.py:337
 msgid "Pre-Roll (seconds):"
 msgstr ""
 
-#: gui/dialogs.py:344
+#: gui/dialogs.py:343
 msgid "Buffer audio before recording starts (0 to disable)"
 msgstr ""
 
-#: gui/dialogs.py:351
+#: gui/dialogs.py:350
 msgid "Output Directory:"
 msgstr ""
 
-#: gui/dialogs.py:358
+#: gui/dialogs.py:357
 msgid "Browse..."
 msgstr ""
 
-#: gui/dialogs.py:369
+#: gui/dialogs.py:368
 msgid "Choose Recording Output Directory"
 msgstr ""
 
-#: gui/dialogs.py:380
+#: gui/dialogs.py:379
 msgid "Auto-reconnect on connection loss"
 msgstr ""
 
-#: gui/dialogs.py:388
+#: gui/dialogs.py:387
 msgid "Reconnect Wait (seconds):"
 msgstr ""
 
-#: gui/dialogs.py:463
+#: gui/dialogs.py:462
 msgid "Some settings may require restarting the application to take effect."
 msgstr ""
 
-#: gui/dialogs.py:464
+#: gui/dialogs.py:463
 msgid "Settings Saved"
 msgstr ""
 
@@ -248,7 +248,7 @@ msgid "&Save Project\tCtrl+S"
 msgstr ""
 
 #: gui/main_frame.py:95
-msgid "Save Project &As..."
+msgid "Save Project &As...\tCtrl+Shift+S"
 msgstr ""
 
 #: gui/main_frame.py:100
@@ -264,11 +264,11 @@ msgid "&File"
 msgstr ""
 
 #: gui/main_frame.py:109
-msgid "&Status Bar"
+msgid "&Status Bar\tCtrl+T"
 msgstr ""
 
 #: gui/main_frame.py:112
-msgid "Toggle &Theme"
+msgid "Toggle &Theme\tCtrl+Shift+T"
 msgstr ""
 
 #: gui/main_frame.py:113

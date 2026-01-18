@@ -5,7 +5,7 @@ FILE MENU
 ---------
 Ctrl+O              Load project
 Ctrl+S              Save project
-Ctrl+Shift+S        Save project as...
+Ctrl+Shift+S              Save project as
 Alt+F4              Exit application
 
 DECK CONTROLS
@@ -13,21 +13,12 @@ DECK CONTROLS
 Ctrl+1 to Ctrl+0    Jump to deck 1-10
 Ctrl+Tab            Next deck (in Solo/Automatic mode)
 Ctrl+Shift+Tab      Previous deck
-Space               Play/Pause active deck
 Ctrl+M              Mute/Unmute active deck
 Ctrl+L              Toggle loop for active deck
-Arrow Up/Down       Adjust volume for active deck
-Arrow Left/Right    Adjust balance for active deck
 
 DECK CONTEXT MENU
 -----------------
-Applications Key    Open context menu for active deck
-Shift+F10           Open context menu for active deck
-
-MIXER CONTROLS
---------------
-Ctrl+Up/Down        Adjust master volume
-Ctrl+Left/Right     Adjust master balance
+Applications Key or Shift+F10    Open context menu for active deck
 
 RECORDER
 --------
@@ -45,20 +36,12 @@ Ctrl+P              Open options dialog
 HELP
 ----
 F1                  Show this keyboard shortcuts reference
-Ctrl+H              Open help documentation
 
 NAVIGATION
 ----------
 Tab                 Move to next control
 Shift+Tab           Move to previous control
-Enter               Activate button/control
+Space/Enter               Activate button/control
 Escape              Close dialog/cancel
-
-ACCESSIBILITY NOTES
--------------------
-- All functions can be accessed via keyboard
-- Screen readers will announce deck names, status changes, and control values
-- Focus indicators are visible for all interactive elements
-- Context menus can be accessed via Applications key or Shift+F10
 
 For more information, visit the project documentation.

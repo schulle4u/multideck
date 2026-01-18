@@ -92,7 +92,7 @@ class MainFrame(wx.Frame):
         file_menu = wx.Menu()
         file_menu.Append(wx.ID_OPEN, _("&Open Project...\tCtrl+O"))
         file_menu.Append(wx.ID_SAVE, _("&Save Project\tCtrl+S"))
-        file_menu.Append(wx.ID_SAVEAS, _("Save Project &As..."))
+        file_menu.Append(wx.ID_SAVEAS, _("Save Project &As...\tCtrl+Shift+S"))
         file_menu.AppendSeparator()
 
         # Recent Files submenu
@@ -106,10 +106,10 @@ class MainFrame(wx.Frame):
 
         # View menu
         view_menu = wx.Menu()
-        self.statusbar_item = view_menu.AppendCheckItem(wx.ID_ANY, _("&Status Bar"))
+        self.statusbar_item = view_menu.AppendCheckItem(wx.ID_ANY, _("&Status Bar\tCtrl+T"))
         self.statusbar_item.Check(True)
         view_menu.AppendSeparator()
-        self.theme_item = view_menu.Append(wx.ID_ANY, _("Toggle &Theme"))
+        self.theme_item = view_menu.Append(wx.ID_ANY, _("Toggle &Theme\tCtrl+Shift+T"))
         menu_bar.Append(view_menu, _("&View"))
 
         # Deck menu (for solo mode deck selection)
