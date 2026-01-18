@@ -4,7 +4,7 @@ An accessible, cross-platform audio player that enables simultaneous playback of
 
 ## Features
 
-- **10 Independent Audio Decks**
+- **Up to 10 Independent Audio Decks**
   - Load local audio files (MP3, OGG, WAV, FLAC)
   - Stream from internet sources (Icecast/Shoutcast)
   - Individual play/pause, volume, balance, mute, and loop controls
@@ -20,9 +20,6 @@ An accessible, cross-platform audio player that enables simultaneous playback of
 - **Master Output Recorder**
   - Record combined audio output to WAV, mp3, ogg or flac files
   - Real-time recording with status display and optional pre-roll buffer
-- **Internet Streaming**
-  - HTTP/HTTPS stream support
-  - Automatic reconnection on connection loss
 
 ## Installation
 
