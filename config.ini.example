@@ -1,7 +1,7 @@
 [General]
-language = de
+language = en
 theme = dark
-deck_count = 2
+deck_count = 10
 
 [Audio]
 output_device = default
@@ -21,7 +21,7 @@ window_x =
 window_y = 
 
 [Recorder]
-format = mp3
+format = wav
 output_directory = 
 bit_depth = 16
 bitrate = 192

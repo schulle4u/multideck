@@ -11,7 +11,7 @@ DEFAULT_CONFIG = {
     'Audio': {
         'output_device': 'default',
         'buffer_size': 2048,
-        'sample_rate': 44100,
+        'sample_rate': 48000,
     },
     'Automation': {
         'switch_interval': 10,
