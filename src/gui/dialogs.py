@@ -101,12 +101,11 @@ class OptionsDialog(wx.Dialog):
         deck_label = wx.StaticText(panel, label=_("Number of Decks:"))
         deck_sizer.Add(deck_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        current_deck_count = self.config_manager.getint('General', 'deck_count', 10)
+        current_deck_count = self.config_manager.get_deck_count()
         deck_choices = [str(n) for n in VALID_DECK_COUNTS]
 
         self.deck_count_choice = wx.Choice(panel, choices=deck_choices)
-        if current_deck_count in VALID_DECK_COUNTS:
-            self.deck_count_choice.SetSelection(VALID_DECK_COUNTS.index(current_deck_count))
+        self.deck_count_choice.SetSelection(VALID_DECK_COUNTS.index(current_deck_count))
         deck_sizer.Add(self.deck_count_choice, 1, wx.EXPAND | wx.ALL, 5)
 
         sizer.Add(deck_sizer, 0, wx.EXPAND | wx.ALL, 5)

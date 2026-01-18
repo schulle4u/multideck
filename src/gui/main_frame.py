@@ -48,7 +48,7 @@ class MainFrame(wx.Frame):
         self.recorder.on_recording_stopped = self._on_recording_stopped
 
         # Mixer (with recorder reference for master output recording)
-        num_decks = self.config_manager.getint('General', 'deck_count', 10)
+        num_decks = self.config_manager.get_deck_count()
         self.mixer = Mixer(self.audio_engine, num_decks, self.recorder)
 
         # Load automation/crossfade settings
@@ -115,7 +115,7 @@ class MainFrame(wx.Frame):
         # Deck menu (for solo mode deck selection)
         self.deck_menu = wx.Menu()
         self.deck_menu_items = []
-        num_decks = self.config_manager.getint('General', 'deck_count', 10)
+        num_decks = self.config_manager.get_deck_count()
 
         for i in range(num_decks):
             # Use Ctrl+1-9 and Ctrl+0 for deck 10

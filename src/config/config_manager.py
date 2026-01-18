@@ -9,7 +9,7 @@ import configparser
 from pathlib import Path
 from typing import Any, Dict
 
-from config.defaults import DEFAULT_CONFIG
+from config.defaults import DEFAULT_CONFIG, VALID_DECK_COUNTS
 
 
 class ConfigManager:
@@ -97,6 +97,26 @@ class ConfigManager:
     def getboolean(self, section: str, option: str, fallback: bool = False) -> bool:
         """Get configuration value as boolean"""
         return self.config.getboolean(section, option, fallback=fallback)
+
+    def get_deck_count(self) -> int:
+        """
+        Get the configured deck count with validation.
+
+        Ensures the value is within VALID_DECK_COUNTS range.
+        Values below minimum are set to 1, values above maximum are capped.
+
+        Returns:
+            Validated deck count between 1 and max(VALID_DECK_COUNTS)
+        """
+        count = self.getint('General', 'deck_count', 10)
+        min_count = min(VALID_DECK_COUNTS)
+        max_count = max(VALID_DECK_COUNTS)
+
+        if count < min_count:
+            return min_count
+        elif count > max_count:
+            return max_count
+        return count
 
     def set(self, section: str, option: str, value: Any):
         """Set configuration value"""
