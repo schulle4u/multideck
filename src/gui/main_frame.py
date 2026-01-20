@@ -15,8 +15,8 @@ from audio.mixer import Mixer
 from audio.recorder import Recorder
 from config.config_manager import ConfigManager, ProjectManager
 from config.defaults import (
-    APP_NAME, APP_VERSION, SUPPORTED_FILE_FORMATS,
-    PROJECT_FILE_FILTER, MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC
+    APP_NAME, APP_VERSION, APP_AUTHOR, APP_WEBSITE, APP_LICENSE,
+    SUPPORTED_FILE_FORMATS, PROJECT_FILE_FILTER, MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC
 )
 from utils.i18n import _, get_i18n
 
@@ -679,9 +679,9 @@ class MainFrame(wx.Frame):
         info.SetName(APP_NAME)
         info.SetVersion(APP_VERSION)
         info.SetDescription(_("Accessible cross-platform audio player for simultaneous playback"))
-        info.SetWebSite("https://github.com/schulle4u/multideck")
-        info.AddDeveloper("Steffen Schultz")
-        info.SetLicense("MIT License")
+        info.SetWebSite(APP_WEBSITE)
+        info.AddDeveloper(APP_AUTHOR)
+        info.SetLicense(APP_LICENSE)
         wx.adv.AboutBox(info)
 
     def _on_exit(self, event):
