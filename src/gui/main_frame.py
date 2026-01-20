@@ -679,8 +679,8 @@ class MainFrame(wx.Frame):
         info.SetName(APP_NAME)
         info.SetVersion(APP_VERSION)
         info.SetDescription(_("Accessible cross-platform audio player for simultaneous playback"))
-        info.SetWebSite("https://github.com/yourusername/multideck-audio-player")
-        info.AddDeveloper("MultiDeck Audio Player Team")
+        info.SetWebSite("https://github.com/schulle4u/multideck")
+        info.AddDeveloper("Steffen Schultz")
         info.SetLicense("MIT License")
         wx.adv.AboutBox(info)
 
