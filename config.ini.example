@@ -39,3 +39,7 @@ max_recent_items = 10
 
 [RecentFiles]
 
+[Logging]
+# Log levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
+level = INFO
+

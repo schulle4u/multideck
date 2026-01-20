@@ -42,6 +42,11 @@ DEFAULT_CONFIG = {
     'Recent': {
         'max_recent_items': 10,
     },
+    'Logging': {
+        'level': 'INFO',
+        'file_logging': True,
+        'console_logging': False,
+    },
 }
 
 # Operating modes

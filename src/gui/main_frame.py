@@ -595,6 +595,9 @@ class MainFrame(wx.Frame):
 
     def _on_options(self, event):
         """Show options dialog"""
+        # Remember current device setting
+        old_device = self.config_manager.get('Audio', 'output_device', 'default')
+
         dlg = OptionsDialog(self, self.config_manager, self.theme_manager)
         if dlg.ShowModal() == wx.ID_OK:
             # Reload recorder settings
@@ -607,7 +610,57 @@ class MainFrame(wx.Frame):
             self.mixer.auto_switch_interval = self.config_manager.getint('Automation', 'switch_interval', 10)
             self.mixer.crossfade_enabled = self.config_manager.getboolean('Automation', 'crossfade_enabled', True)
             self.mixer.crossfade_duration = self.config_manager.getfloat('Automation', 'crossfade_duration', 2.0)
+
+            # Check if audio device changed and apply at runtime
+            new_device = self.config_manager.get('Audio', 'output_device', 'default')
+            if new_device != old_device:
+                self._apply_audio_device_change(new_device)
+
         dlg.Destroy()
+
+    def _apply_audio_device_change(self, new_device):
+        """Apply audio device change at runtime without restart"""
+        import threading
+
+        def change_device():
+            try:
+                # Get the mixer's audio callback for stream restart
+                callback = self.mixer._audio_callback if hasattr(self.mixer, '_audio_callback') else None
+
+                success = self.audio_engine.set_device(new_device, callback)
+
+                # Update GUI on main thread
+                wx.CallAfter(self._on_device_change_complete, success)
+
+            except Exception as e:
+                wx.CallAfter(self._on_device_change_error, str(e))
+
+        # Run device change in background thread to avoid blocking GUI
+        thread = threading.Thread(target=change_device, daemon=True)
+        thread.start()
+
+        self.SetStatusText(_("Changing audio device..."), 0)
+
+    def _on_device_change_complete(self, success):
+        """Called when device change completes"""
+        if success:
+            self.SetStatusText(_("Audio device changed successfully"), 0)
+        else:
+            self.SetStatusText(_("Audio device change failed"), 0)
+            wx.MessageBox(
+                _("Failed to change audio device. The application will use the previous device."),
+                _("Warning"),
+                wx.OK | wx.ICON_WARNING
+            )
+
+    def _on_device_change_error(self, error_msg):
+        """Called when device change fails with error"""
+        self.SetStatusText(_("Audio device error"), 0)
+        wx.MessageBox(
+            _("Error changing audio device: {}").format(error_msg),
+            _("Error"),
+            wx.OK | wx.ICON_ERROR
+        )
 
     def _on_help(self, event):
         """Show keyboard shortcuts"""

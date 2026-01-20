@@ -10,6 +10,10 @@ from config.defaults import (
     DECK_STATE_EMPTY, DECK_STATE_LOADED, DECK_STATE_PLAYING,
     DECK_STATE_PAUSED, DECK_STATE_ERROR
 )
+from utils.logger import get_logger
+
+# Module logger
+logger = get_logger('deck')
 
 # Import StreamHandler with lazy loading to avoid circular imports
 _StreamHandler = None
@@ -91,7 +95,7 @@ class Deck:
 
                     # Set up stream handler callbacks
                     def on_stream_error(error_msg):
-                        print(f"Stream error on Deck {self.deck_id}: {error_msg}")
+                        logger.error(f"Stream error on Deck {self.deck_id}: {error_msg}")
                         self._set_state(DECK_STATE_ERROR)
 
                     self.stream_handler.on_error = on_stream_error
@@ -105,7 +109,7 @@ class Deck:
                         self._set_state(DECK_STATE_LOADED)
                         return True
                     else:
-                        print(f"Failed to start stream on Deck {self.deck_id}")
+                        logger.error(f"Failed to start stream on Deck {self.deck_id}")
                         self.stream_handler = None
                         self._set_state(DECK_STATE_ERROR)
                         return False
@@ -125,7 +129,7 @@ class Deck:
                 return True
 
         except Exception as e:
-            print(f"Error loading file in Deck {self.deck_id}: {e}")
+            logger.error(f"Error loading file in Deck {self.deck_id}: {e}")
             self._set_state(DECK_STATE_ERROR)
             return False
 
@@ -271,7 +275,7 @@ class Deck:
             try:
                 self.on_state_change(self.deck_id, old_state, new_state)
             except Exception as e:
-                print(f"Error in state change callback: {e}")
+                logger.error(f"Error in state change callback: {e}")
 
     def get_info(self) -> dict:
         """
@@ -336,7 +340,7 @@ class Deck:
 
             return self.load_file(data['file'])
         except Exception as e:
-            print(f"Error loading deck from dict: {e}")
+            logger.error(f"Error loading deck from dict: {e}")
             return False
 
     def __repr__(self) -> str:

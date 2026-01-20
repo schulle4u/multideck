@@ -12,6 +12,11 @@ import threading
 from pathlib import Path
 from typing import Optional, List
 
+from utils.logger import get_logger
+
+# Module logger
+logger = get_logger('audio_engine')
+
 
 # Check if FFmpeg is available
 def _check_ffmpeg():
@@ -46,63 +51,105 @@ class AudioEngine:
         """
         self.buffer_size = buffer_size
         self.sample_rate = sample_rate
-
-        # Convert device to appropriate type for sounddevice
-        if device is None or device == 'default':
-            self.device = None
-        elif isinstance(device, str) and device.isdigit():
-            # Numeric string - convert to integer index
-            self.device = int(device)
-        else:
-            self.device = device
+        self.device = self._validate_device(device)
 
         self._stream: Optional[sd.OutputStream] = None
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()  # RLock allows recursive locking
         self._running = False
+
+    def _validate_device(self, device) -> Optional[int]:
+        """
+        Validate and convert device parameter to safe device index.
+
+        Args:
+            device: Device identifier (None, 'default', index as int/str, or device name)
+
+        Returns:
+            Valid device index or None for default device
+        """
+        if device is None or device == 'default':
+            return None
+
+        try:
+            devices = sd.query_devices()
+
+            # Convert string to int if numeric
+            if isinstance(device, str) and device.isdigit():
+                device = int(device)
+
+            # If integer, check if it's a valid index
+            if isinstance(device, int):
+                if 0 <= device < len(devices):
+                    if devices[device]['max_output_channels'] > 0:
+                        return device
+                    else:
+                        logger.warning(f"Device {device} has no output channels, using default")
+                        return None
+                else:
+                    logger.warning(f"Device index {device} out of range, using default")
+                    return None
+
+            # If string name, try to find matching device
+            if isinstance(device, str):
+                for idx, dev in enumerate(devices):
+                    if dev['name'] == device and dev['max_output_channels'] > 0:
+                        return idx
+                logger.warning(f"Device '{device}' not found, using default")
+                return None
+
+            return None
+
+        except Exception as e:
+            logger.error(f"Error validating device: {e}, using default")
+            return None
 
     def get_available_devices(self) -> List[dict]:
         """
         Get list of available audio output devices.
+        Thread-safe method that acquires lock during device query.
 
         Returns:
             List of device dictionaries
         """
-        try:
-            devices = sd.query_devices()
-            output_devices = []
+        with self._lock:
+            try:
+                devices = sd.query_devices()
+                output_devices = []
 
-            for idx, device in enumerate(devices):
-                if device['max_output_channels'] > 0:
-                    output_devices.append({
-                        'index': idx,
-                        'name': device['name'],
-                        'channels': device['max_output_channels'],
-                        'sample_rate': device['default_samplerate'],
-                    })
+                for idx, device in enumerate(devices):
+                    if device['max_output_channels'] > 0:
+                        output_devices.append({
+                            'index': idx,
+                            'name': device['name'],
+                            'channels': device['max_output_channels'],
+                            'sample_rate': device['default_samplerate'],
+                        })
 
-            return output_devices
-        except Exception as e:
-            print(f"Error querying audio devices: {e}")
-            return []
+                return output_devices
+            except Exception as e:
+                logger.error(f"Error querying audio devices: {e}")
+                return []
 
     def get_default_device(self) -> Optional[dict]:
         """
         Get default audio output device.
+        Thread-safe method that acquires lock during device query.
 
         Returns:
             Default device dictionary or None
         """
-        try:
-            device = sd.query_devices(kind='output')
-            return {
-                'index': sd.default.device[1],
-                'name': device['name'],
-                'channels': device['max_output_channels'],
-                'sample_rate': device['default_samplerate'],
-            }
-        except Exception as e:
-            print(f"Error getting default device: {e}")
-            return None
+        with self._lock:
+            try:
+                device = sd.query_devices(kind='output')
+                return {
+                    'index': sd.default.device[1],
+                    'name': device['name'],
+                    'channels': device['max_output_channels'],
+                    'sample_rate': device['default_samplerate'],
+                }
+            except Exception as e:
+                logger.error(f"Error getting default device: {e}")
+                return None
 
     def load_audio_file(self, file_path: str) -> Optional[tuple]:
         """
@@ -150,20 +197,28 @@ class AudioEngine:
                     raise sf_error
 
         except Exception as e:
-            print(f"Error loading audio file {file_path}: {e}")
+            logger.error(f"Error loading audio file {file_path}: {e}")
             return None
 
-    def _load_with_ffmpeg(self, file_path: str) -> Optional[tuple]:
+    def _load_with_ffmpeg(self, file_path: str, max_size_mb: int = 1024) -> Optional[tuple]:
         """
         Load audio file using FFmpeg subprocess (for MP3 and other formats).
+        Includes timeout protection and file size check.
 
         Args:
             file_path: Path to audio file
+            max_size_mb: Maximum file size in MB (default 1024MB)
 
         Returns:
             Tuple of (audio_data, sample_rate, channels) or None
         """
         try:
+            # Check file size to prevent memory issues
+            file_size_mb = Path(file_path).stat().st_size / (1024 * 1024)
+            if file_size_mb > max_size_mb:
+                logger.warning(f"File too large: {file_size_mb:.1f}MB (max: {max_size_mb}MB)")
+                return None
+
             # FFmpeg command to decode file to raw PCM
             cmd = [
                 'ffmpeg',
@@ -181,10 +236,12 @@ class AudioEngine:
             if hasattr(subprocess, 'CREATE_NO_WINDOW'):
                 creationflags = subprocess.CREATE_NO_WINDOW
 
+            # Use timeout to prevent hanging on problematic files
             result = subprocess.run(
                 cmd,
                 capture_output=True,
-                creationflags=creationflags
+                creationflags=creationflags,
+                timeout=30  # 30 second timeout
             )
 
             if result.returncode != 0:
@@ -202,8 +259,11 @@ class AudioEngine:
 
             return samples, self.sample_rate, 2
 
+        except subprocess.TimeoutExpired:
+            logger.warning(f"FFmpeg timeout loading {file_path}")
+            return None
         except Exception as e:
-            print(f"Error loading with FFmpeg: {e}")
+            logger.error(f"Error loading with FFmpeg: {e}")
             return None
 
     def _resample(self, data: np.ndarray, orig_sr: int, target_sr: int) -> np.ndarray:
@@ -292,32 +352,52 @@ class AudioEngine:
         """
         return np.zeros((num_samples, channels), dtype=np.float32)
 
-    def start_stream(self, callback):
+    def start_stream(self, callback, retry_with_default: bool = True):
         """
-        Start audio output stream.
+        Start audio output stream with fallback to default device.
 
         Args:
             callback: Audio callback function
+            retry_with_default: If True, retry with default device on failure
         """
         try:
             with self._lock:
                 if self._stream is not None:
                     self.stop_stream()
 
-                self._stream = sd.OutputStream(
-                    samplerate=self.sample_rate,
-                    channels=2,
-                    blocksize=self.buffer_size,
-                    device=self.device,
-                    callback=callback,
-                    dtype='float32'
-                )
-                self._stream.start()
-                self._running = True
+                try:
+                    self._stream = sd.OutputStream(
+                        samplerate=self.sample_rate,
+                        channels=2,
+                        blocksize=self.buffer_size,
+                        device=self.device,
+                        callback=callback,
+                        dtype='float32'
+                    )
+                    self._stream.start()
+                    self._running = True
+
+                except sd.PortAudioError as e:
+                    # Device not available - try default if allowed
+                    if retry_with_default and self.device is not None:
+                        logger.warning(f"Device {self.device} failed ({e}), trying default device")
+                        self._stream = sd.OutputStream(
+                            samplerate=self.sample_rate,
+                            channels=2,
+                            blocksize=self.buffer_size,
+                            device=None,  # Use default
+                            callback=callback,
+                            dtype='float32'
+                        )
+                        self._stream.start()
+                        self._running = True
+                    else:
+                        raise
 
         except Exception as e:
-            print(f"Error starting audio stream: {e}")
+            logger.error(f"Error starting audio stream: {e}")
             self._running = False
+            raise  # Re-raise so caller knows it failed
 
     def stop_stream(self):
         """Stop audio output stream"""
@@ -330,7 +410,7 @@ class AudioEngine:
                 self._running = False
 
         except Exception as e:
-            print(f"Error stopping audio stream: {e}")
+            logger.error(f"Error stopping audio stream: {e}")
 
     def is_running(self) -> bool:
         """Check if audio stream is running"""
@@ -378,6 +458,49 @@ class AudioEngine:
                 except Exception:
                     pass
         return None
+
+    def set_device(self, device, callback=None) -> bool:
+        """
+        Change audio output device at runtime.
+
+        Args:
+            device: New device (None, 'default', index, or name)
+            callback: Audio callback function to use when restarting stream
+
+        Returns:
+            True if device change was successful
+        """
+        new_device = self._validate_device(device)
+
+        with self._lock:
+            # If stream is running, we need to restart it
+            was_running = self._running
+            stored_callback = callback
+
+            if was_running:
+                self.stop_stream()
+
+            self.device = new_device
+
+            # Restart stream if it was running and we have a callback
+            if was_running and stored_callback:
+                try:
+                    self.start_stream(stored_callback)
+                    return True
+                except Exception as e:
+                    logger.error(f"Failed to restart stream with new device: {e}")
+                    return False
+
+            return True
+
+    def __enter__(self):
+        """Context manager entry"""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - ensures proper cleanup"""
+        self.stop_stream()
+        return False
 
     def __del__(self):
         """Cleanup on deletion"""

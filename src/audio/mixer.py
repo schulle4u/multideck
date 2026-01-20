@@ -10,6 +10,10 @@ from typing import List, Optional, Callable
 from audio.deck import Deck
 from audio.audio_engine import AudioEngine
 from config.defaults import MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC, DECK_STATE_PLAYING
+from utils.logger import get_logger
+
+# Module logger
+logger = get_logger('mixer')
 
 
 class Mixer:
@@ -88,9 +92,9 @@ class Mixer:
             current_time = time.time()
             if current_time - self._last_underflow_time >= 1.0:
                 if self._underflow_count > 0:
-                    print(f"Audio callback status: {status} (occurred {self._underflow_count + 1}x)")
+                    logger.warning(f"Audio callback status: {status} (occurred {self._underflow_count + 1}x)")
                 else:
-                    print(f"Audio callback status: {status}")
+                    logger.warning(f"Audio callback status: {status}")
                 self._last_underflow_time = current_time
                 self._underflow_count = 0
             else:
@@ -113,13 +117,13 @@ class Mixer:
                         # Buffer for pre-roll when not recording
                         self.recorder.buffer_frames(audio_data)
                 except Exception as rec_error:
-                    print(f"Error with recorder: {rec_error}")
+                    logger.error(f"Error with recorder: {rec_error}")
 
             # Copy to output buffer
             outdata[:] = audio_data
 
         except Exception as e:
-            print(f"Error in audio callback: {e}")
+            logger.error(f"Error in audio callback: {e}")
             outdata.fill(0)
 
     def _generate_audio(self, frames: int) -> np.ndarray:
@@ -320,7 +324,7 @@ class Mixer:
             return chunk
 
         except Exception as e:
-            print(f"Error getting deck audio: {e}")
+            logger.error(f"Error getting deck audio: {e}")
             return None
 
     def set_mode(self, mode: str):

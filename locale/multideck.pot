@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-18 11:13+0100\n"
+"POT-Creation-Date: 2026-01-20 10:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -106,8 +106,8 @@ msgstr ""
 
 #: gui/deck_panel.py:258 gui/main_frame.py:348 gui/main_frame.py:371
 #: gui/main_frame.py:419 gui/main_frame.py:455 gui/main_frame.py:558
-#: gui/main_frame.py:570 gui/main_frame.py:575 gui/main_frame.py:622 main.py:60
-#: main.py:68 main.py:81
+#: gui/main_frame.py:570 gui/main_frame.py:575 gui/main_frame.py:661
+#: gui/main_frame.py:675 main.py:61 main.py:69 main.py:82
 msgid "Error"
 msgstr ""
 
@@ -283,7 +283,7 @@ msgstr ""
 msgid "&Deck"
 msgstr ""
 
-#: gui/main_frame.py:137 gui/main_frame.py:765
+#: gui/main_frame.py:137 gui/main_frame.py:818
 msgid "Start &Recording\tCtrl+R"
 msgstr ""
 
@@ -409,12 +409,12 @@ msgstr ""
 msgid "Open Project"
 msgstr ""
 
-#: gui/main_frame.py:417 main.py:77
+#: gui/main_frame.py:417 main.py:78
 #, python-brace-format
 msgid "Opened: {}"
 msgstr ""
 
-#: gui/main_frame.py:419 main.py:80
+#: gui/main_frame.py:419 main.py:81
 #, python-brace-format
 msgid "Failed to open project: {}"
 msgstr ""
@@ -445,44 +445,73 @@ msgstr ""
 msgid "Recent files cleared"
 msgstr ""
 
-#: gui/main_frame.py:622
+#: gui/main_frame.py:642
+msgid "Changing audio device..."
+msgstr ""
+
+#: gui/main_frame.py:647
+msgid "Audio device changed successfully"
+msgstr ""
+
+#: gui/main_frame.py:649
+msgid "Audio device change failed"
+msgstr ""
+
+#: gui/main_frame.py:651
+msgid "Failed to change audio device. The application will use the previous device."
+msgstr ""
+
+#: gui/main_frame.py:652
+msgid "Warning"
+msgstr ""
+
+#: gui/main_frame.py:658
+msgid "Audio device error"
+msgstr ""
+
+#: gui/main_frame.py:660
+#, python-brace-format
+msgid "Error changing audio device: {}"
+msgstr ""
+
+#: gui/main_frame.py:675
 msgid "Shortcuts file not found"
 msgstr ""
 
-#: gui/main_frame.py:629
+#: gui/main_frame.py:682
 msgid "Accessible cross-platform audio player for simultaneous playback"
 msgstr ""
 
-#: gui/main_frame.py:685 gui/main_frame.py:694 gui/main_frame.py:712
-#: gui/main_frame.py:719
+#: gui/main_frame.py:738 gui/main_frame.py:747 gui/main_frame.py:765
+#: gui/main_frame.py:772
 #, python-brace-format
 msgid "Active deck: {}"
 msgstr ""
 
-#: gui/main_frame.py:745
+#: gui/main_frame.py:798
 msgid "Choose recording output directory"
 msgstr ""
 
-#: gui/main_frame.py:757
+#: gui/main_frame.py:810
 #, python-brace-format
 msgid "Recording: {}"
 msgstr ""
 
-#: gui/main_frame.py:759
+#: gui/main_frame.py:812
 msgid "Stop &Recording\tCtrl+R"
 msgstr ""
 
-#: gui/main_frame.py:763
+#: gui/main_frame.py:816
 #, python-brace-format
 msgid "Recording stopped: {}"
 msgstr ""
 
-#: main.py:59
+#: main.py:60
 #, python-brace-format
 msgid "Project file not found: {}"
 msgstr ""
 
-#: main.py:67
+#: main.py:68
 #, python-brace-format
 msgid ""
 "Invalid project file format: {}\n"

@@ -10,6 +10,11 @@ import subprocess
 import numpy as np
 from typing import Optional, Callable
 
+from utils.logger import get_logger
+
+# Module logger
+logger = get_logger('stream_handler')
+
 
 # Check if FFmpeg is available
 def _check_ffmpeg():
@@ -148,7 +153,7 @@ class StreamHandler:
                 self._read_ffmpeg_output()
 
             except Exception as e:
-                print(f"Stream error: {e}")
+                logger.error(f"Stream error: {e}")
                 self.is_connected = False
 
                 if self._ffmpeg_process:
@@ -213,7 +218,7 @@ class StreamHandler:
             return True
 
         except Exception as e:
-            print(f"Failed to start FFmpeg: {e}")
+            logger.error(f"Failed to start FFmpeg: {e}")
             if self.on_error:
                 self.on_error(f"Failed to start stream: {e}")
             return False
@@ -259,7 +264,7 @@ class StreamHandler:
 
         except Exception as e:
             if self.is_running:
-                print(f"Error reading FFmpeg output: {e}")
+                logger.error(f"Error reading FFmpeg output: {e}")
                 self.is_connected = False
 
     def get_audio_data(self, num_samples: int) -> Optional[np.ndarray]:
@@ -273,7 +278,7 @@ class StreamHandler:
             Audio data as numpy array (num_samples, 2) or None
         """
         if not FFMPEG_AVAILABLE:
-            print("Warning: FFmpeg not available, stream playback disabled")
+            logger.warning("FFmpeg not available, stream playback disabled")
             return None
 
         try:
@@ -312,7 +317,7 @@ class StreamHandler:
                     return np.zeros((num_samples, 2), dtype=np.float32)
 
         except Exception as e:
-            print(f"Error getting stream audio data: {e}")
+            logger.error(f"Error getting stream audio data: {e}")
             return np.zeros((num_samples, 2), dtype=np.float32)
 
     def has_data(self) -> bool:

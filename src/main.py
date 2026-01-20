@@ -20,6 +20,7 @@ import wx
 from gui.main_frame import MainFrame
 from config.config_manager import ConfigManager
 from utils.i18n import initialize_i18n, _
+from utils.logger import configure_logging, get_logger
 
 
 class MultiDeckApp(wx.App):
@@ -101,6 +102,19 @@ def main():
     """Main entry point"""
     # Parse command line arguments
     args = parse_arguments()
+
+    # Initialize configuration early to get logging settings
+    config = ConfigManager()
+
+    # Configure logging based on settings
+    log_level = config.get('Logging', 'level', 'INFO')
+    file_logging = config.getboolean('Logging', 'file_logging', True)
+    console_logging = config.getboolean('Logging', 'console_logging', False)
+    configure_logging(level=log_level, file_logging=file_logging, console_logging=console_logging)
+
+    # Get logger for main module
+    logger = get_logger('main')
+    logger.info("MultiDeck Audio Player starting...")
 
     # Create application with optional project file
     app = MultiDeckApp(project_file=args.project, redirect=False)
