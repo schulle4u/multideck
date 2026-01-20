@@ -90,9 +90,9 @@ class MainFrame(wx.Frame):
 
         # File menu
         file_menu = wx.Menu()
-        file_menu.Append(wx.ID_OPEN, _("&Open Project...\tCtrl+O"))
-        file_menu.Append(wx.ID_SAVE, _("&Save Project\tCtrl+S"))
-        file_menu.Append(wx.ID_SAVEAS, _("Save Project &As...\tCtrl+Shift+S"))
+        file_menu.Append(wx.ID_OPEN, _("&Open Project...") + "\tCtrl+O")
+        file_menu.Append(wx.ID_SAVE, _("&Save Project") + "\tCtrl+S")
+        file_menu.Append(wx.ID_SAVEAS, _("Save Project &As...") + "\tCtrl+Shift+S")
         file_menu.AppendSeparator()
 
         # Recent Files submenu
@@ -101,15 +101,15 @@ class MainFrame(wx.Frame):
         self._update_recent_files_menu()
 
         file_menu.AppendSeparator()
-        file_menu.Append(wx.ID_EXIT, _("E&xit\tAlt+F4"))
+        file_menu.Append(wx.ID_EXIT, _("E&xit") + "\tAlt+F4")
         menu_bar.Append(file_menu, _("&File"))
 
         # View menu
         view_menu = wx.Menu()
-        self.statusbar_item = view_menu.AppendCheckItem(wx.ID_ANY, _("&Status Bar\tCtrl+T"))
+        self.statusbar_item = view_menu.AppendCheckItem(wx.ID_ANY, _("&Status Bar") + "\tCtrl+T")
         self.statusbar_item.Check(True)
         view_menu.AppendSeparator()
-        self.theme_item = view_menu.Append(wx.ID_ANY, _("Toggle &Theme\tCtrl+Shift+T"))
+        self.theme_item = view_menu.Append(wx.ID_ANY, _("Toggle &Theme") + "\tCtrl+Shift+T")
         menu_bar.Append(view_menu, _("&View"))
 
         # Deck menu (for solo mode deck selection)
@@ -134,14 +134,14 @@ class MainFrame(wx.Frame):
 
         # Tools menu
         tools_menu = wx.Menu()
-        self.record_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Recording\tCtrl+R"))
+        self.record_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Recording") + "\tCtrl+R")
         tools_menu.AppendSeparator()
-        tools_menu.Append(wx.ID_PREFERENCES, _("&Options...\tCtrl+P"))
+        tools_menu.Append(wx.ID_PREFERENCES, _("&Options...") + "\tCtrl+P")
         menu_bar.Append(tools_menu, _("&Tools"))
 
         # Help menu
         help_menu = wx.Menu()
-        help_menu.Append(wx.ID_HELP, _("&Keyboard Shortcuts\tF1"))
+        help_menu.Append(wx.ID_HELP, _("&Keyboard Shortcuts") + "\tF1")
         help_menu.AppendSeparator()
         help_menu.Append(wx.ID_ABOUT, _("&About..."))
         menu_bar.Append(help_menu, _("&Help"))
@@ -808,13 +808,13 @@ class MainFrame(wx.Frame):
         """Callback when recording starts"""
         self.SetStatusText(_("Recording: {}").format(os.path.basename(filepath)), 0)
         # Update menu item text
-        self.record_menu_item.SetItemLabel(_("Stop &Recording\tCtrl+R"))
+        self.record_menu_item.SetItemLabel(_("Stop &Recording") + "\tCtrl+R")
 
     def _on_recording_stopped(self, filepath, frames):
         """Callback when recording stops"""
         self.SetStatusText(_("Recording stopped: {}").format(os.path.basename(filepath)), 0)
         # Update menu item text
-        self.record_menu_item.SetItemLabel(_("Start &Recording\tCtrl+R"))
+        self.record_menu_item.SetItemLabel(_("Start &Recording") + "\tCtrl+R")
 
     def _on_close(self, event):
         """Handle window close"""

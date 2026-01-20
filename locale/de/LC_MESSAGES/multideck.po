@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-20 10:51+0100\n"
-"PO-Revision-Date: 2026-01-20 10:54+0100\n"
+"POT-Creation-Date: 2026-01-20 19:19+0100\n"
+"PO-Revision-Date: 2026-01-20 19:22+0100\n"
 "Last-Translator: Steffen Schultz\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -108,8 +108,8 @@ msgstr "Pausiert"
 
 #: gui/deck_panel.py:258 gui/main_frame.py:348 gui/main_frame.py:371
 #: gui/main_frame.py:419 gui/main_frame.py:455 gui/main_frame.py:558
-#: gui/main_frame.py:570 gui/main_frame.py:575 gui/main_frame.py:661
-#: gui/main_frame.py:675 main.py:61 main.py:69 main.py:82
+#: gui/main_frame.py:570 gui/main_frame.py:575 gui/main_frame.py:660
+#: gui/main_frame.py:674 main.py:61 main.py:69 main.py:82
 msgid "Error"
 msgstr "Fehler"
 
@@ -244,24 +244,24 @@ msgid "Settings Saved"
 msgstr "Einstellungen gespeichert"
 
 #: gui/main_frame.py:93
-msgid "&Open Project...\tCtrl+O"
-msgstr "Projekt &öffnen...\tCtrl+O"
+msgid "&Open Project..."
+msgstr "Projekt öffnen..."
 
 #: gui/main_frame.py:94
-msgid "&Save Project\tCtrl+S"
-msgstr "Projekt &speichern\tCtrl+S"
+msgid "&Save Project"
+msgstr "Projekt speichern"
 
 #: gui/main_frame.py:95
-msgid "Save Project &As...\tCtrl+Shift+S"
-msgstr "Projekt speichern &unter...\tCtrl+Shift+S"
+msgid "Save Project &As..."
+msgstr "Projekt speichern &unter..."
 
 #: gui/main_frame.py:100
 msgid "&Recent Files"
 msgstr "&Letzte Dateien"
 
 #: gui/main_frame.py:104
-msgid "E&xit\tAlt+F4"
-msgstr "&Beenden\tAlt+F4"
+msgid "E&xit"
+msgstr "&Beenden"
 
 # Menu items
 #: gui/main_frame.py:105
@@ -269,12 +269,12 @@ msgid "&File"
 msgstr "&Datei"
 
 #: gui/main_frame.py:109
-msgid "&Status Bar\tCtrl+T"
-msgstr "&Statusleiste\tCtrl+T"
+msgid "&Status Bar"
+msgstr "&Statusleiste"
 
 #: gui/main_frame.py:112
-msgid "Toggle &Theme\tCtrl+Shift+T"
-msgstr "&Theme wechseln\tCtrl+Shift+T"
+msgid "Toggle &Theme"
+msgstr "&Theme wechseln"
 
 #: gui/main_frame.py:113
 msgid "&View"
@@ -288,21 +288,22 @@ msgstr "Deck"
 msgid "&Deck"
 msgstr "&Deck"
 
-#: gui/main_frame.py:137 gui/main_frame.py:818
-msgid "Start &Recording\tCtrl+R"
-msgstr "&Aufnahme starten\tCtrl+R"
+#: gui/main_frame.py:137 gui/main_frame.py:817
+msgid "Start &Recording"
+msgstr "&Aufnahme starten"
 
+# Dialogs
 #: gui/main_frame.py:139
-msgid "&Options...\tCtrl+P"
-msgstr "&Optionen...\tCtrl+P"
+msgid "&Options..."
+msgstr "&Optionen..."
 
 #: gui/main_frame.py:140
 msgid "&Tools"
 msgstr "&Werkzeuge"
 
 #: gui/main_frame.py:144
-msgid "&Keyboard Shortcuts\tF1"
-msgstr "&Tastaturkürzel\tF1"
+msgid "&Keyboard Shortcuts"
+msgstr "&Tastaturkürzel"
 
 #: gui/main_frame.py:146
 msgid "&About..."
@@ -453,67 +454,67 @@ msgstr "Datei nicht gefunden, wird aus letzte Dateien entfernt."
 msgid "Recent files cleared"
 msgstr "Letzte Dateien geleert"
 
-#: gui/main_frame.py:642
+#: gui/main_frame.py:641
 msgid "Changing audio device..."
 msgstr "Audiogerät wird gewechselt..."
 
-#: gui/main_frame.py:647
+#: gui/main_frame.py:646
 msgid "Audio device changed successfully"
 msgstr "Audiogerät erfolgreich gewechselt"
 
-#: gui/main_frame.py:649
+#: gui/main_frame.py:648
 msgid "Audio device change failed"
 msgstr "Audiogerät konnte nicht gewechselt werden"
 
-#: gui/main_frame.py:651
+#: gui/main_frame.py:650
 msgid ""
 "Failed to change audio device. The application will use the previous device."
 msgstr ""
 "Fehler beim Wechsel des Audiogeräts. Das vorherige Gerät wird verwendet."
 
-#: gui/main_frame.py:652
+#: gui/main_frame.py:651
 msgid "Warning"
 msgstr "Warnung"
 
-#: gui/main_frame.py:658
+#: gui/main_frame.py:657
 msgid "Audio device error"
 msgstr "Audiogerätefehler"
 
-#: gui/main_frame.py:660
+#: gui/main_frame.py:659
 #, python-brace-format
 msgid "Error changing audio device: {}"
 msgstr "Fehler beim Wechsel des Audiogeräts: {}"
 
-#: gui/main_frame.py:675
+#: gui/main_frame.py:674
 msgid "Shortcuts file not found"
 msgstr "Tastaturkürzel-Datei nicht gefunden"
 
-#: gui/main_frame.py:682
+#: gui/main_frame.py:681
 msgid "Accessible cross-platform audio player for simultaneous playback"
 msgstr ""
 "Barrierefreier plattformübergreifender Audio-Player für gleichzeitiges "
 "Abspielen"
 
-#: gui/main_frame.py:738 gui/main_frame.py:747 gui/main_frame.py:765
-#: gui/main_frame.py:772
+#: gui/main_frame.py:737 gui/main_frame.py:746 gui/main_frame.py:764
+#: gui/main_frame.py:771
 #, python-brace-format
 msgid "Active deck: {}"
 msgstr "Aktives Deck: {}"
 
-#: gui/main_frame.py:798
+#: gui/main_frame.py:797
 msgid "Choose recording output directory"
 msgstr "Aufnahme-Ausgabeverzeichnis wählen"
 
-#: gui/main_frame.py:810
+#: gui/main_frame.py:809
 #, python-brace-format
 msgid "Recording: {}"
 msgstr "Aufnahme: {}"
 
-#: gui/main_frame.py:812
-msgid "Stop &Recording\tCtrl+R"
-msgstr "&Aufnahme beenden\tCtrl+R"
+#: gui/main_frame.py:811
+msgid "Stop &Recording"
+msgstr "&Aufnahme beenden"
 
-#: gui/main_frame.py:816
+#: gui/main_frame.py:815
 #, python-brace-format
 msgid "Recording stopped: {}"
 msgstr "Aufnahme gestoppt: {}"
@@ -531,6 +532,21 @@ msgid ""
 msgstr ""
 "Ungültiges Projektdateiformat: {}\n"
 ".mdap-Datei erwartet."
+
+#~ msgid "&Open Project...\tCtrl+O"
+#~ msgstr "Projekt &öffnen...\tCtrl+O"
+
+#~ msgid "&Save Project\tCtrl+S"
+#~ msgstr "Projekt &speichern\tCtrl+S"
+
+#~ msgid "Save Project &As...\tCtrl+Shift+S"
+#~ msgstr "Projekt speichern &unter...\tCtrl+Shift+S"
+
+#~ msgid "E&xit\tAlt+F4"
+#~ msgstr "&Beenden\tAlt+F4"
+
+#~ msgid "&Options...\tCtrl+P"
+#~ msgstr "&Optionen...\tCtrl+P"
 
 #~ msgid "Load..."
 #~ msgstr "Laden..."
