@@ -679,8 +679,8 @@ class MainFrame(wx.Frame):
         info.SetName(APP_NAME)
         info.SetVersion(APP_VERSION)
         info.SetDescription(_("Accessible cross-platform audio player for simultaneous playback"))
-        info.SetWebSite(APP_WEBSITE)
-        info.AddDeveloper(APP_AUTHOR)
+        info.SetWebSite(APP_WEBSITE, desc="GitHub")
+        info.SetCopyright("Copyright (C) " + APP_AUTHOR)
         info.SetLicense(APP_LICENSE)
         wx.adv.AboutBox(info)
 
