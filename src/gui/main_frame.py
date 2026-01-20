@@ -606,10 +606,9 @@ class MainFrame(wx.Frame):
             self.recorder.set_format(rec_format)
             self.recorder.set_bitrate(rec_bitrate)
 
-            # Reload automation settings
-            self.mixer.auto_switch_interval = self.config_manager.getint('Automation', 'switch_interval', 10)
-            self.mixer.crossfade_enabled = self.config_manager.getboolean('Automation', 'crossfade_enabled', True)
-            self.mixer.crossfade_duration = self.config_manager.getfloat('Automation', 'crossfade_duration', 2.0)
+            # Note: Automation settings (switch_interval, crossfade_enabled, crossfade_duration)
+            # are NOT reloaded here to preserve project-specific values.
+            # Global settings only apply at startup or when creating a new project.
 
             # Check if audio device changed and apply at runtime
             new_device = self.config_manager.get('Audio', 'output_device', 'default')

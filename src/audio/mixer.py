@@ -366,11 +366,28 @@ class Mixer:
     def next_deck(self, use_crossfade: bool = None):
         """
         Switch to next deck (Solo/Automatic mode).
+        In Automatic mode, only switches to decks that have content loaded.
 
         Args:
             use_crossfade: Whether to use crossfade (None = auto based on mode and settings)
         """
-        next_index = (self.active_deck_index + 1) % len(self.decks)
+        # In automatic mode, only consider loaded decks
+        if self.mode == MODE_AUTOMATIC:
+            loaded_indices = self._get_loaded_deck_indices()
+            if len(loaded_indices) <= 1:
+                # No other loaded deck to switch to
+                return
+
+            # Find current position in loaded list and get next
+            try:
+                current_pos = loaded_indices.index(self.active_deck_index)
+                next_pos = (current_pos + 1) % len(loaded_indices)
+                next_index = loaded_indices[next_pos]
+            except ValueError:
+                # Current deck not in loaded list, switch to first loaded
+                next_index = loaded_indices[0]
+        else:
+            next_index = (self.active_deck_index + 1) % len(self.decks)
 
         # Determine if crossfade should be used
         if use_crossfade is None:
@@ -384,11 +401,28 @@ class Mixer:
     def previous_deck(self, use_crossfade: bool = None):
         """
         Switch to previous deck (Solo/Automatic mode).
+        In Automatic mode, only switches to decks that have content loaded.
 
         Args:
             use_crossfade: Whether to use crossfade (None = auto based on mode and settings)
         """
-        prev_index = (self.active_deck_index - 1) % len(self.decks)
+        # In automatic mode, only consider loaded decks
+        if self.mode == MODE_AUTOMATIC:
+            loaded_indices = self._get_loaded_deck_indices()
+            if len(loaded_indices) <= 1:
+                # No other loaded deck to switch to
+                return
+
+            # Find current position in loaded list and get previous
+            try:
+                current_pos = loaded_indices.index(self.active_deck_index)
+                prev_pos = (current_pos - 1) % len(loaded_indices)
+                prev_index = loaded_indices[prev_pos]
+            except ValueError:
+                # Current deck not in loaded list, switch to last loaded
+                prev_index = loaded_indices[-1]
+        else:
+            prev_index = (self.active_deck_index - 1) % len(self.decks)
 
         # Determine if crossfade should be used
         if use_crossfade is None:
@@ -433,6 +467,20 @@ class Mixer:
             Deck instance or None
         """
         return self.get_deck(deck_id - 1)
+
+    def _get_loaded_deck_indices(self) -> List[int]:
+        """
+        Get indices of decks that have content loaded.
+
+        Returns:
+            List of deck indices (0-based) that have files or streams loaded
+        """
+        loaded = []
+        for i, deck in enumerate(self.decks):
+            # Check if deck has content: either a file path or an active stream
+            if deck.file_path or (deck.is_stream and deck.stream_handler):
+                loaded.append(i)
+        return loaded
 
     def clear_deck_cache(self, deck_id: int):
         """Clear cached audio data for a deck"""
@@ -511,6 +559,13 @@ class Mixer:
     def _start_automatic_switching(self):
         """Start automatic deck switching"""
         if self._auto_thread is None or not self._auto_thread.is_alive():
+            # Ensure active deck is a loaded deck
+            loaded_indices = self._get_loaded_deck_indices()
+            if loaded_indices and self.active_deck_index not in loaded_indices:
+                self.active_deck_index = loaded_indices[0]
+                if self.on_active_deck_change:
+                    self.on_active_deck_change(-1, self.active_deck_index)
+
             self._auto_stop_event.clear()
             self._auto_thread = threading.Thread(target=self._automatic_switch_loop, daemon=True)
             self._auto_thread.start()
