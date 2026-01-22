@@ -2,6 +2,8 @@
 
 An accessible, cross-platform audio player that enables simultaneous playback of up to 10 audio files or internet streams. MultiDeck is perfect for users who need to monitor multiple audio sources in parallel or create complex soundscapes.
 
+[![Main window, german interface shown](./multideck-screenshot.png)](./multideck-screenshot.png)
+
 ## Features
 
 - **Up to 10 Independent Audio Decks**
