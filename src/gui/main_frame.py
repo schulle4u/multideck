@@ -1101,19 +1101,17 @@ class MainFrame(wx.Frame):
 
     def _on_mute_active_deck(self, event):
         """Handle Ctrl+M for mute"""
-        if self.mixer.mode in [MODE_SOLO, MODE_AUTOMATIC]:
-            deck = self.mixer.get_deck(self.mixer.active_deck_index)
-            if deck:
-                deck.toggle_mute()
-                self._update_deck_panel(deck.deck_id)
+        deck = self.mixer.get_deck(self.mixer.active_deck_index)
+        if deck:
+            deck.toggle_mute()
+            self._update_deck_panel(deck.deck_id)
 
     def _on_loop_active_deck(self, event):
         """Handle Ctrl+L for loop"""
-        if self.mixer.mode in [MODE_SOLO, MODE_AUTOMATIC]:
-            deck = self.mixer.get_deck(self.mixer.active_deck_index)
-            if deck:
-                deck.toggle_loop()
-                self._update_deck_panel(deck.deck_id)
+        deck = self.mixer.get_deck(self.mixer.active_deck_index)
+        if deck:
+            deck.toggle_loop()
+            self._update_deck_panel(deck.deck_id)
 
     def _on_toggle_recording(self, event):
         """Handle Ctrl+R for recording toggle"""
