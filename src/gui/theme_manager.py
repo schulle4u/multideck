@@ -244,7 +244,7 @@ class ThemeManager:
                 widget.SetForegroundColour(colors['fg'])
 
             # List controls
-            elif isinstance(widget, wx.ListCtrl):
+            elif isinstance(widget, (wx.ListCtrl, wx.ListBox)):
                 widget.SetBackgroundColour(colors['input_bg'])
                 widget.SetForegroundColour(colors['input_fg'])
 

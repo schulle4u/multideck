@@ -7,7 +7,6 @@ import wx.adv
 import os
 from pathlib import Path
 
-from gui.deck_panel import DeckPanel
 from gui.dialogs import OptionsDialog
 from gui.theme_manager import ThemeManager
 from audio.audio_engine import AudioEngine
@@ -16,7 +15,8 @@ from audio.recorder import Recorder
 from config.config_manager import ConfigManager, ProjectManager
 from config.defaults import (
     APP_NAME, APP_VERSION, APP_AUTHOR, APP_WEBSITE, APP_LICENSE,
-    SUPPORTED_FILE_FORMATS, PROJECT_FILE_FILTER, MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC
+    SUPPORTED_FILE_FORMATS, PROJECT_FILE_FILTER, MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC,
+    DECK_STATE_EMPTY, DECK_STATE_PLAYING, DECK_STATE_PAUSED
 )
 from utils.i18n import _, get_i18n
 
@@ -61,7 +61,6 @@ class MainFrame(wx.Frame):
         self.theme_manager.register_callback(self._on_theme_changed)
 
         # UI components
-        self.deck_panels = []
         self.current_project_file = None
 
         # Create UI
@@ -171,25 +170,17 @@ class MainFrame(wx.Frame):
 
         main_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.ALL, 5)
 
-        # Scrolled window for deck panels
-        scroll = wx.ScrolledWindow(panel)
-        scroll.SetScrollRate(0, 20)
-
-        deck_sizer = wx.BoxSizer(wx.VERTICAL)
-
-        # Create deck panels
-        for deck in self.mixer.decks:
-            deck_panel = DeckPanel(scroll, deck)
-            deck_panel.on_load_file = self._on_deck_load_file
-            deck_panel.on_load_url = self._on_deck_load_url
-            deck_panel.on_play = self._on_deck_play
-            self.deck_panels.append(deck_panel)
-            deck_sizer.Add(deck_panel, 0, wx.EXPAND | wx.ALL, 5)
-
-        scroll.SetSizer(deck_sizer)
-        main_sizer.Add(scroll, 1, wx.EXPAND | wx.ALL, 5)
+        # Active deck control panel with deck selection list
+        active_deck_panel = self._create_active_deck_panel(panel)
+        main_sizer.Add(active_deck_panel, 1, wx.EXPAND | wx.ALL, 5)
 
         panel.SetSizer(main_sizer)
+
+        # Initialize deck list and select first deck
+        self._update_deck_listbox()
+        if self.deck_listbox.GetCount() > 0:
+            self.deck_listbox.SetSelection(0)
+            self._update_active_deck_controls()
 
     def _create_mixer_panel(self, parent):
         """Create mixer control panel"""
@@ -248,6 +239,105 @@ class MainFrame(wx.Frame):
         sizer.Add(volume_box, 1, wx.ALL | wx.EXPAND, 5)
 
         panel.SetSizer(sizer)
+        return panel
+
+    def _create_active_deck_panel(self, parent):
+        """Create the active deck control panel with listbox and controls"""
+        panel = wx.Panel(parent)
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        # Left side: Deck listbox
+        list_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Deck Selection") + " (F6)")
+
+        self.deck_listbox = wx.ListBox(panel, style=wx.LB_SINGLE)
+        self.deck_listbox.SetName(_("Deck Selection"))
+        self.deck_listbox.Bind(wx.EVT_LISTBOX, self._on_deck_listbox_select)
+        self.deck_listbox.Bind(wx.EVT_CONTEXT_MENU, self._on_deck_context_menu)
+        list_box.Add(self.deck_listbox, 1, wx.EXPAND | wx.ALL, 5)
+
+        main_sizer.Add(list_box, 1, wx.EXPAND | wx.ALL, 5)
+
+        # Right side: Controls for active deck
+        controls_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Active Deck Controls"))
+
+        # Deck name/status display
+        self.active_deck_label = wx.StaticText(panel, label=_("No deck selected"))
+        font = self.active_deck_label.GetFont()
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
+        self.active_deck_label.SetFont(font)
+        controls_box.Add(self.active_deck_label, 0, wx.ALL, 5)
+
+        self.active_deck_status = wx.StaticText(panel, label="")
+        controls_box.Add(self.active_deck_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+
+        # Playback buttons
+        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.active_play_btn = wx.Button(panel, label=_("Play"))
+        self.active_play_btn.SetName(_("Play"))
+        self.active_play_btn.Bind(wx.EVT_BUTTON, self._on_active_play_pause)
+        button_sizer.Add(self.active_play_btn, 1, wx.ALL, 5)
+
+        self.active_stop_btn = wx.Button(panel, label=_("Stop"))
+        self.active_stop_btn.SetName(_("Stop"))
+        self.active_stop_btn.Bind(wx.EVT_BUTTON, self._on_active_stop)
+        button_sizer.Add(self.active_stop_btn, 1, wx.ALL, 5)
+
+        self.active_menu_btn = wx.Button(panel, label=_("Menu..."))
+        self.active_menu_btn.SetName(_("Menu..."))
+        self.active_menu_btn.Bind(wx.EVT_BUTTON, self._on_active_menu)
+        button_sizer.Add(self.active_menu_btn, 1, wx.ALL, 5)
+
+        controls_box.Add(button_sizer, 0, wx.EXPAND)
+
+        # Volume slider
+        volume_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        volume_label = wx.StaticText(panel, label=_("Volume:"))
+        volume_sizer.Add(volume_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        self.active_volume_slider = wx.Slider(
+            panel, value=100, minValue=0, maxValue=100,
+            style=wx.SL_HORIZONTAL
+        )
+        self.active_volume_slider.SetName(_("Volume"))
+        self.active_volume_slider.Bind(wx.EVT_SLIDER, self._on_active_volume_change)
+        volume_sizer.Add(self.active_volume_slider, 1, wx.ALL | wx.EXPAND, 5)
+
+        controls_box.Add(volume_sizer, 0, wx.EXPAND)
+
+        # Balance slider
+        balance_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        balance_label = wx.StaticText(panel, label=_("Balance:"))
+        balance_sizer.Add(balance_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        self.active_balance_slider = wx.Slider(
+            panel, value=0, minValue=-100, maxValue=100,
+            style=wx.SL_HORIZONTAL
+        )
+        self.active_balance_slider.SetName(_("Balance"))
+        self.active_balance_slider.Bind(wx.EVT_SLIDER, self._on_active_balance_change)
+        balance_sizer.Add(self.active_balance_slider, 1, wx.ALL | wx.EXPAND, 5)
+
+        controls_box.Add(balance_sizer, 0, wx.EXPAND)
+
+        # Mute and Loop checkboxes
+        checkbox_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.active_mute_cb = wx.CheckBox(panel, label=_("Mute"))
+        self.active_mute_cb.SetName(_("Mute"))
+        self.active_mute_cb.Bind(wx.EVT_CHECKBOX, self._on_active_mute_change)
+        checkbox_sizer.Add(self.active_mute_cb, 0, wx.ALL, 5)
+
+        self.active_loop_cb = wx.CheckBox(panel, label=_("Loop"))
+        self.active_loop_cb.SetName(_("Loop"))
+        self.active_loop_cb.Bind(wx.EVT_CHECKBOX, self._on_active_loop_change)
+        checkbox_sizer.Add(self.active_loop_cb, 0, wx.ALL, 5)
+
+        controls_box.Add(checkbox_sizer, 0)
+
+        main_sizer.Add(controls_box, 2, wx.EXPAND | wx.ALL, 5)
+
+        panel.SetSizer(main_sizer)
         return panel
 
     def _create_status_bar(self):
@@ -317,9 +407,9 @@ class MainFrame(wx.Frame):
             self.global_play_pause_btn.SetLabel(_("Play All"))
 
     def _update_all_deck_panels(self):
-        """Update all deck panels to reflect current state"""
-        for panel in self.deck_panels:
-            panel.update()
+        """Update UI to reflect current state of all decks"""
+        self._update_deck_listbox()
+        self._update_active_deck_controls()
 
     def _on_deck_play(self, deck):
         """Handle deck play request - preload audio to prevent underflow"""
@@ -373,9 +463,239 @@ class MainFrame(wx.Frame):
         dlg.Destroy()
 
     def _update_deck_panel(self, deck_id):
-        """Update specific deck panel"""
-        if 1 <= deck_id <= len(self.deck_panels):
-            self.deck_panels[deck_id - 1].update()
+        """Update UI for a specific deck"""
+        # Update listbox to reflect changes
+        self._update_deck_listbox()
+        # Update active deck controls if this is the selected deck
+        selection = self.deck_listbox.GetSelection()
+        if selection != wx.NOT_FOUND and selection == deck_id - 1:
+            self._update_active_deck_controls()
+
+    def _update_deck_listbox(self):
+        """Update deck listbox with current deck names and status"""
+        current_selection = self.deck_listbox.GetSelection()
+        self.deck_listbox.Clear()
+        for i, deck in enumerate(self.mixer.decks):
+            # Build display text: deck name + file info if loaded
+            display_text = deck.name
+            if deck.file_path:
+                if deck.is_stream:
+                    file_info = deck.file_path
+                else:
+                    file_info = os.path.basename(deck.file_path)
+                display_text = f"{deck.name}: {file_info}"
+            self.deck_listbox.Append(display_text)
+        # Restore selection
+        if current_selection != wx.NOT_FOUND and current_selection < self.deck_listbox.GetCount():
+            self.deck_listbox.SetSelection(current_selection)
+
+    def _on_deck_listbox_select(self, event):
+        """Handle deck listbox selection"""
+        deck_index = self.deck_listbox.GetSelection()
+        if deck_index != wx.NOT_FOUND:
+            # Update mixer's active deck for Solo/Automatic mode
+            self.mixer.set_active_deck(deck_index)
+            self._update_deck_menu_selection(deck_index)
+            # Update controls to show selected deck
+            self._update_active_deck_controls()
+
+    def _update_active_deck_controls(self):
+        """Update the active deck control panel to reflect selected deck"""
+        deck_index = self.deck_listbox.GetSelection()
+        if deck_index == wx.NOT_FOUND or deck_index >= len(self.mixer.decks):
+            self.active_deck_label.SetLabel(_("No deck selected"))
+            self.active_deck_status.SetLabel("")
+            self.active_play_btn.Enable(False)
+            self.active_stop_btn.Enable(False)
+            return
+
+        deck = self.mixer.decks[deck_index]
+
+        # Update labels
+        self.active_deck_label.SetLabel(deck.name)
+
+        # Update status
+        status_text = {
+            DECK_STATE_EMPTY: _("Empty"),
+            "loaded": _("Loaded"),
+            DECK_STATE_PLAYING: _("Playing"),
+            DECK_STATE_PAUSED: _("Paused"),
+            "error": _("Error"),
+        }.get(deck.state, deck.state)
+
+        file_info = ""
+        if deck.file_path:
+            if deck.is_stream:
+                file_info = deck.file_path
+            else:
+                file_info = os.path.basename(deck.file_path)
+            status_text = f"{status_text} - {file_info}"
+
+        self.active_deck_status.SetLabel(status_text)
+
+        # Update play button
+        if deck.is_playing:
+            self.active_play_btn.SetLabel(_("Pause"))
+            self.active_play_btn.SetName(_("Pause"))
+        else:
+            self.active_play_btn.SetLabel(_("Play"))
+            self.active_play_btn.SetName(_("Play"))
+
+        # Enable/disable controls based on state
+        is_loaded = deck.state != DECK_STATE_EMPTY
+        self.active_play_btn.Enable(is_loaded)
+        self.active_stop_btn.Enable(is_loaded)
+
+        # Update sliders
+        self.active_volume_slider.SetValue(int(deck.volume * 100))
+        self.active_balance_slider.SetValue(int(deck.balance * 100))
+
+        # Update checkboxes
+        self.active_mute_cb.SetValue(deck.mute)
+        self.active_loop_cb.SetValue(deck.loop)
+
+    def _get_selected_deck(self):
+        """Get the currently selected deck from listbox"""
+        deck_index = self.deck_listbox.GetSelection()
+        if deck_index != wx.NOT_FOUND and deck_index < len(self.mixer.decks):
+            return self.mixer.decks[deck_index]
+        return None
+
+    def _on_active_play_pause(self, event):
+        """Handle play/pause for active deck"""
+        deck = self._get_selected_deck()
+        if deck and deck.state != "empty":
+            # Preload audio before starting playback
+            if not deck.is_playing:
+                self.mixer.ensure_deck_loaded(deck)
+            deck.toggle_play_pause()
+            self._update_active_deck_controls()
+            self._update_deck_panel(deck.deck_id)
+
+    def _on_active_stop(self, event):
+        """Handle stop for active deck"""
+        deck = self._get_selected_deck()
+        if deck:
+            deck.stop()
+            self._update_active_deck_controls()
+            self._update_deck_panel(deck.deck_id)
+
+    def _on_active_menu(self, event):
+        """Show menu for active deck (from button)"""
+        self._show_deck_context_menu(self.active_menu_btn)
+
+    def _on_deck_context_menu(self, event):
+        """Show context menu for deck listbox (right-click or Shift+F10)"""
+        self._show_deck_context_menu(self.deck_listbox)
+
+    def _show_deck_context_menu(self, parent_widget):
+        """Show the deck context menu on the specified widget"""
+        deck = self._get_selected_deck()
+        if not deck:
+            return
+
+        menu = wx.Menu()
+        load_file_item = menu.Append(wx.ID_ANY, _("Load File..."))
+        load_url_item = menu.Append(wx.ID_ANY, _("Load URL..."))
+        menu.AppendSeparator()
+
+        rename_item = menu.Append(wx.ID_ANY, _("Rename Deck..."))
+        menu.AppendSeparator()
+
+        toggle_loop_item = menu.Append(wx.ID_ANY, _("Toggle Loop"))
+        menu.AppendSeparator()
+
+        unload_item = menu.Append(wx.ID_ANY, _("Unload Deck"))
+        unload_item.Enable(deck.state != DECK_STATE_EMPTY)
+
+        self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_file(deck), load_file_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_url(deck), load_url_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_active_rename(), rename_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_active_toggle_loop(), toggle_loop_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_active_unload(), unload_item)
+
+        parent_widget.PopupMenu(menu)
+        menu.Destroy()
+
+    def _on_active_rename(self):
+        """Rename the active deck"""
+        deck = self._get_selected_deck()
+        if not deck:
+            return
+
+        dlg = wx.TextEntryDialog(self, _("Enter new deck name:"), _("Rename Deck"), deck.name)
+        if dlg.ShowModal() == wx.ID_OK:
+            new_name = dlg.GetValue().strip()
+            if new_name:
+                deck.set_name(new_name)
+                self._update_deck_listbox()
+                self._update_active_deck_controls()
+                self._update_deck_panel(deck.deck_id)
+        dlg.Destroy()
+
+    def _on_active_toggle_loop(self):
+        """Toggle loop for active deck"""
+        deck = self._get_selected_deck()
+        if deck:
+            deck.toggle_loop()
+            self._update_active_deck_controls()
+            self._update_deck_panel(deck.deck_id)
+
+    def _on_active_unload(self):
+        """Unload the active deck"""
+        deck = self._get_selected_deck()
+        if deck:
+            deck.unload()
+            self._update_active_deck_controls()
+            self._update_deck_panel(deck.deck_id)
+
+    def _on_active_volume_change(self, event):
+        """Handle volume change for active deck"""
+        deck = self._get_selected_deck()
+        if deck:
+            volume = self.active_volume_slider.GetValue() / 100.0
+            deck.set_volume(volume)
+            self._update_deck_panel(deck.deck_id)
+
+    def _on_active_balance_change(self, event):
+        """Handle balance change for active deck"""
+        deck = self._get_selected_deck()
+        if deck:
+            balance = self.active_balance_slider.GetValue() / 100.0
+            deck.set_balance(balance)
+            self._update_deck_panel(deck.deck_id)
+
+    def _on_active_mute_change(self, event):
+        """Handle mute change for active deck"""
+        deck = self._get_selected_deck()
+        if deck:
+            deck.set_mute(self.active_mute_cb.GetValue())
+            self._update_deck_panel(deck.deck_id)
+
+    def _on_active_loop_change(self, event):
+        """Handle loop change for active deck"""
+        deck = self._get_selected_deck()
+        if deck:
+            deck.set_loop(self.active_loop_cb.GetValue())
+            self._update_deck_panel(deck.deck_id)
+
+    def _on_jump_to_deck_list(self, event):
+        """Handle F6 to jump to deck listbox"""
+        self.deck_listbox.SetFocus()
+
+    def _sync_listbox_selection(self, deck_index):
+        """Sync listbox selection with mixer's active deck"""
+        if deck_index < self.deck_listbox.GetCount():
+            self.deck_listbox.SetSelection(deck_index)
+            self._update_active_deck_controls()
+
+    def _on_deck_info_changed(self, deck):
+        """Handle deck info changes (name, loaded file, etc.)"""
+        self._update_deck_listbox()
+        # Update active controls if this deck is selected
+        selection = self.deck_listbox.GetSelection()
+        if selection != wx.NOT_FOUND and selection == deck.deck_id - 1:
+            self._update_active_deck_controls()
 
     def _preload_deck_audio(self, deck):
         """Preload audio data for a deck to avoid stuttering on first playback"""
@@ -587,9 +907,6 @@ class MainFrame(wx.Frame):
     def _apply_current_theme(self):
         """Apply the current theme to all windows"""
         self.theme_manager.apply_theme(self)
-        # Refresh all deck panels
-        for panel in self.deck_panels:
-            panel.Refresh()
         self.Refresh()
         self.Update()
 
@@ -725,6 +1042,11 @@ class MainFrame(wx.Frame):
         accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('R'), record_id))
         self.Bind(wx.EVT_MENU, self._on_toggle_recording, id=record_id)
 
+        # F6 for jump to deck list (accessibility standard)
+        jump_f6_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F6, jump_f6_id))
+        self.Bind(wx.EVT_MENU, self._on_jump_to_deck_list, id=jump_f6_id)
+
         # Set accelerator table
         accel_table = wx.AcceleratorTable(accel_entries)
         self.SetAcceleratorTable(accel_table)
@@ -735,8 +1057,9 @@ class MainFrame(wx.Frame):
             self.mixer.set_active_deck(deck_index)
             deck = self.mixer.decks[deck_index]
             self.SetStatusText(_("Active deck: {}").format(deck.name), 0)
-            # Update deck menu selection
+            # Update deck menu and listbox selection
             self._update_deck_menu_selection(deck_index)
+            self._sync_listbox_selection(deck_index)
 
     def _on_deck_menu_select(self, deck_index):
         """Handle deck selection from menu"""
@@ -744,6 +1067,8 @@ class MainFrame(wx.Frame):
             self.mixer.set_active_deck(deck_index)
             deck = self.mixer.decks[deck_index]
             self.SetStatusText(_("Active deck: {}").format(deck.name), 0)
+            # Sync listbox selection
+            self._sync_listbox_selection(deck_index)
 
     def _update_deck_menu_selection(self, deck_index):
         """Update deck menu radio button selection"""
@@ -759,15 +1084,19 @@ class MainFrame(wx.Frame):
     def _on_next_deck(self, event):
         """Handle Ctrl+Tab for next deck"""
         self.mixer.next_deck()
-        self._update_deck_menu_selection(self.mixer.active_deck_index)
-        deck = self.mixer.decks[self.mixer.active_deck_index]
+        deck_index = self.mixer.active_deck_index
+        self._update_deck_menu_selection(deck_index)
+        self._sync_listbox_selection(deck_index)
+        deck = self.mixer.decks[deck_index]
         self.SetStatusText(_("Active deck: {}").format(deck.name), 0)
 
     def _on_previous_deck(self, event):
         """Handle Ctrl+Shift+Tab for previous deck"""
         self.mixer.previous_deck()
-        self._update_deck_menu_selection(self.mixer.active_deck_index)
-        deck = self.mixer.decks[self.mixer.active_deck_index]
+        deck_index = self.mixer.active_deck_index
+        self._update_deck_menu_selection(deck_index)
+        self._sync_listbox_selection(deck_index)
+        deck = self.mixer.decks[deck_index]
         self.SetStatusText(_("Active deck: {}").format(deck.name), 0)
 
     def _on_mute_active_deck(self, event):

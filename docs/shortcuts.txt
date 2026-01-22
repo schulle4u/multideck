@@ -10,6 +10,7 @@ Alt+F4              Exit application
 
 DECK CONTROLS
 -------------
+F6                  Jump to deck selection list
 Ctrl+1 to Ctrl+0    Jump to deck 1-10
 Ctrl+Tab            Next deck (in Solo/Automatic mode)
 Ctrl+Shift+Tab      Previous deck
@@ -18,7 +19,7 @@ Ctrl+L              Toggle loop for active deck
 
 DECK CONTEXT MENU
 -----------------
-Applications Key or Shift+F10    Open context menu for active deck
+Applications Key or Shift+F10 in deck selection list    Open context menu for active deck
 
 RECORDER
 --------
@@ -41,7 +42,7 @@ NAVIGATION
 ----------
 Tab                 Move to next control
 Shift+Tab           Move to previous control
-Space/Enter               Activate button/control
+Space/Enter         Activate button/control
 Escape              Close dialog/cancel
 
 For more information, visit the project documentation.
