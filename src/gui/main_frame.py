@@ -609,17 +609,17 @@ class MainFrame(wx.Frame):
             return
 
         menu = wx.Menu()
-        load_file_item = menu.Append(wx.ID_ANY, _("Load File..."))
-        load_url_item = menu.Append(wx.ID_ANY, _("Load URL..."))
+        load_file_item = menu.Append(wx.ID_ANY, _("Load File...") + "\tCtrl+F")
+        load_url_item = menu.Append(wx.ID_ANY, _("Load URL...") + "\tCtrl+Shift+F")
         menu.AppendSeparator()
 
-        rename_item = menu.Append(wx.ID_ANY, _("Rename Deck..."))
+        rename_item = menu.Append(wx.ID_ANY, _("Rename Deck...") + "\tF2")
         menu.AppendSeparator()
 
-        toggle_loop_item = menu.Append(wx.ID_ANY, _("Toggle Loop"))
+        toggle_loop_item = menu.Append(wx.ID_ANY, _("Toggle Loop") + "\tCtrl+L")
         menu.AppendSeparator()
 
-        unload_item = menu.Append(wx.ID_ANY, _("Unload Deck"))
+        unload_item = menu.Append(wx.ID_ANY, _("Unload Deck") + "\tDel")
         unload_item.Enable(deck.state != DECK_STATE_EMPTY)
 
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_file(deck), load_file_item)
@@ -1083,6 +1083,50 @@ class MainFrame(wx.Frame):
         accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F6, jump_f6_id))
         self.Bind(wx.EVT_MENU, self._on_jump_to_deck_list, id=jump_f6_id)
 
+        # Ctrl+F for load file
+        load_file_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('F'), load_file_id))
+        self.Bind(wx.EVT_MENU, self._on_shortcut_load_file, id=load_file_id)
+
+        # Ctrl+Shift+F for load URL
+        load_url_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL | wx.ACCEL_SHIFT, ord('F'), load_url_id))
+        self.Bind(wx.EVT_MENU, self._on_shortcut_load_url, id=load_url_id)
+
+        # F2 for rename deck
+        rename_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F2, rename_id))
+        self.Bind(wx.EVT_MENU, self._on_shortcut_rename, id=rename_id)
+
+        # Delete for unload deck
+        unload_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_DELETE, unload_id))
+        self.Bind(wx.EVT_MENU, self._on_shortcut_unload, id=unload_id)
+
+        # Ctrl+Up/Down for deck volume
+        vol_up_id = wx.NewIdRef()
+        vol_down_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_UP, vol_up_id))
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_DOWN, vol_down_id))
+        self.Bind(wx.EVT_MENU, lambda e: self._on_deck_volume_change(5), id=vol_up_id)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_deck_volume_change(-5), id=vol_down_id)
+
+        # Ctrl+Left/Right for deck balance
+        bal_left_id = wx.NewIdRef()
+        bal_right_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_LEFT, bal_left_id))
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_RIGHT, bal_right_id))
+        self.Bind(wx.EVT_MENU, lambda e: self._on_deck_balance_change(-5), id=bal_left_id)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_deck_balance_change(5), id=bal_right_id)
+
+        # Ctrl+Shift+Up/Down for master volume
+        master_up_id = wx.NewIdRef()
+        master_down_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL | wx.ACCEL_SHIFT, wx.WXK_UP, master_up_id))
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL | wx.ACCEL_SHIFT, wx.WXK_DOWN, master_down_id))
+        self.Bind(wx.EVT_MENU, lambda e: self._on_master_volume_shortcut(5), id=master_up_id)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_master_volume_shortcut(-5), id=master_down_id)
+
         # Set accelerator table
         accel_table = wx.AcceleratorTable(accel_entries)
         self.SetAcceleratorTable(accel_table)
@@ -1148,6 +1192,61 @@ class MainFrame(wx.Frame):
         if deck:
             deck.toggle_loop()
             self._update_deck_panel(deck.deck_id)
+
+    def _on_shortcut_load_file(self, event):
+        """Handle Ctrl+F for load file"""
+        deck = self._get_selected_deck()
+        if deck:
+            self._on_deck_load_file(deck)
+
+    def _on_shortcut_load_url(self, event):
+        """Handle Ctrl+Shift+F for load URL"""
+        deck = self._get_selected_deck()
+        if deck:
+            self._on_deck_load_url(deck)
+
+    def _on_shortcut_rename(self, event):
+        """Handle F2 for rename deck"""
+        self._on_active_rename()
+
+    def _on_shortcut_unload(self, event):
+        """Handle Del for unload deck"""
+        deck = self._get_selected_deck()
+        if deck and deck.state != DECK_STATE_EMPTY:
+            self._on_active_unload()
+
+    def _on_deck_volume_change(self, delta):
+        """Handle Ctrl+Up/Down for deck volume change"""
+        deck = self._get_selected_deck()
+        if deck:
+            current = int(deck.volume * 100)
+            new_value = max(0, min(100, current + delta))
+            deck.set_volume(new_value / 100.0)
+            self.active_volume_slider.SetValue(new_value)
+            self._update_deck_panel(deck.deck_id)
+            self.SetStatusText(_("{}: Volume {}%").format(deck.name, new_value), 0)
+
+    def _on_deck_balance_change(self, delta):
+        """Handle Ctrl+Left/Right for deck balance change"""
+        deck = self._get_selected_deck()
+        if deck:
+            current = int(deck.balance * 100)
+            new_value = max(-100, min(100, current + delta))
+            deck.set_balance(new_value / 100.0)
+            self.active_balance_slider.SetValue(new_value)
+            self._update_deck_panel(deck.deck_id)
+            balance_text = _("Center") if new_value == 0 else (
+                _("Left {}%").format(abs(new_value)) if new_value < 0 else _("Right {}%").format(new_value)
+            )
+            self.SetStatusText(_("{}: Balance {}").format(deck.name, balance_text), 0)
+
+    def _on_master_volume_shortcut(self, delta):
+        """Handle Ctrl+Shift+Up/Down for master volume change"""
+        current = self.master_volume_slider.GetValue()
+        new_value = max(0, min(100, current + delta))
+        self.master_volume_slider.SetValue(new_value)
+        self.mixer.set_master_volume(new_value / 100.0)
+        self.SetStatusText(f"{_('Master')}: {new_value}%", 2)
 
     def _on_toggle_recording(self, event):
         """Handle Ctrl+R for recording toggle"""

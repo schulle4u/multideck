@@ -16,10 +16,20 @@ Ctrl+Tab            Next deck (in Solo/Automatic mode)
 Ctrl+Shift+Tab      Previous deck
 Ctrl+M              Mute/Unmute active deck
 Ctrl+L              Toggle loop for active deck
+Ctrl+F              Load file into active deck
+Ctrl+Shift+F        Load URL into active deck
+F2                  Rename active deck
+Delete              Unload active deck
+
+VOLUME & BALANCE
+----------------
+Ctrl+Up/Down        Increase/decrease deck volume
+Ctrl+Left/Right     Adjust deck balance left/right
+Ctrl+Shift+Up/Down  Increase/decrease master volume
 
 DECK CONTEXT MENU
 -----------------
-Applications Key or Shift+F10 in deck selection list    Open context menu for active deck
+Applications Key or Shift+F10    Open context menu for active deck
 
 RECORDER
 --------

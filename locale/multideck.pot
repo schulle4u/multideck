@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-22 18:43+0100\n"
+"POT-Creation-Date: 2026-01-23 19:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -191,7 +191,7 @@ msgstr ""
 msgid "&Deck"
 msgstr ""
 
-#: gui/main_frame.py:136 gui/main_frame.py:1146
+#: gui/main_frame.py:136 gui/main_frame.py:1279
 msgid "Start &Recording"
 msgstr ""
 
@@ -235,7 +235,7 @@ msgstr ""
 msgid "Global Playback"
 msgstr ""
 
-#: gui/main_frame.py:214 gui/main_frame.py:407
+#: gui/main_frame.py:214 gui/main_frame.py:421
 msgid "Play All"
 msgstr ""
 
@@ -263,12 +263,12 @@ msgstr ""
 msgid "Active Deck Controls"
 msgstr ""
 
-#: gui/main_frame.py:264 gui/main_frame.py:506
+#: gui/main_frame.py:264 gui/main_frame.py:520
 msgid "No deck selected"
 msgstr ""
 
-#: gui/main_frame.py:276 gui/main_frame.py:277 gui/main_frame.py:541
-#: gui/main_frame.py:542
+#: gui/main_frame.py:276 gui/main_frame.py:277 gui/main_frame.py:555
+#: gui/main_frame.py:556
 msgid "Play"
 msgstr ""
 
@@ -308,212 +308,237 @@ msgstr ""
 msgid "Ready"
 msgstr ""
 
-#: gui/main_frame.py:348 gui/main_frame.py:377
+#: gui/main_frame.py:348 gui/main_frame.py:378 gui/main_frame.py:832
 msgid "Mode"
 msgstr ""
 
-#: gui/main_frame.py:348 gui/main_frame.py:373
+#: gui/main_frame.py:348 gui/main_frame.py:374 gui/main_frame.py:828
 msgid "Mixer"
 msgstr ""
 
-#: gui/main_frame.py:349 gui/main_frame.py:388
+#: gui/main_frame.py:349 gui/main_frame.py:402 gui/main_frame.py:833
+#: gui/main_frame.py:1249
 msgid "Master"
 msgstr ""
 
-#: gui/main_frame.py:374
+#: gui/main_frame.py:375 gui/main_frame.py:829
 msgid "Solo"
 msgstr ""
 
-#: gui/main_frame.py:375
+#: gui/main_frame.py:376 gui/main_frame.py:830
 msgid "Automatic"
 msgstr ""
 
-#: gui/main_frame.py:405
-msgid "Pause All"
-msgstr ""
-
-#: gui/main_frame.py:422
-msgid "Choose an audio file"
-msgstr ""
-
-#: gui/main_frame.py:432 gui/main_frame.py:884
-#, python-brace-format
-msgid "Loaded: {}"
-msgstr ""
-
-#: gui/main_frame.py:438 gui/main_frame.py:890
-msgid "Failed to load audio file"
-msgstr ""
-
-#: gui/main_frame.py:438 gui/main_frame.py:461 gui/main_frame.py:523
-#: gui/main_frame.py:739 gui/main_frame.py:775 gui/main_frame.py:878
-#: gui/main_frame.py:890 gui/main_frame.py:895 gui/main_frame.py:977
-#: gui/main_frame.py:991 main.py:61 main.py:69 main.py:82
-msgid "Error"
-msgstr ""
-
-#: gui/main_frame.py:446
-msgid "Enter stream URL:"
-msgstr ""
-
-#: gui/main_frame.py:447
-msgid "Load Stream"
-msgstr ""
-
-#: gui/main_frame.py:455 gui/main_frame.py:869
-#, python-brace-format
-msgid "Loaded stream: {}"
-msgstr ""
-
-#: gui/main_frame.py:461 gui/main_frame.py:878
-msgid "Failed to load stream"
-msgstr ""
-
-#: gui/main_frame.py:519
-msgid "Empty"
-msgstr ""
-
-#: gui/main_frame.py:520
-msgid "Loaded"
-msgstr ""
-
-#: gui/main_frame.py:521
-msgid "Playing"
-msgstr ""
-
-#: gui/main_frame.py:522
-msgid "Paused"
-msgstr ""
-
-#: gui/main_frame.py:538 gui/main_frame.py:539
-msgid "Pause"
-msgstr ""
-
-#: gui/main_frame.py:598
-msgid "Load File..."
-msgstr ""
-
-#: gui/main_frame.py:599
-msgid "Load URL..."
-msgstr ""
-
-#: gui/main_frame.py:602
-msgid "Rename Deck..."
-msgstr ""
-
-#: gui/main_frame.py:605
-msgid "Toggle Loop"
-msgstr ""
-
-#: gui/main_frame.py:608
-msgid "Unload Deck"
-msgstr ""
-
-#: gui/main_frame.py:626
-msgid "Enter new deck name:"
-msgstr ""
-
-#: gui/main_frame.py:626
-msgid "Rename Deck"
-msgstr ""
-
-#: gui/main_frame.py:726
-msgid "Open Project"
-msgstr ""
-
-#: gui/main_frame.py:737 main.py:78
-#, python-brace-format
-msgid "Opened: {}"
-msgstr ""
-
-#: gui/main_frame.py:739 main.py:81
-#, python-brace-format
-msgid "Failed to open project: {}"
-msgstr ""
-
-#: gui/main_frame.py:754
-msgid "Save Project As"
-msgstr ""
-
-#: gui/main_frame.py:773
-#, python-brace-format
-msgid "Saved: {}"
-msgstr ""
-
-#: gui/main_frame.py:775
-#, python-brace-format
-msgid "Failed to save project: {}"
-msgstr ""
-
-#: gui/main_frame.py:849
-msgid "&Clear Recent Files"
-msgstr ""
-
-#: gui/main_frame.py:895
-msgid "File not found. Removed from recent files."
-msgstr ""
-
-#: gui/main_frame.py:901
-msgid "Recent files cleared"
-msgstr ""
-
-#: gui/main_frame.py:958
-msgid "Changing audio device..."
-msgstr ""
-
-#: gui/main_frame.py:963
-msgid "Audio device changed successfully"
-msgstr ""
-
-#: gui/main_frame.py:965
-msgid "Audio device change failed"
-msgstr ""
-
-#: gui/main_frame.py:967
-msgid "Failed to change audio device. The application will use the previous device."
-msgstr ""
-
-#: gui/main_frame.py:968
-msgid "Warning"
-msgstr ""
-
-#: gui/main_frame.py:974
-msgid "Audio device error"
-msgstr ""
-
-#: gui/main_frame.py:976
-#, python-brace-format
-msgid "Error changing audio device: {}"
-msgstr ""
-
-#: gui/main_frame.py:991
-msgid "Shortcuts file not found"
-msgstr ""
-
-#: gui/main_frame.py:998
-msgid "Accessible cross-platform audio player for simultaneous playback"
-msgstr ""
-
-#: gui/main_frame.py:1059 gui/main_frame.py:1069 gui/main_frame.py:1091
-#: gui/main_frame.py:1100
+#: gui/main_frame.py:396 gui/main_frame.py:1139 gui/main_frame.py:1149
+#: gui/main_frame.py:1171 gui/main_frame.py:1180
 #, python-brace-format
 msgid "Active deck: {}"
 msgstr ""
 
-#: gui/main_frame.py:1126
+#: gui/main_frame.py:419
+msgid "Pause All"
+msgstr ""
+
+#: gui/main_frame.py:436
+msgid "Choose an audio file"
+msgstr ""
+
+#: gui/main_frame.py:446 gui/main_frame.py:920
+#, python-brace-format
+msgid "Loaded: {}"
+msgstr ""
+
+#: gui/main_frame.py:452 gui/main_frame.py:926
+msgid "Failed to load audio file"
+msgstr ""
+
+#: gui/main_frame.py:452 gui/main_frame.py:475 gui/main_frame.py:537
+#: gui/main_frame.py:753 gui/main_frame.py:789 gui/main_frame.py:914
+#: gui/main_frame.py:926 gui/main_frame.py:931 gui/main_frame.py:1013
+#: gui/main_frame.py:1027 main.py:61 main.py:69 main.py:82
+msgid "Error"
+msgstr ""
+
+#: gui/main_frame.py:460
+msgid "Enter stream URL:"
+msgstr ""
+
+#: gui/main_frame.py:461
+msgid "Load Stream"
+msgstr ""
+
+#: gui/main_frame.py:469 gui/main_frame.py:905
+#, python-brace-format
+msgid "Loaded stream: {}"
+msgstr ""
+
+#: gui/main_frame.py:475 gui/main_frame.py:914
+msgid "Failed to load stream"
+msgstr ""
+
+#: gui/main_frame.py:533
+msgid "Empty"
+msgstr ""
+
+#: gui/main_frame.py:534
+msgid "Loaded"
+msgstr ""
+
+#: gui/main_frame.py:535
+msgid "Playing"
+msgstr ""
+
+#: gui/main_frame.py:536
+msgid "Paused"
+msgstr ""
+
+#: gui/main_frame.py:552 gui/main_frame.py:553
+msgid "Pause"
+msgstr ""
+
+#: gui/main_frame.py:612
+msgid "Load File..."
+msgstr ""
+
+#: gui/main_frame.py:613
+msgid "Load URL..."
+msgstr ""
+
+#: gui/main_frame.py:616
+msgid "Rename Deck..."
+msgstr ""
+
+#: gui/main_frame.py:619
+msgid "Toggle Loop"
+msgstr ""
+
+#: gui/main_frame.py:622
+msgid "Unload Deck"
+msgstr ""
+
+#: gui/main_frame.py:640
+msgid "Enter new deck name:"
+msgstr ""
+
+#: gui/main_frame.py:640
+msgid "Rename Deck"
+msgstr ""
+
+#: gui/main_frame.py:740
+msgid "Open Project"
+msgstr ""
+
+#: gui/main_frame.py:751 main.py:78
+#, python-brace-format
+msgid "Opened: {}"
+msgstr ""
+
+#: gui/main_frame.py:753 main.py:81
+#, python-brace-format
+msgid "Failed to open project: {}"
+msgstr ""
+
+#: gui/main_frame.py:768
+msgid "Save Project As"
+msgstr ""
+
+#: gui/main_frame.py:787
+#, python-brace-format
+msgid "Saved: {}"
+msgstr ""
+
+#: gui/main_frame.py:789
+#, python-brace-format
+msgid "Failed to save project: {}"
+msgstr ""
+
+#: gui/main_frame.py:885
+msgid "&Clear Recent Files"
+msgstr ""
+
+#: gui/main_frame.py:931
+msgid "File not found. Removed from recent files."
+msgstr ""
+
+#: gui/main_frame.py:937
+msgid "Recent files cleared"
+msgstr ""
+
+#: gui/main_frame.py:994
+msgid "Changing audio device..."
+msgstr ""
+
+#: gui/main_frame.py:999
+msgid "Audio device changed successfully"
+msgstr ""
+
+#: gui/main_frame.py:1001
+msgid "Audio device change failed"
+msgstr ""
+
+#: gui/main_frame.py:1003
+msgid "Failed to change audio device. The application will use the previous device."
+msgstr ""
+
+#: gui/main_frame.py:1004
+msgid "Warning"
+msgstr ""
+
+#: gui/main_frame.py:1010
+msgid "Audio device error"
+msgstr ""
+
+#: gui/main_frame.py:1012
+#, python-brace-format
+msgid "Error changing audio device: {}"
+msgstr ""
+
+#: gui/main_frame.py:1027
+msgid "Shortcuts file not found"
+msgstr ""
+
+#: gui/main_frame.py:1034
+msgid "Accessible cross-platform audio player for simultaneous playback"
+msgstr ""
+
+#: gui/main_frame.py:1227
+#, python-brace-format
+msgid "{}: Volume {}%"
+msgstr ""
+
+#: gui/main_frame.py:1238
+msgid "Center"
+msgstr ""
+
+#: gui/main_frame.py:1239
+#, python-brace-format
+msgid "Left {}%"
+msgstr ""
+
+#: gui/main_frame.py:1239
+#, python-brace-format
+msgid "Right {}%"
+msgstr ""
+
+#: gui/main_frame.py:1241
+#, python-brace-format
+msgid "{}: Balance {}"
+msgstr ""
+
+#: gui/main_frame.py:1259
 msgid "Choose recording output directory"
 msgstr ""
 
-#: gui/main_frame.py:1138
+#: gui/main_frame.py:1271
 #, python-brace-format
 msgid "Recording: {}"
 msgstr ""
 
-#: gui/main_frame.py:1140
+#: gui/main_frame.py:1273
 msgid "Stop &Recording"
 msgstr ""
 
-#: gui/main_frame.py:1144
+#: gui/main_frame.py:1277
 #, python-brace-format
 msgid "Recording stopped: {}"
 msgstr ""
