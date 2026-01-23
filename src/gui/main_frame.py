@@ -360,6 +360,7 @@ class MainFrame(wx.Frame):
     def _setup_callbacks(self):
         """Setup mixer callbacks"""
         self.mixer.on_mode_change = self._on_mixer_mode_changed
+        self.mixer.on_active_deck_change = self._on_active_deck_changed
         # Initialize deck menu state (disabled in mixer mode)
         self._update_deck_menu_state()
 
@@ -380,6 +381,19 @@ class MainFrame(wx.Frame):
         # Update deck menu selection to current active deck
         if new_mode in [MODE_SOLO, MODE_AUTOMATIC]:
             self._update_deck_menu_selection(self.mixer.active_deck_index)
+
+    def _on_active_deck_changed(self, old_index, new_index):
+        """Handle active deck change (e.g., from automatic mode switching)"""
+        # Use CallAfter since this may be called from background thread
+        wx.CallAfter(self._update_active_deck_ui, new_index)
+
+    def _update_active_deck_ui(self, deck_index):
+        """Update UI to reflect the new active deck"""
+        self._sync_listbox_selection(deck_index)
+        self._update_deck_menu_selection(deck_index)
+        if deck_index < len(self.mixer.decks):
+            deck = self.mixer.decks[deck_index]
+            self.SetStatusText(_("Active deck: {}").format(deck.name), 0)
 
     def _on_master_volume_change(self, event):
         """Handle master volume change"""
@@ -796,7 +810,8 @@ class MainFrame(wx.Frame):
                     self._update_deck_panel(i + 1)
 
     def _update_mixer_ui(self):
-        """Update mixer UI controls"""
+        """Update mixer UI controls after loading project"""
+        # Update radio buttons
         mode_radios = {
             MODE_MIXER: self.mixer_mode_radio,
             MODE_SOLO: self.solo_mode_radio,
@@ -805,7 +820,28 @@ class MainFrame(wx.Frame):
         if self.mixer.mode in mode_radios:
             mode_radios[self.mixer.mode].SetValue(True)
 
+        # Update master volume slider
         self.master_volume_slider.SetValue(int(self.mixer.master_volume * 100))
+
+        # Update status bar
+        mode_names = {
+            MODE_MIXER: _("Mixer"),
+            MODE_SOLO: _("Solo"),
+            MODE_AUTOMATIC: _("Automatic"),
+        }
+        self.SetStatusText(f"{_('Mode')}: {mode_names.get(self.mixer.mode, self.mixer.mode)}", 1)
+        self.SetStatusText(f"{_('Master')}: {int(self.mixer.master_volume * 100)}%", 2)
+
+        # Properly activate the mode (starts automatic switching thread if needed)
+        loaded_mode = self.mixer.mode
+        self.mixer.mode = MODE_MIXER  # Reset to trigger proper mode change
+        self.mixer.set_mode(loaded_mode)
+
+        # Update deck menu state
+        self._update_deck_menu_state()
+        if loaded_mode in [MODE_SOLO, MODE_AUTOMATIC]:
+            self._update_deck_menu_selection(self.mixer.active_deck_index)
+            self._sync_listbox_selection(self.mixer.active_deck_index)
 
     def _on_toggle_statusbar(self, event):
         """Toggle status bar visibility"""

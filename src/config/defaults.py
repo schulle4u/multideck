@@ -84,7 +84,7 @@ VALID_DECK_COUNTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 # Application info
 APP_NAME = 'MultiDeck Audio Player'
-APP_VERSION = '0.2.0'
+APP_VERSION = '0.2.1'
 APP_AUTHOR = 'Steffen Schultz'
 APP_WEBSITE = 'https://github.com/schulle4u/multideck'
 APP_LICENSE = 'MIT License'
