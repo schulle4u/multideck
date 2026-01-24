@@ -190,9 +190,9 @@ class MainFrame(wx.Frame):
         # Operating mode
         mode_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Operating Mode"))
 
-        self.mixer_mode_radio = wx.RadioButton(panel, label=_("Mixer Mode"), style=wx.RB_GROUP)
-        self.solo_mode_radio = wx.RadioButton(panel, label=_("Solo Mode"))
-        self.auto_mode_radio = wx.RadioButton(panel, label=_("Automatic Mode"))
+        self.mixer_mode_radio = wx.RadioButton(panel, label=_("Mixer Mode") + "\tF3", style=wx.RB_GROUP)
+        self.solo_mode_radio = wx.RadioButton(panel, label=_("Solo Mode") + "\tF4")
+        self.auto_mode_radio = wx.RadioButton(panel, label=_("Automatic Mode") + "\tF5")
 
         self.mixer_mode_radio.SetValue(True)
 
@@ -366,6 +366,19 @@ class MainFrame(wx.Frame):
 
     def _set_mode(self, mode):
         """Set mixer operating mode"""
+        self.mixer.set_mode(mode)
+
+    def _set_mode_with_ui(self, mode):
+        """Set mixer operating mode and update radio buttons"""
+        # Update radio button
+        mode_radios = {
+            MODE_MIXER: self.mixer_mode_radio,
+            MODE_SOLO: self.solo_mode_radio,
+            MODE_AUTOMATIC: self.auto_mode_radio,
+        }
+        if mode in mode_radios:
+            mode_radios[mode].SetValue(True)
+        # Set the mode
         self.mixer.set_mode(mode)
 
     def _on_mixer_mode_changed(self, old_mode, new_mode):
@@ -1062,6 +1075,17 @@ class MainFrame(wx.Frame):
 
         # Note: Space key removed from global shortcuts to avoid interfering with UI controls
         # Space will work naturally when Play/Pause buttons have focus
+
+        # F3/F4/F5 for mode selection
+        mode_mixer_id = wx.NewIdRef()
+        mode_solo_id = wx.NewIdRef()
+        mode_auto_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F3, mode_mixer_id))
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F4, mode_solo_id))
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F5, mode_auto_id))
+        self.Bind(wx.EVT_MENU, lambda e: self._set_mode_with_ui(MODE_MIXER), id=mode_mixer_id)
+        self.Bind(wx.EVT_MENU, lambda e: self._set_mode_with_ui(MODE_SOLO), id=mode_solo_id)
+        self.Bind(wx.EVT_MENU, lambda e: self._set_mode_with_ui(MODE_AUTOMATIC), id=mode_auto_id)
 
         # Ctrl+M for mute active deck
         mute_id = wx.NewIdRef()

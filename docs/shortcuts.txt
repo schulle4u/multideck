@@ -8,6 +8,12 @@ Ctrl+S              Save project
 Ctrl+Shift+S              Save project as
 Alt+F4              Exit application
 
+MODE SELECTION
+--------------
+F3              Mixer Mode
+F4              Solo Mode
+F5              Automatic Mode
+
 DECK CONTROLS
 -------------
 F6                  Jump to deck selection list
