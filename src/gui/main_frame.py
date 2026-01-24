@@ -623,7 +623,7 @@ class MainFrame(wx.Frame):
 
         menu = wx.Menu()
         load_file_item = menu.Append(wx.ID_ANY, _("Load File...") + "\tCtrl+F")
-        load_url_item = menu.Append(wx.ID_ANY, _("Load URL...") + "\tCtrl+Shift+F")
+        load_url_item = menu.Append(wx.ID_ANY, _("Load URL...") + "\tCtrl+U")
         menu.AppendSeparator()
 
         rename_item = menu.Append(wx.ID_ANY, _("Rename Deck...") + "\tF2")
@@ -1112,9 +1112,9 @@ class MainFrame(wx.Frame):
         accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('F'), load_file_id))
         self.Bind(wx.EVT_MENU, self._on_shortcut_load_file, id=load_file_id)
 
-        # Ctrl+Shift+F for load URL
+        # Ctrl+U for load URL
         load_url_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL | wx.ACCEL_SHIFT, ord('F'), load_url_id))
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('U'), load_url_id))
         self.Bind(wx.EVT_MENU, self._on_shortcut_load_url, id=load_url_id)
 
         # F2 for rename deck

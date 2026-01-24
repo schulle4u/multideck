@@ -23,7 +23,7 @@ Ctrl+Shift+Tab      Previous deck
 Ctrl+M              Mute/Unmute active deck
 Ctrl+L              Toggle loop for active deck
 Ctrl+F              Load file into active deck
-Ctrl+Shift+F        Load URL into active deck
+Ctrl+U              Load URL into active deck
 F2                  Rename active deck
 Delete              Unload active deck
 
