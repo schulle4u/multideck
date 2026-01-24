@@ -9,8 +9,23 @@ from typing import Optional
 
 
 def format_time(seconds: float) -> str:
+    """Format seconds as M:SS or H:MM:SS"""
+    if seconds < 0:
+        seconds = 0
+    total_seconds = int(seconds)
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    secs = total_seconds % 60
+
+    if hours > 0:
+        return f"{hours}:{minutes:02d}:{secs:02d}"
+    else:
+        return f"{minutes}:{secs:02d}"
+
+
+def format_time_old(seconds: float) -> str:
     """
-    Format time in seconds to HH:MM:SS.
+    Format time in seconds to HH:MM:SS. (TODO: needs review, probably to be removed)
 
     Args:
         seconds: Time in seconds
@@ -26,6 +41,51 @@ def format_time(seconds: float) -> str:
         return f"{hours:02d}:{minutes:02d}:{secs:02d}"
     else:
         return f"{minutes:02d}:{secs:02d}"
+
+
+def parse_time(time_str: str) -> float:
+    """
+    Parse time string to seconds.
+
+    Supports formats:
+    - SS (seconds only)
+    - M:SS or MM:SS (minutes:seconds)
+    - H:MM:SS (hours:minutes:seconds)
+
+    Returns:
+        Seconds as float, or None if parsing failed
+    """
+    try:
+        time_str = time_str.strip()
+
+        # Handle negative times
+        negative = time_str.startswith('-')
+        if negative:
+            time_str = time_str[1:]
+
+        parts = time_str.split(':')
+
+        if len(parts) == 1:
+            # Just seconds
+            seconds = float(parts[0])
+        elif len(parts) == 2:
+            # M:SS
+            minutes = int(parts[0])
+            seconds = float(parts[1])
+            seconds = minutes * 60 + seconds
+        elif len(parts) == 3:
+            # H:MM:SS
+            hours = int(parts[0])
+            minutes = int(parts[1])
+            secs = float(parts[2])
+            seconds = hours * 3600 + minutes * 60 + secs
+        else:
+            return None
+
+        return -seconds if negative else seconds
+
+    except (ValueError, IndexError):
+        return None
 
 
 def format_file_size(bytes_size: int) -> str:

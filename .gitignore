@@ -38,6 +38,7 @@ env/
 .DS_Store
 
 # MultiDeck specific
+.claude/
 docs_claude/
 CLAUDE.md
 config.ini

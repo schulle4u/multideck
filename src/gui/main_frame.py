@@ -19,6 +19,7 @@ from config.defaults import (
     DECK_STATE_EMPTY, DECK_STATE_PLAYING, DECK_STATE_PAUSED
 )
 from utils.i18n import _, get_i18n
+from utils.helpers import format_time, parse_time
 
 
 class MainFrame(wx.Frame):
@@ -82,6 +83,12 @@ class MainFrame(wx.Frame):
 
         # Setup callbacks
         self._setup_callbacks()
+
+        # Position update timer (for slider during playback)
+        self._position_timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self._on_position_timer, self._position_timer)
+        self._position_timer.Start(250)  # Update 4x per second
+        self._slider_dragging = False  # Track if user is dragging slider
 
     def _create_menu_bar(self):
         """Create menu bar"""
@@ -335,6 +342,36 @@ class MainFrame(wx.Frame):
 
         controls_box.Add(checkbox_sizer, 0)
 
+        # Position/Seek slider (only for local files)
+        position_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Position"))
+
+        # Time display
+        time_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.active_position_label = wx.StaticText(panel, label="0:00")
+        self.active_position_label.SetName(_("Current position"))
+        time_sizer.Add(self.active_position_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        time_sizer.AddStretchSpacer()
+
+        self.active_duration_label = wx.StaticText(panel, label="0:00")
+        self.active_duration_label.SetName(_("Total duration"))
+        time_sizer.Add(self.active_duration_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        position_box.Add(time_sizer, 0, wx.EXPAND)
+
+        # Position slider
+        self.active_position_slider = wx.Slider(
+            panel, value=0, minValue=0, maxValue=1000,
+            style=wx.SL_HORIZONTAL
+        )
+        self.active_position_slider.SetName(_("Playback position"))
+        self.active_position_slider.Bind(wx.EVT_SLIDER, self._on_active_position_change)
+        self.active_position_slider.Bind(wx.EVT_LEFT_DOWN, self._on_position_slider_down)
+        self.active_position_slider.Bind(wx.EVT_LEFT_UP, self._on_position_slider_up)
+        position_box.Add(self.active_position_slider, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+
+        controls_box.Add(position_box, 0, wx.EXPAND | wx.TOP, 5)
+
         main_sizer.Add(controls_box, 2, wx.EXPAND | wx.ALL, 5)
 
         panel.SetSizer(main_sizer)
@@ -534,6 +571,11 @@ class MainFrame(wx.Frame):
             self.active_deck_status.SetLabel("")
             self.active_play_btn.Enable(False)
             self.active_stop_btn.Enable(False)
+            # Disable position slider
+            self.active_position_slider.SetValue(0)
+            self.active_position_slider.Enable(False)
+            self.active_position_label.SetLabel("--:--")
+            self.active_duration_label.SetLabel("--:--")
             return
 
         deck = self.mixer.decks[deck_index]
@@ -580,6 +622,9 @@ class MainFrame(wx.Frame):
         # Update checkboxes
         self.active_mute_cb.SetValue(deck.mute)
         self.active_loop_cb.SetValue(deck.loop)
+
+        # Update position slider and time display
+        self._update_position_display(deck)
 
     def _get_selected_deck(self):
         """Get the currently selected deck from listbox"""
@@ -705,6 +750,155 @@ class MainFrame(wx.Frame):
         if deck:
             deck.set_loop(self.active_loop_cb.GetValue())
             self._update_deck_panel(deck.deck_id)
+
+    def _on_active_position_change(self, event):
+        """Handle position slider change for active deck"""
+        if self._slider_dragging:
+            return  # Don't seek while dragging, wait for mouse up
+
+        deck = self._get_selected_deck()
+        if deck and deck.can_seek():
+            slider_value = self.active_position_slider.GetValue()
+            duration = self.mixer.get_deck_duration_seconds(deck)
+            if duration > 0:
+                position_seconds = (slider_value / 1000.0) * duration
+                deck.seek(position_seconds)
+                self._update_position_display(deck)
+
+    def _on_position_slider_down(self, event):
+        """Handle mouse down on position slider"""
+        self._slider_dragging = True
+        event.Skip()
+
+    def _on_position_slider_up(self, event):
+        """Handle mouse up on position slider - perform seek"""
+        self._slider_dragging = False
+        event.Skip()
+
+        # Now perform the seek
+        deck = self._get_selected_deck()
+        if deck and deck.can_seek():
+            slider_value = self.active_position_slider.GetValue()
+            duration = self.mixer.get_deck_duration_seconds(deck)
+            if duration > 0:
+                position_seconds = (slider_value / 1000.0) * duration
+                deck.seek(position_seconds)
+                self._update_position_display(deck)
+
+    def _on_position_timer(self, event):
+        """Timer callback to update position slider during playback"""
+        if self._slider_dragging:
+            return  # Don't update while user is dragging
+
+        deck = self._get_selected_deck()
+        if deck and deck.is_playing and deck.can_seek():
+            self._update_position_display(deck)
+
+    def _update_position_display(self, deck):
+        """Update position slider and time labels for a deck"""
+        if not deck.can_seek():
+            self.active_position_slider.SetValue(0)
+            self.active_position_slider.Enable(False)
+            self.active_position_label.SetLabel("--:--")
+            self.active_duration_label.SetLabel("--:--")
+            return
+
+        duration = self.mixer.get_deck_duration_seconds(deck)
+        position = deck.get_position_seconds()
+
+        # Update time labels
+        self.active_position_label.SetLabel(format_time(position))
+        self.active_duration_label.SetLabel(format_time(duration))
+
+        # Update slider
+        if duration > 0:
+            slider_value = int((position / duration) * 1000)
+            self.active_position_slider.SetValue(slider_value)
+
+        self.active_position_slider.Enable(True)
+
+    def _on_seek_forward(self, event):
+        """Seek forward 5 seconds"""
+        deck = self._get_selected_deck()
+        if deck and deck.can_seek():
+            deck.seek_relative(5.0)
+            self._update_position_display(deck)
+            self.SetStatusText(_("{}: {} / {}").format(
+                deck.name,
+                format_time(deck.get_position_seconds()),
+                format_time(self.mixer.get_deck_duration_seconds(deck))
+            ), 0)
+
+    def _on_seek_backward(self, event):
+        """Seek backward 5 seconds"""
+        deck = self._get_selected_deck()
+        if deck and deck.can_seek():
+            deck.seek_relative(-5.0)
+            self._update_position_display(deck)
+            self.SetStatusText(_("{}: {} / {}").format(
+                deck.name,
+                format_time(deck.get_position_seconds()),
+                format_time(self.mixer.get_deck_duration_seconds(deck))
+            ), 0)
+
+    def _on_seek_forward_large(self, event):
+        """Seek forward 30 seconds"""
+        deck = self._get_selected_deck()
+        if deck and deck.can_seek():
+            deck.seek_relative(30.0)
+            self._update_position_display(deck)
+
+    def _on_seek_backward_large(self, event):
+        """Seek backward 30 seconds"""
+        deck = self._get_selected_deck()
+        if deck and deck.can_seek():
+            deck.seek_relative(-30.0)
+            self._update_position_display(deck)
+
+    def _on_jump_to_time(self, event):
+        """Show dialog to jump to specific timecode"""
+        deck = self._get_selected_deck()
+        if not deck or not deck.can_seek():
+            wx.MessageBox(
+                _("No seekable audio loaded in the selected deck."),
+                _("Jump to Time"),
+                wx.OK | wx.ICON_INFORMATION
+            )
+            return
+
+        duration = self.mixer.get_deck_duration_seconds(deck)
+        current_pos = format_time(deck.get_position_seconds())
+        duration_str = format_time(duration)
+
+        dlg = wx.TextEntryDialog(
+            self,
+            _("Enter time (M:SS or H:MM:SS):") + f"\n{_('Duration')}: {duration_str}",
+            _("Jump to Time"),
+            current_pos
+        )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            time_str = dlg.GetValue().strip()
+            seconds = parse_time(time_str)
+
+            if seconds is not None:
+                # Clamp to valid range
+                seconds = max(0, min(seconds, duration))
+                deck.seek(seconds)
+                self._update_position_display(deck)
+                self.SetStatusText(_("{}: {} / {}").format(
+                    deck.name,
+                    format_time(seconds),
+                    duration_str
+                ), 0)
+            else:
+                wx.MessageBox(
+                    _("Invalid time format. Use M:SS or H:MM:SS (e.g., 1:30 or 1:05:30)"),
+                    _("Error"),
+                    wx.OK | wx.ICON_ERROR
+                )
+
+        dlg.Destroy()
 
     def _on_jump_to_deck_list(self, event):
         """Handle F6 to jump to deck listbox"""
@@ -1151,6 +1345,27 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda e: self._on_master_volume_shortcut(5), id=master_up_id)
         self.Bind(wx.EVT_MENU, lambda e: self._on_master_volume_shortcut(-5), id=master_down_id)
 
+        # Alt+Left/Right for seek ±5 seconds
+        seek_fwd_id = wx.NewIdRef()
+        seek_bwd_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_ALT, wx.WXK_RIGHT, seek_fwd_id))
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_ALT, wx.WXK_LEFT, seek_bwd_id))
+        self.Bind(wx.EVT_MENU, self._on_seek_forward, id=seek_fwd_id)
+        self.Bind(wx.EVT_MENU, self._on_seek_backward, id=seek_bwd_id)
+
+        # Alt+Shift+Left/Right for seek ±30 seconds
+        seek_fwd_large_id = wx.NewIdRef()
+        seek_bwd_large_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_ALT | wx.ACCEL_SHIFT, wx.WXK_RIGHT, seek_fwd_large_id))
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_ALT | wx.ACCEL_SHIFT, wx.WXK_LEFT, seek_bwd_large_id))
+        self.Bind(wx.EVT_MENU, self._on_seek_forward_large, id=seek_fwd_large_id)
+        self.Bind(wx.EVT_MENU, self._on_seek_backward_large, id=seek_bwd_large_id)
+
+        # Ctrl+J for jump to time
+        jump_time_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('J'), jump_time_id))
+        self.Bind(wx.EVT_MENU, self._on_jump_to_time, id=jump_time_id)
+
         # Set accelerator table
         accel_table = wx.AcceleratorTable(accel_entries)
         self.SetAcceleratorTable(accel_table)
@@ -1304,6 +1519,10 @@ class MainFrame(wx.Frame):
 
     def _on_close(self, event):
         """Handle window close"""
+        # Stop position timer
+        if self._position_timer.IsRunning():
+            self._position_timer.Stop()
+
         # Save window size
         width, height = self.GetSize()
         self.config_manager.set('UI', 'window_width', width)

@@ -228,6 +228,96 @@ class Deck:
         """Toggle loop state"""
         self.loop = not self.loop
 
+    def seek(self, position_seconds: float):
+        """
+        Seek to position in seconds.
+        Only works for local files, not streams.
+
+        Args:
+            position_seconds: Target position in seconds
+        """
+        if self.is_stream or self.sample_rate is None:
+            return
+
+        with self._lock:
+            position_samples = int(position_seconds * self.sample_rate)
+            self.seek_samples(position_samples)
+
+    def seek_samples(self, position_samples: int):
+        """
+        Seek to position in samples.
+        Only works for local files, not streams.
+
+        Args:
+            position_samples: Target position in samples
+        """
+        if self.is_stream:
+            return
+
+        with self._lock:
+            # Clamp to valid range
+            if self.audio_data is not None:
+                max_position = len(self.audio_data)
+                self.position = max(0, min(position_samples, max_position))
+            else:
+                self.position = max(0, position_samples)
+
+    def seek_relative(self, delta_seconds: float):
+        """
+        Seek relative to current position.
+        Only works for local files, not streams.
+
+        Args:
+            delta_seconds: Seconds to seek (positive = forward, negative = backward)
+        """
+        if self.is_stream or self.sample_rate is None:
+            return
+
+        current_seconds = self.get_position_seconds()
+        self.seek(current_seconds + delta_seconds)
+
+    def get_position_seconds(self) -> float:
+        """
+        Get current playback position in seconds.
+
+        Returns:
+            Current position in seconds, or 0.0 if not available
+        """
+        if self.sample_rate is None or self.sample_rate == 0:
+            return 0.0
+        return self.position / self.sample_rate
+
+    def get_duration_seconds(self) -> float:
+        """
+        Get total duration in seconds.
+
+        Returns:
+            Duration in seconds, or 0.0 if not available
+        """
+        if self.audio_data is None or self.sample_rate is None or self.sample_rate == 0:
+            return 0.0
+        return len(self.audio_data) / self.sample_rate
+
+    def get_duration_samples(self) -> int:
+        """
+        Get total duration in samples.
+
+        Returns:
+            Duration in samples, or 0 if not available
+        """
+        if self.audio_data is None:
+            return 0
+        return len(self.audio_data)
+
+    def can_seek(self) -> bool:
+        """
+        Check if seeking is supported for this deck.
+
+        Returns:
+            True if seeking is possible (local file loaded), False otherwise
+        """
+        return not self.is_stream and self.audio_data is not None
+
     def set_name(self, name: str):
         """Set custom deck name"""
         self.name = name

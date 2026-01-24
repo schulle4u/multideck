@@ -33,6 +33,12 @@ Ctrl+Up/Down        Increase/decrease deck volume
 Ctrl+Left/Right     Adjust deck balance left/right
 Ctrl+Shift+Up/Down  Increase/decrease master volume
 
+SEEKING (local files only)
+--------------------------
+Alt+Left/Right          Seek backward/forward 5 seconds
+Alt+Shift+Left/Right    Seek backward/forward 30 seconds
+Ctrl+J                  Jump to specific time (timecode dialog)
+
 DECK CONTEXT MENU
 -----------------
 Applications Key or Shift+F10    Open context menu for active deck

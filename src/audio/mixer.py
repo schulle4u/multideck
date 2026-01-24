@@ -487,6 +487,40 @@ class Mixer:
         if deck_id in self._loaded_audio_cache:
             del self._loaded_audio_cache[deck_id]
 
+    def get_deck_duration_seconds(self, deck: Deck) -> float:
+        """
+        Get deck duration in seconds from cached audio data.
+
+        Args:
+            deck: Deck instance
+
+        Returns:
+            Duration in seconds, or 0.0 if not available
+        """
+        if deck.is_stream:
+            return 0.0
+
+        # Try to get from cached audio data
+        audio_data = self._loaded_audio_cache.get(deck.deck_id)
+        if audio_data is not None:
+            return len(audio_data) / self.audio_engine.sample_rate
+
+        # Fallback to deck's own audio_data
+        return deck.get_duration_seconds()
+
+    def seek_deck(self, deck_index: int, position_seconds: float):
+        """
+        Seek a deck to a specific position.
+
+        Args:
+            deck_index: Deck index (0-based)
+            position_seconds: Target position in seconds
+        """
+        if 0 <= deck_index < len(self.decks):
+            deck = self.decks[deck_index]
+            if not deck.is_stream:
+                deck.seek(position_seconds)
+
     def ensure_deck_loaded(self, deck: Deck) -> bool:
         """
         Ensure audio data is loaded for a deck before playback.
