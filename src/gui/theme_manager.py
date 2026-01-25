@@ -24,19 +24,19 @@ THEMES = {
         'error': wx.Colour(200, 0, 0),            # Error state color
     },
     'dark': {
-        'bg': wx.Colour(45, 45, 45),              # Dark gray background
-        'bg_alt': wx.Colour(60, 60, 60),          # Slightly lighter alternate
-        'fg': wx.Colour(240, 240, 240),           # Light text
-        'fg_secondary': wx.Colour(180, 180, 180), # Light gray secondary text
-        'border': wx.Colour(80, 80, 80),          # Dark border
-        'button_bg': wx.Colour(70, 70, 70),       # Button background
-        'button_fg': wx.Colour(240, 240, 240),    # Button text
-        'input_bg': wx.Colour(55, 55, 55),        # Input field background
-        'input_fg': wx.Colour(240, 240, 240),     # Input field text
+        'bg': wx.Colour(30, 30, 30),              # Darker background for more depth
+        'bg_alt': wx.Colour(45, 45, 45),          # Slightly lighter alternate
+        'fg': wx.Colour(255, 255, 255),           # Pure white for maximum contrast
+        'fg_secondary': wx.Colour(200, 200, 200), # Brighter secondary text
+        'border': wx.Colour(100, 100, 100),          # Dark border
+        'button_bg': wx.Colour(60, 60, 60),       # Button background
+        'button_fg': wx.Colour(255, 255, 255),    # White button text
+        'input_bg': wx.Colour(20, 20, 20),        # Input field background
+        'input_fg': wx.Colour(255, 255, 255),     # White input field text
         'highlight': wx.Colour(100, 180, 255),    # Highlight/accent color
-        'playing': wx.Colour(100, 200, 100),      # Playing state color
-        'paused': wx.Colour(230, 180, 80),        # Paused state color
-        'error': wx.Colour(255, 100, 100),        # Error state color
+        'playing': wx.Colour(120, 255, 120),      # Playing state color
+        'paused': wx.Colour(255, 200, 100),        # Paused state color
+        'error': wx.Colour(255, 120, 120),        # Error state color
     }
 }
 
@@ -197,12 +197,12 @@ class ThemeManager:
                 'CheckBox', 'RadioButton', 'RadioBox',
                 'ToggleButton', 'CheckListBox',
             ]
-            if widget_type in native_controls:
+            if widget_type in native_controls or isinstance(widget, (wx.CheckBox, wx.RadioButton)):
                 return
 
-            # Also skip by isinstance for safety
-            if isinstance(widget, (wx.CheckBox, wx.RadioButton)):
-                return
+            # Bind focus events for better keyboard accessibility
+            widget.Bind(wx.EVT_SET_FOCUS, lambda evt: self._handle_focus(evt, True))
+            widget.Bind(wx.EVT_KILL_FOCUS, lambda evt: self._handle_focus(evt, False))
 
             # StaticBox - only set foreground for label visibility
             if isinstance(widget, wx.StaticBox):
@@ -263,6 +263,35 @@ class ThemeManager:
         except Exception:
             # Silently ignore widgets that don't support theming
             pass
+
+    def _handle_focus(self, event, has_focus: bool):
+        """
+        Handle visual feedback when a widget gains or loses focus.
+        
+        Args:
+            event: The wx.FocusEvent
+            has_focus: Boolean indicating if the widget gained focus
+        """
+        widget = event.GetEventObject()
+        colors = self.colors
+        
+        if has_focus:
+            # Check if widget supports SetBorderColour (mostly custom or specific native)
+            if hasattr(widget, "SetBorderColour"):
+                widget.SetBorderColour(colors['highlight'])
+            # Alternative: slight background shift for text controls if border isn't supported
+            elif isinstance(widget, wx.TextCtrl):
+                widget.SetBackgroundColour(wx.Colour(40, 40, 40) if self._current_theme == 'dark' else wx.Colour(245, 245, 255))
+        else:
+            if hasattr(widget, "SetBorderColour"):
+                widget.SetBorderColour(colors['border'])
+            elif isinstance(widget, wx.TextCtrl):
+                widget.SetBackgroundColour(colors['input_bg'])
+            # Highlight border or background on focus
+            if isinstance(widget, (wx.TextCtrl, wx.ComboBox, wx.Choice)):
+                widget.SetBorderColour(colors['highlight']) # Note: Support varies by OS
+        widget.Refresh()
+        event.Skip() # Ensure the event propagates further
 
     def get_status_color(self, status: str) -> wx.Colour:
         """
