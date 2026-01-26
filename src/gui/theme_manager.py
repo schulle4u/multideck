@@ -235,8 +235,13 @@ class ThemeManager:
 
             # Sliders - only set if not causing issues
             elif isinstance(widget, wx.Slider):
-                # Skip slider theming on Windows to preserve accessibility
-                pass
+                # Uncomment to skip slider theming on Windows to preserve accessibility
+                # pass
+                # On some systems, sliders need a slightly different background to remain visible
+                if self._current_theme == 'dark':
+                    widget.SetBackgroundColour(colors['bg_alt']) # Give it a bit of contrast
+                else:
+                    widget.SetBackgroundColour(colors['bg'])
 
             # Notebooks
             elif isinstance(widget, wx.Notebook):
@@ -287,9 +292,11 @@ class ThemeManager:
                 widget.SetBorderColour(colors['border'])
             elif isinstance(widget, wx.TextCtrl):
                 widget.SetBackgroundColour(colors['input_bg'])
-            # Highlight border or background on focus
-            if isinstance(widget, (wx.TextCtrl, wx.ComboBox, wx.Choice)):
-                widget.SetBorderColour(colors['highlight']) # Note: Support varies by OS
+            # Highlight border or background on focus (only win32 for the moment)
+            if sys.platform == 'win32':
+                if isinstance(widget, (wx.TextCtrl, wx.ComboBox, wx.Choice)):
+                    widget.SetBorderColour(colors['highlight']) # Note: Support varies by OS
+
         widget.Refresh()
         event.Skip() # Ensure the event propagates further
 
