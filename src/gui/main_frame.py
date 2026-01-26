@@ -63,6 +63,7 @@ class MainFrame(wx.Frame):
 
         # UI components
         self.current_project_file = None
+        self._project_modified = False  # Track unsaved changes
 
         # Create UI
         self._create_menu_bar()
@@ -96,6 +97,7 @@ class MainFrame(wx.Frame):
 
         # File menu
         file_menu = wx.Menu()
+        file_menu.Append(wx.ID_NEW, _("&New Project...") + "\tCtrl+N")
         file_menu.Append(wx.ID_OPEN, _("&Open Project...") + "\tCtrl+O")
         file_menu.Append(wx.ID_SAVE, _("&Save Project") + "\tCtrl+S")
         file_menu.Append(wx.ID_SAVEAS, _("Save Project &As...") + "\tCtrl+Shift+S")
@@ -155,6 +157,7 @@ class MainFrame(wx.Frame):
         self.SetMenuBar(menu_bar)
 
         # Bind menu events
+        self.Bind(wx.EVT_MENU, self._on_new_project, id=wx.ID_NEW)
         self.Bind(wx.EVT_MENU, self._on_open_project, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self._on_save_project, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU, self._on_save_project_as, id=wx.ID_SAVEAS)
@@ -404,6 +407,7 @@ class MainFrame(wx.Frame):
     def _set_mode(self, mode):
         """Set mixer operating mode"""
         self.mixer.set_mode(mode)
+        self._mark_project_modified()
 
     def _set_mode_with_ui(self, mode):
         """Set mixer operating mode and update radio buttons"""
@@ -450,6 +454,7 @@ class MainFrame(wx.Frame):
         volume = self.master_volume_slider.GetValue() / 100.0
         self.mixer.set_master_volume(volume)
         self.SetStatusText(f"{_('Master')}: {int(volume * 100)}%", 2)
+        self._mark_project_modified()
 
     def _on_global_play_pause(self, event):
         """Handle global play/pause button"""
@@ -498,6 +503,7 @@ class MainFrame(wx.Frame):
                 # Add to recent files
                 self.config_manager.add_recent_file(filepath)
                 self._update_recent_files_menu()
+                self._mark_project_modified()
             else:
                 wx.MessageBox(_("Failed to load audio file"), _("Error"), wx.OK | wx.ICON_ERROR)
 
@@ -521,6 +527,7 @@ class MainFrame(wx.Frame):
                     # Add to recent files
                     self.config_manager.add_recent_file(url)
                     self._update_recent_files_menu()
+                    self._mark_project_modified()
                 else:
                     wx.MessageBox(_("Failed to load stream"), _("Error"), wx.OK | wx.ICON_ERROR)
 
@@ -703,6 +710,7 @@ class MainFrame(wx.Frame):
                 self._update_deck_listbox()
                 self._update_active_deck_controls()
                 self._update_deck_panel(deck.deck_id)
+                self._mark_project_modified()
         dlg.Destroy()
 
     def _on_active_toggle_loop(self):
@@ -720,6 +728,7 @@ class MainFrame(wx.Frame):
             deck.unload()
             self._update_active_deck_controls()
             self._update_deck_panel(deck.deck_id)
+            self._mark_project_modified()
 
     def _on_active_volume_change(self, event):
         """Handle volume change for active deck"""
@@ -728,6 +737,7 @@ class MainFrame(wx.Frame):
             volume = self.active_volume_slider.GetValue() / 100.0
             deck.set_volume(volume)
             self._update_deck_panel(deck.deck_id)
+            self._mark_project_modified()
 
     def _on_active_balance_change(self, event):
         """Handle balance change for active deck"""
@@ -736,6 +746,7 @@ class MainFrame(wx.Frame):
             balance = self.active_balance_slider.GetValue() / 100.0
             deck.set_balance(balance)
             self._update_deck_panel(deck.deck_id)
+            self._mark_project_modified()
 
     def _on_active_mute_change(self, event):
         """Handle mute change for active deck"""
@@ -743,6 +754,7 @@ class MainFrame(wx.Frame):
         if deck:
             deck.set_mute(self.active_mute_cb.GetValue())
             self._update_deck_panel(deck.deck_id)
+            self._mark_project_modified()
 
     def _on_active_loop_change(self, event):
         """Handle loop change for active deck"""
@@ -750,6 +762,7 @@ class MainFrame(wx.Frame):
         if deck:
             deck.set_loop(self.active_loop_cb.GetValue())
             self._update_deck_panel(deck.deck_id)
+            self._mark_project_modified()
 
     def _on_active_position_change(self, event):
         """Handle position slider change for active deck"""
@@ -940,8 +953,111 @@ class MainFrame(wx.Frame):
             except Exception as e:
                 print(f"Error preloading audio: {e}")
 
+    def _update_window_title(self):
+        """Update window title to reflect project name and modified state"""
+        title = f"{APP_NAME} v{APP_VERSION}"
+        if self.current_project_file:
+            project_name = os.path.basename(self.current_project_file)
+            title = f"{APP_NAME} - {project_name}"
+        if self._project_modified:
+            title = f"{title}*"
+        self.SetTitle(title)
+
+    def _mark_project_modified(self):
+        """Mark the project as having unsaved changes"""
+        if not self._project_modified:
+            self._project_modified = True
+            self._update_window_title()
+
+    def _clear_project_modified(self):
+        """Clear the modified flag (after save, new, or load)"""
+        self._project_modified = False
+        self._update_window_title()
+
+    def _check_unsaved_changes(self) -> bool:
+        """Check for unsaved changes and prompt user if necessary.
+
+        Returns True if safe to proceed, False if user cancelled.
+        """
+        if not self._project_modified:
+            return True
+
+        project_name = os.path.basename(self.current_project_file) if self.current_project_file else _("Untitled Project")
+
+        dlg = wx.MessageDialog(
+            self,
+            _("Save changes to {}?").format(project_name),
+            _("Unsaved Changes"),
+            wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION
+        )
+        result = dlg.ShowModal()
+        dlg.Destroy()
+
+        if result == wx.ID_YES:
+            if self.current_project_file:
+                self._save_project(self.current_project_file)
+            else:
+                # Save As dialog
+                save_dlg = wx.FileDialog(self, _("Save Project As"), wildcard=PROJECT_FILE_FILTER,
+                                         style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                if save_dlg.ShowModal() == wx.ID_OK:
+                    filepath = save_dlg.GetPath()
+                    if not filepath.endswith('.mdap'):
+                        filepath += '.mdap'
+                    self._save_project(filepath)
+                    self.current_project_file = filepath
+                    save_dlg.Destroy()
+                else:
+                    save_dlg.Destroy()
+                    return False  # Cancelled
+            return True
+        elif result == wx.ID_NO:
+            return True  # Discard changes
+        else:
+            return False  # Cancelled
+
+    def _reset_to_defaults(self):
+        """Reset all mixer and deck settings to defaults"""
+        # Stop all playback
+        self.mixer.stop_all()
+
+        # Unload all decks and reset their settings
+        for i, deck in enumerate(self.mixer.decks):
+            deck.unload()
+            deck.set_volume(1.0)
+            deck.set_balance(0.0)
+            deck.set_mute(False)
+            deck.set_loop(False)
+            deck.set_name(f"Deck {i + 1}")
+            self.mixer.clear_deck_cache(deck.deck_id)
+
+        # Reset mixer to defaults from global config
+        self.mixer.set_master_volume(0.8)
+        self.mixer.set_mode(MODE_MIXER)
+        self.mixer.active_deck_index = 0
+        self.mixer.auto_switch_interval = self.config_manager.getint('Automation', 'switch_interval', 10)
+        self.mixer.crossfade_enabled = self.config_manager.getboolean('Automation', 'crossfade_enabled', True)
+        self.mixer.crossfade_duration = self.config_manager.getfloat('Automation', 'crossfade_duration', 2.0)
+
+        # Update UI
+        self._update_mixer_ui()
+        self._update_all_deck_panels()
+
+    def _on_new_project(self, event):
+        """Handle New Project menu action"""
+        if not self._check_unsaved_changes():
+            return
+
+        self._reset_to_defaults()
+        self.current_project_file = None
+        self._clear_project_modified()
+        self.SetStatusText(_("New project created"), 0)
+
     def _on_open_project(self, event):
         """Handle open project"""
+        if not self._check_unsaved_changes():
+            return
+
         dlg = wx.FileDialog(
             self,
             _("Open Project"),
@@ -952,9 +1068,11 @@ class MainFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             filepath = dlg.GetPath()
             try:
+                self._reset_to_defaults()
                 project_data = ProjectManager.load_project(filepath)
                 self._load_project_data(project_data)
                 self.current_project_file = filepath
+                self._clear_project_modified()
                 self.SetStatusText(_("Opened: {}").format(os.path.basename(filepath)), 0)
             except Exception as e:
                 wx.MessageBox(_("Failed to open project: {}").format(e), _("Error"), wx.OK | wx.ICON_ERROR)
@@ -983,6 +1101,7 @@ class MainFrame(wx.Frame):
                 filepath += '.mdap'
             self._save_project(filepath)
             self.current_project_file = filepath
+            self._update_window_title()
 
         dlg.Destroy()
 
@@ -991,6 +1110,7 @@ class MainFrame(wx.Frame):
         try:
             project_data = self._get_project_data()
             ProjectManager.save_project(filepath, project_data)
+            self._clear_project_modified()
             self.SetStatusText(_("Saved: {}").format(os.path.basename(filepath)), 0)
         except Exception as e:
             wx.MessageBox(_("Failed to save project: {}").format(e), _("Error"), wx.OK | wx.ICON_ERROR)
@@ -1114,6 +1234,7 @@ class MainFrame(wx.Frame):
                 # Move to top of recent files
                 self.config_manager.add_recent_file(filepath)
                 self._update_recent_files_menu()
+                self._mark_project_modified()
             else:
                 # Remove invalid entry
                 self.config_manager.remove_recent_file(filepath)
@@ -1129,6 +1250,7 @@ class MainFrame(wx.Frame):
                     # Move to top of recent files
                     self.config_manager.add_recent_file(filepath)
                     self._update_recent_files_menu()
+                    self._mark_project_modified()
                 else:
                     wx.MessageBox(_("Failed to load audio file"), _("Error"), wx.OK | wx.ICON_ERROR)
             else:
@@ -1519,6 +1641,11 @@ class MainFrame(wx.Frame):
 
     def _on_close(self, event):
         """Handle window close"""
+        # Check for unsaved changes
+        if not self._check_unsaved_changes():
+            event.Veto()
+            return
+
         # Stop position timer
         if self._position_timer.IsRunning():
             self._position_timer.Stop()
