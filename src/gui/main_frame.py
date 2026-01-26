@@ -103,6 +103,9 @@ class MainFrame(wx.Frame):
         file_menu.Append(wx.ID_SAVEAS, _("Save Project &As...") + "\tCtrl+Shift+S")
         file_menu.AppendSeparator()
 
+        self.import_m3u_item = file_menu.Append(wx.ID_ANY, _("&Import M3U Playlist...") + "\tCtrl+I")
+
+        file_menu.AppendSeparator()
         # Recent Files submenu
         self.recent_menu = wx.Menu()
         file_menu.AppendSubMenu(self.recent_menu, _("&Recent Files"))
@@ -161,6 +164,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._on_open_project, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self._on_save_project, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU, self._on_save_project_as, id=wx.ID_SAVEAS)
+        self.Bind(wx.EVT_MENU, self._on_import_m3u, self.import_m3u_item)
         self.Bind(wx.EVT_MENU, self._on_exit, id=wx.ID_EXIT)
         self.Bind(wx.EVT_MENU, self._on_toggle_statusbar, self.statusbar_item)
         self.Bind(wx.EVT_MENU, self._on_toggle_theme, self.theme_item)
@@ -1264,6 +1268,122 @@ class MainFrame(wx.Frame):
         self.config_manager.clear_recent_files()
         self._update_recent_files_menu()
         self.SetStatusText(_("Recent files cleared"), 0)
+
+    def _on_import_m3u(self, event):
+        """Import M3U playlist into free decks"""
+        dlg = wx.FileDialog(
+            self,
+            _("Import M3U Playlist"),
+            wildcard="M3U Playlist (*.m3u;*.m3u8)|*.m3u;*.m3u8|" + _("All Files") + " (*.*)|*.*",
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
+        )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            m3u_path = dlg.GetPath()
+            entries = self._parse_m3u_file(m3u_path)
+
+            if not entries:
+                wx.MessageBox(
+                    _("No valid entries found in playlist."),
+                    _("Import M3U"),
+                    wx.OK | wx.ICON_INFORMATION
+                )
+                dlg.Destroy()
+                return
+
+            # Find free decks and load entries
+            loaded_count = 0
+            skipped_count = 0
+
+            for entry in entries:
+                # Find next free deck
+                target_deck = None
+                for deck in self.mixer.decks:
+                    if not deck.file_path:
+                        target_deck = deck
+                        break
+
+                if target_deck is None:
+                    # No more free decks
+                    skipped_count = len(entries) - loaded_count
+                    break
+
+                # Load entry into deck
+                if target_deck.load_file(entry):
+                    # Preload audio for local files
+                    if not entry.startswith(('http://', 'https://')):
+                        self._preload_deck_audio(target_deck)
+                    self._update_deck_panel(target_deck.deck_id)
+                    self.config_manager.add_recent_file(entry)
+                    loaded_count += 1
+                else:
+                    skipped_count += 1
+
+            # Update UI
+            self._update_recent_files_menu()
+            if loaded_count > 0:
+                self._mark_project_modified()
+
+            # Show result message
+            if skipped_count > 0:
+                msg = _("Imported {loaded} entries. {skipped} entries skipped (no free decks or load errors).").format(
+                    loaded=loaded_count, skipped=skipped_count
+                )
+            else:
+                msg = _("Imported {loaded} entries.").format(loaded=loaded_count)
+
+            self.SetStatusText(msg, 0)
+
+        dlg.Destroy()
+
+    def _parse_m3u_file(self, m3u_path):
+        """Parse M3U file and return list of file paths/URLs.
+
+        Handles:
+        - Extended M3U format (#EXTM3U, #EXTINF lines are ignored)
+        - Relative and absolute paths
+        - HTTP/HTTPS URLs
+        - UTF-8 and Latin-1 encodings
+        """
+        entries = []
+        m3u_dir = os.path.dirname(os.path.abspath(m3u_path))
+
+        # Try UTF-8 first, then Latin-1
+        content = None
+        for encoding in ['utf-8', 'latin-1']:
+            try:
+                with open(m3u_path, 'r', encoding=encoding) as f:
+                    content = f.read()
+                break
+            except UnicodeDecodeError:
+                continue
+
+        if content is None:
+            return entries
+
+        for line in content.splitlines():
+            line = line.strip()
+
+            # Skip empty lines and comments/extended info
+            if not line or line.startswith('#'):
+                continue
+
+            # Check if it's a URL
+            if line.startswith(('http://', 'https://')):
+                entries.append(line)
+            else:
+                # Handle file path (could be relative or absolute)
+                if os.path.isabs(line):
+                    file_path = line
+                else:
+                    # Resolve relative path based on M3U file location
+                    file_path = os.path.normpath(os.path.join(m3u_dir, line))
+
+                # Only add if file exists
+                if os.path.exists(file_path):
+                    entries.append(file_path)
+
+        return entries
 
     def _on_theme_changed(self, theme_name):
         """Handle theme change callback"""
