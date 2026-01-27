@@ -124,26 +124,6 @@ class MainFrame(wx.Frame):
         self.theme_item = view_menu.Append(wx.ID_ANY, _("Toggle &Theme") + "\tCtrl+Shift+T")
         menu_bar.Append(view_menu, _("&View"))
 
-        # Deck menu (for solo mode deck selection)
-        self.deck_menu = wx.Menu()
-        self.deck_menu_items = []
-        num_decks = self.config_manager.get_deck_count()
-
-        for i in range(num_decks):
-            # Use Ctrl+1-9 and Ctrl+0 for deck 10
-            if i < 9:
-                shortcut = f"\tCtrl+{i + 1}"
-            else:
-                shortcut = "\tCtrl+0"
-
-            deck_name = _("Deck") + f" {i + 1}"
-            item_id = wx.NewIdRef()
-            item = self.deck_menu.AppendRadioItem(item_id, f"{deck_name}{shortcut}")
-            self.deck_menu_items.append(item)
-            self.Bind(wx.EVT_MENU, lambda e, idx=i: self._on_deck_menu_select(idx), id=item_id)
-
-        menu_bar.Append(self.deck_menu, _("&Deck"))
-
         # Tools menu
         tools_menu = wx.Menu()
         self.record_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Recording") + "\tCtrl+R")
@@ -407,8 +387,6 @@ class MainFrame(wx.Frame):
         """Setup mixer callbacks"""
         self.mixer.on_mode_change = self._on_mixer_mode_changed
         self.mixer.on_active_deck_change = self._on_active_deck_changed
-        # Initialize deck menu state (disabled in mixer mode)
-        self._update_deck_menu_state()
 
     def _set_mode(self, mode):
         """Set mixer operating mode"""
@@ -436,11 +414,6 @@ class MainFrame(wx.Frame):
             MODE_AUTOMATIC: _("Automatic"),
         }
         self.SetStatusText(f"{_('Mode')}: {mode_names.get(new_mode, new_mode)}", 1)
-        # Update deck menu state
-        self._update_deck_menu_state()
-        # Update deck menu selection to current active deck
-        if new_mode in [MODE_SOLO, MODE_AUTOMATIC]:
-            self._update_deck_menu_selection(self.mixer.active_deck_index)
 
     def _on_active_deck_changed(self, old_index, new_index):
         """Handle active deck change (e.g., from automatic mode switching)"""
@@ -450,7 +423,6 @@ class MainFrame(wx.Frame):
     def _update_active_deck_ui(self, deck_index):
         """Update UI to reflect the new active deck"""
         self._sync_listbox_selection(deck_index)
-        self._update_deck_menu_selection(deck_index)
         if deck_index < len(self.mixer.decks):
             deck = self.mixer.decks[deck_index]
             self.SetStatusText(_("Active deck: {}").format(deck.name), 0)
@@ -572,7 +544,6 @@ class MainFrame(wx.Frame):
         if deck_index != wx.NOT_FOUND:
             # Update mixer's active deck for Solo/Automatic mode
             self.mixer.set_active_deck(deck_index)
-            self._update_deck_menu_selection(deck_index)
             # Update controls to show selected deck
             self._update_active_deck_controls()
 
@@ -1170,10 +1141,7 @@ class MainFrame(wx.Frame):
         self.mixer.mode = MODE_MIXER  # Reset to trigger proper mode change
         self.mixer.set_mode(loaded_mode)
 
-        # Update deck menu state
-        self._update_deck_menu_state()
         if loaded_mode in [MODE_SOLO, MODE_AUTOMATIC]:
-            self._update_deck_menu_selection(self.mixer.active_deck_index)
             self._sync_listbox_selection(self.mixer.active_deck_index)
 
     def _on_toggle_statusbar(self, event):
@@ -1677,35 +1645,13 @@ class MainFrame(wx.Frame):
             self.mixer.set_active_deck(deck_index)
             deck = self.mixer.decks[deck_index]
             self.SetStatusText(_("Active deck: {}").format(deck.name), 0)
-            # Update deck menu and listbox selection
-            self._update_deck_menu_selection(deck_index)
+            # Update deck listbox selection
             self._sync_listbox_selection(deck_index)
-
-    def _on_deck_menu_select(self, deck_index):
-        """Handle deck selection from menu"""
-        if deck_index < len(self.mixer.decks):
-            self.mixer.set_active_deck(deck_index)
-            deck = self.mixer.decks[deck_index]
-            self.SetStatusText(_("Active deck: {}").format(deck.name), 0)
-            # Sync listbox selection
-            self._sync_listbox_selection(deck_index)
-
-    def _update_deck_menu_selection(self, deck_index):
-        """Update deck menu radio button selection"""
-        if deck_index < len(self.deck_menu_items):
-            self.deck_menu_items[deck_index].Check(True)
-
-    def _update_deck_menu_state(self):
-        """Enable/disable deck menu items based on mode"""
-        is_solo_or_auto = self.mixer.mode in [MODE_SOLO, MODE_AUTOMATIC]
-        for item in self.deck_menu_items:
-            item.Enable(is_solo_or_auto)
 
     def _on_next_deck(self, event):
         """Handle Ctrl+Tab for next deck"""
         self.mixer.next_deck()
         deck_index = self.mixer.active_deck_index
-        self._update_deck_menu_selection(deck_index)
         self._sync_listbox_selection(deck_index)
         deck = self.mixer.decks[deck_index]
         self.SetStatusText(_("Active deck: {}").format(deck.name), 0)
@@ -1714,7 +1660,6 @@ class MainFrame(wx.Frame):
         """Handle Ctrl+Shift+Tab for previous deck"""
         self.mixer.previous_deck()
         deck_index = self.mixer.active_deck_index
-        self._update_deck_menu_selection(deck_index)
         self._sync_listbox_selection(deck_index)
         deck = self.mixer.decks[deck_index]
         self.SetStatusText(_("Active deck: {}").format(deck.name), 0)
