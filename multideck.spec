@@ -1,20 +1,36 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
 PyInstaller spec file for MultiDeck Audio Player
+Cross-platform: Windows, macOS, Linux
 """
 
 import os
 import sys
+import platform
 
 block_cipher = None
 
 # Get the project root directory
 PROJECT_ROOT = os.path.dirname(os.path.abspath(SPEC))
 
+# Detect platform
+IS_WINDOWS = platform.system() == 'Windows'
+IS_MACOS = platform.system() == 'Darwin'
+IS_LINUX = platform.system() == 'Linux'
+
 # Application info
 APP_NAME = 'MultiDeck Audio Player'
 APP_VERSION = '0.2.3'
-APP_ICON = None  # Set to 'assets/icon.ico' if you have an icon
+APP_BUNDLE_ID = 'com.multideck.audioplayer'
+
+# Platform-specific icon
+# Windows: .ico, macOS: .icns, Linux: .png
+if IS_WINDOWS:
+    APP_ICON = 'assets/icon.ico' if os.path.exists(os.path.join(PROJECT_ROOT, 'assets', 'icon.ico')) else None
+elif IS_MACOS:
+    APP_ICON = 'assets/icon.icns' if os.path.exists(os.path.join(PROJECT_ROOT, 'assets', 'icon.icns')) else None
+else:
+    APP_ICON = 'assets/icon.png' if os.path.exists(os.path.join(PROJECT_ROOT, 'assets', 'icon.png')) else None
 
 # Data files to include
 datas = []
@@ -86,12 +102,13 @@ exe = EXE(
     upx=True,
     console=False,  # Set to True for debugging
     disable_windowed_traceback=False,
-    argv_emulation=False,
+    argv_emulation=IS_MACOS,  # Enable on macOS for drag-and-drop support
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
     icon=APP_ICON,
-    version='version_info.txt' if os.path.exists(os.path.join(PROJECT_ROOT, 'version_info.txt')) else None,
+    # version_info.txt is Windows-specific (PE version info)
+    version='version_info.txt' if IS_WINDOWS and os.path.exists(os.path.join(PROJECT_ROOT, 'version_info.txt')) else None,
 )
 
 coll = COLLECT(
@@ -104,3 +121,31 @@ coll = COLLECT(
     upx_exclude=[],
     name='MultiDeck',
 )
+
+# macOS: Create .app bundle
+if IS_MACOS:
+    app = BUNDLE(
+        coll,
+        name='MultiDeck.app',
+        icon=APP_ICON,
+        bundle_identifier=APP_BUNDLE_ID,
+        info_plist={
+            'CFBundleName': APP_NAME,
+            'CFBundleDisplayName': APP_NAME,
+            'CFBundleVersion': APP_VERSION,
+            'CFBundleShortVersionString': APP_VERSION,
+            'CFBundleExecutable': 'MultiDeck',
+            'CFBundlePackageType': 'APPL',
+            'CFBundleSignature': 'MDAP',
+            'LSMinimumSystemVersion': '10.13.0',
+            'NSHighResolutionCapable': True,
+            'NSMicrophoneUsageDescription': 'MultiDeck needs microphone access for audio recording.',
+            'CFBundleDocumentTypes': [
+                {
+                    'CFBundleTypeName': 'MultiDeck Project',
+                    'CFBundleTypeExtensions': ['mdap'],
+                    'CFBundleTypeRole': 'Editor',
+                }
+            ],
+        },
+    )
