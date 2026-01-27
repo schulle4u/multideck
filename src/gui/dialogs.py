@@ -83,7 +83,7 @@ class OptionsDialog(wx.Dialog):
 
         # Language
         lang_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        lang_label = wx.StaticText(panel, label=_("Language:"))
+        lang_label = wx.StaticText(panel, label=_("Language") + ":")
         lang_sizer.Add(lang_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_lang = self.config_manager.get('General', 'language', 'en')
@@ -99,7 +99,7 @@ class OptionsDialog(wx.Dialog):
 
         # Number of decks
         deck_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        deck_label = wx.StaticText(panel, label=_("Number of Decks:"))
+        deck_label = wx.StaticText(panel, label=_("Number of Decks") + ":")
         deck_sizer.Add(deck_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_deck_count = self.config_manager.get_deck_count()
@@ -114,7 +114,7 @@ class OptionsDialog(wx.Dialog):
 
         # Theme
         theme_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        theme_label = wx.StaticText(panel, label=_("Theme:"))
+        theme_label = wx.StaticText(panel, label=_("Theme") + ":")
         theme_sizer.Add(theme_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_theme = self.config_manager.get('General', 'theme', 'system')
@@ -141,7 +141,7 @@ class OptionsDialog(wx.Dialog):
 
         # Output device
         device_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        device_label = wx.StaticText(panel, label=_("Output Device:"))
+        device_label = wx.StaticText(panel, label=_("Output Device") + ":")
         device_sizer.Add(device_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         # Get available output devices
@@ -168,7 +168,7 @@ class OptionsDialog(wx.Dialog):
 
         # Buffer size
         buffer_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        buffer_label = wx.StaticText(panel, label=_("Buffer Size:"))
+        buffer_label = wx.StaticText(panel, label=_("Buffer Size") + ":")
         buffer_sizer.Add(buffer_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_buffer = self.config_manager.getint('Audio', 'buffer_size', 2048)
@@ -184,7 +184,7 @@ class OptionsDialog(wx.Dialog):
 
         # Sample rate
         rate_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        rate_label = wx.StaticText(panel, label=_("Sample Rate:"))
+        rate_label = wx.StaticText(panel, label=_("Sample Rate") + ":")
         rate_sizer.Add(rate_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_rate = self.config_manager.getint('Audio', 'sample_rate', 44100)
@@ -234,7 +234,7 @@ class OptionsDialog(wx.Dialog):
 
         # Switch interval
         interval_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        interval_label = wx.StaticText(panel, label=_("Switch Interval (seconds):"))
+        interval_label = wx.StaticText(panel, label=_("Switch Interval (seconds)") + ":")
         interval_sizer.Add(interval_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_interval = self.config_manager.getint('Automation', 'switch_interval', 10)
@@ -254,7 +254,7 @@ class OptionsDialog(wx.Dialog):
 
         # Crossfade duration (in tenths of seconds for accessibility)
         duration_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        duration_label = wx.StaticText(panel, label=_("Crossfade Duration (0.1s):"))
+        duration_label = wx.StaticText(panel, label=_("Crossfade Duration (0.1s)") + ":")
         duration_sizer.Add(duration_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_duration = self.config_manager.getfloat('Automation', 'crossfade_duration', 2.0)
@@ -277,7 +277,7 @@ class OptionsDialog(wx.Dialog):
 
         # Recording format
         format_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        format_label = wx.StaticText(panel, label=_("Format:"))
+        format_label = wx.StaticText(panel, label=_("Format") + ":")
         format_sizer.Add(format_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_format = self.config_manager.get('Recorder', 'format', 'wav')
@@ -302,7 +302,7 @@ class OptionsDialog(wx.Dialog):
 
         # Bitrate (for MP3/OGG)
         bitrate_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        bitrate_label = wx.StaticText(panel, label=_("Bitrate (MP3/OGG):"))
+        bitrate_label = wx.StaticText(panel, label=_("Bitrate (MP3/OGG)") + ":")
         bitrate_sizer.Add(bitrate_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_bitrate = self.config_manager.getint('Recorder', 'bitrate', 192)
@@ -331,7 +331,7 @@ class OptionsDialog(wx.Dialog):
 
         # Bit depth (only for WAV format)
         depth_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        depth_label = wx.StaticText(panel, label=_("Bit Depth (WAV only):"))
+        depth_label = wx.StaticText(panel, label=_("Bit Depth (WAV only)") + ":")
         depth_sizer.Add(depth_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_depth = self.config_manager.getint('Recorder', 'bit_depth', 16)
@@ -347,7 +347,7 @@ class OptionsDialog(wx.Dialog):
 
         # Pre-roll duration
         preroll_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        preroll_label = wx.StaticText(panel, label=_("Pre-Roll (seconds):"))
+        preroll_label = wx.StaticText(panel, label=_("Pre-Roll (seconds)") + ":")
         preroll_sizer.Add(preroll_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_preroll = self.config_manager.getint('Recorder', 'pre_roll_seconds', 30)
@@ -361,7 +361,7 @@ class OptionsDialog(wx.Dialog):
 
         # Output directory
         dir_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        dir_label = wx.StaticText(panel, label=_("Output Directory:"))
+        dir_label = wx.StaticText(panel, label=_("Output Directory") + ":")
         dir_sizer.Add(dir_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_dir = self.config_manager.get('Recorder', 'output_directory', '')
@@ -401,7 +401,7 @@ class OptionsDialog(wx.Dialog):
 
         # Reconnect wait
         wait_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        wait_label = wx.StaticText(panel, label=_("Reconnect Wait (seconds):"))
+        wait_label = wx.StaticText(panel, label=_("Reconnect Wait (seconds)") + ":")
         wait_sizer.Add(wait_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_wait = self.config_manager.getint('Streaming', 'reconnect_wait', 5)
