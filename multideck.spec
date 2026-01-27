@@ -13,7 +13,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(SPEC))
 
 # Application info
 APP_NAME = 'MultiDeck Audio Player'
-APP_VERSION = '0.2.2'
+APP_VERSION = '0.2.3'
 APP_ICON = None  # Set to 'assets/icon.ico' if you have an icon
 
 # Data files to include
