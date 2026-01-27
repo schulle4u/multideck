@@ -104,6 +104,7 @@ class MainFrame(wx.Frame):
         file_menu.AppendSeparator()
 
         self.import_m3u_item = file_menu.Append(wx.ID_ANY, _("&Import M3U Playlist...") + "\tCtrl+I")
+        self.export_m3u_item = file_menu.Append(wx.ID_ANY, _("&Export M3U Playlist...") + "\tCtrl+E")
 
         file_menu.AppendSeparator()
         # Recent Files submenu
@@ -165,6 +166,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._on_save_project, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU, self._on_save_project_as, id=wx.ID_SAVEAS)
         self.Bind(wx.EVT_MENU, self._on_import_m3u, self.import_m3u_item)
+        self.Bind(wx.EVT_MENU, self._on_export_m3u, self.export_m3u_item)
         self.Bind(wx.EVT_MENU, self._on_exit, id=wx.ID_EXIT)
         self.Bind(wx.EVT_MENU, self._on_toggle_statusbar, self.statusbar_item)
         self.Bind(wx.EVT_MENU, self._on_toggle_theme, self.theme_item)
@@ -1384,6 +1386,63 @@ class MainFrame(wx.Frame):
                     entries.append(file_path)
 
         return entries
+
+    def _on_export_m3u(self, event):
+        """Export loaded deck files/URLs to M3U playlist"""
+        # Collect all loaded files/URLs from decks
+        entries = []
+        for deck in self.mixer.decks:
+            if deck.file_path:
+                entries.append(deck.file_path)
+
+        if not entries:
+            wx.MessageBox(
+                _("No files loaded in any deck. Nothing to export."),
+                _("Export M3U"),
+                wx.OK | wx.ICON_INFORMATION
+            )
+            return
+
+        # Show save dialog
+        dlg = wx.FileDialog(
+            self,
+            _("Export M3U Playlist"),
+            wildcard="M3U Playlist (*.m3u)|*.m3u|M3U8 Playlist (*.m3u8)|*.m3u8",
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+        )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            m3u_path = dlg.GetPath()
+
+            # Ensure file has extension
+            if not m3u_path.lower().endswith(('.m3u', '.m3u8')):
+                m3u_path += '.m3u'
+
+            try:
+                with open(m3u_path, 'w', encoding='utf-8') as f:
+                    f.write('#EXTM3U\n')
+                    for entry in entries:
+                        # Write EXTINF with deck name/filename
+                        if entry.startswith(('http://', 'https://')):
+                            name = entry
+                        else:
+                            name = os.path.basename(entry)
+                        f.write(f'#EXTINF:-1,{name}\n')
+                        f.write(f'{entry}\n')
+
+                self.SetStatusText(_("Exported {count} entries to {file}").format(
+                    count=len(entries),
+                    file=os.path.basename(m3u_path)
+                ), 0)
+
+            except IOError as e:
+                wx.MessageBox(
+                    _("Failed to write playlist file: {}").format(str(e)),
+                    _("Error"),
+                    wx.OK | wx.ICON_ERROR
+                )
+
+        dlg.Destroy()
 
     def _on_theme_changed(self, theme_name):
         """Handle theme change callback"""
