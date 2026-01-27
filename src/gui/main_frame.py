@@ -185,10 +185,11 @@ class MainFrame(wx.Frame):
 
         # Operating mode
         mode_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Operating Mode"))
+        mode_static_box = mode_box.GetStaticBox()
 
-        self.mixer_mode_radio = wx.RadioButton(panel, label=_("Mixer Mode") + "\tF3", style=wx.RB_GROUP)
-        self.solo_mode_radio = wx.RadioButton(panel, label=_("Solo Mode") + "\tF4")
-        self.auto_mode_radio = wx.RadioButton(panel, label=_("Automatic Mode") + "\tF5")
+        self.mixer_mode_radio = wx.RadioButton(mode_static_box, label=_("Mixer Mode") + "\tF3", style=wx.RB_GROUP)
+        self.solo_mode_radio = wx.RadioButton(mode_static_box, label=_("Solo Mode") + "\tF4")
+        self.auto_mode_radio = wx.RadioButton(mode_static_box, label=_("Automatic Mode") + "\tF5")
 
         self.mixer_mode_radio.SetValue(True)
 
@@ -204,15 +205,16 @@ class MainFrame(wx.Frame):
 
         # Global playback controls
         playback_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Global Playback"))
+        playback_static_box = playback_box.GetStaticBox()
 
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.global_play_pause_btn = wx.Button(panel, label=_("Play All"))
+        self.global_play_pause_btn = wx.Button(playback_static_box, label=_("Play All"))
         self.global_play_pause_btn.SetToolTip(_("Play/Pause all decks"))
         self.global_play_pause_btn.Bind(wx.EVT_BUTTON, self._on_global_play_pause)
         button_sizer.Add(self.global_play_pause_btn, 0, wx.ALL, 5)
 
-        self.global_stop_btn = wx.Button(panel, label=_("Stop All"))
+        self.global_stop_btn = wx.Button(playback_static_box, label=_("Stop All"))
         self.global_stop_btn.SetToolTip(_("Stop all decks and reset positions"))
         self.global_stop_btn.Bind(wx.EVT_BUTTON, self._on_global_stop)
         button_sizer.Add(self.global_stop_btn, 0, wx.ALL, 5)
@@ -222,10 +224,11 @@ class MainFrame(wx.Frame):
 
         # Master volume
         volume_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Master Volume"))
+        volume_static_box = volume_box.GetStaticBox()
 
         master_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.master_volume_slider = wx.Slider(
-            panel, value=80, minValue=0, maxValue=100,
+            volume_static_box, value=80, minValue=0, maxValue=100,
             style=wx.SL_HORIZONTAL
         )
         self.master_volume_slider.Bind(wx.EVT_SLIDER, self._on_master_volume_change)
@@ -244,8 +247,9 @@ class MainFrame(wx.Frame):
 
         # Left side: Deck listbox
         list_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Deck Selection") + " (F6)")
+        list_static_box = list_box.GetStaticBox()
 
-        self.deck_listbox = wx.ListBox(panel, style=wx.LB_SINGLE)
+        self.deck_listbox = wx.ListBox(list_static_box, style=wx.LB_SINGLE)
         self.deck_listbox.SetName(_("Deck Selection"))
         self.deck_listbox.Bind(wx.EVT_LISTBOX, self._on_deck_listbox_select)
         self.deck_listbox.Bind(wx.EVT_CONTEXT_MENU, self._on_deck_context_menu)
@@ -255,31 +259,32 @@ class MainFrame(wx.Frame):
 
         # Right side: Controls for active deck
         controls_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Active Deck Controls"))
+        controls_static_box = controls_box.GetStaticBox()
 
         # Deck name/status display
-        self.active_deck_label = wx.StaticText(panel, label=_("No deck selected"))
+        self.active_deck_label = wx.StaticText(controls_static_box, label=_("No deck selected"))
         font = self.active_deck_label.GetFont()
         font.SetWeight(wx.FONTWEIGHT_BOLD)
         self.active_deck_label.SetFont(font)
         controls_box.Add(self.active_deck_label, 0, wx.ALL, 5)
 
-        self.active_deck_status = wx.StaticText(panel, label="")
+        self.active_deck_status = wx.StaticText(controls_static_box, label="")
         controls_box.Add(self.active_deck_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
         # Playback buttons
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.active_play_btn = wx.Button(panel, label=_("Play"))
+        self.active_play_btn = wx.Button(controls_static_box, label=_("Play"))
         self.active_play_btn.SetName(_("Play"))
         self.active_play_btn.Bind(wx.EVT_BUTTON, self._on_active_play_pause)
         button_sizer.Add(self.active_play_btn, 1, wx.ALL, 5)
 
-        self.active_stop_btn = wx.Button(panel, label=_("Stop"))
+        self.active_stop_btn = wx.Button(controls_static_box, label=_("Stop"))
         self.active_stop_btn.SetName(_("Stop"))
         self.active_stop_btn.Bind(wx.EVT_BUTTON, self._on_active_stop)
         button_sizer.Add(self.active_stop_btn, 1, wx.ALL, 5)
 
-        self.active_menu_btn = wx.Button(panel, label=_("Menu..."))
+        self.active_menu_btn = wx.Button(controls_static_box, label=_("Menu..."))
         self.active_menu_btn.SetName(_("Menu..."))
         self.active_menu_btn.Bind(wx.EVT_BUTTON, self._on_active_menu)
         button_sizer.Add(self.active_menu_btn, 1, wx.ALL, 5)
@@ -288,11 +293,11 @@ class MainFrame(wx.Frame):
 
         # Volume slider
         volume_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        volume_label = wx.StaticText(panel, label=_("Volume:"))
+        volume_label = wx.StaticText(controls_static_box, label=_("Volume:"))
         volume_sizer.Add(volume_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         self.active_volume_slider = wx.Slider(
-            panel, value=100, minValue=0, maxValue=100,
+            controls_static_box, value=100, minValue=0, maxValue=100,
             style=wx.SL_HORIZONTAL
         )
         self.active_volume_slider.SetName(_("Volume"))
@@ -303,11 +308,11 @@ class MainFrame(wx.Frame):
 
         # Balance slider
         balance_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        balance_label = wx.StaticText(panel, label=_("Balance:"))
+        balance_label = wx.StaticText(controls_static_box, label=_("Balance:"))
         balance_sizer.Add(balance_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         self.active_balance_slider = wx.Slider(
-            panel, value=0, minValue=-100, maxValue=100,
+            controls_static_box, value=0, minValue=-100, maxValue=100,
             style=wx.SL_HORIZONTAL
         )
         self.active_balance_slider.SetName(_("Balance"))
@@ -319,12 +324,12 @@ class MainFrame(wx.Frame):
         # Mute and Loop checkboxes
         checkbox_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.active_mute_cb = wx.CheckBox(panel, label=_("Mute"))
+        self.active_mute_cb = wx.CheckBox(controls_static_box, label=_("Mute"))
         self.active_mute_cb.SetName(_("Mute"))
         self.active_mute_cb.Bind(wx.EVT_CHECKBOX, self._on_active_mute_change)
         checkbox_sizer.Add(self.active_mute_cb, 0, wx.ALL, 5)
 
-        self.active_loop_cb = wx.CheckBox(panel, label=_("Loop"))
+        self.active_loop_cb = wx.CheckBox(controls_static_box, label=_("Loop"))
         self.active_loop_cb.SetName(_("Loop"))
         self.active_loop_cb.Bind(wx.EVT_CHECKBOX, self._on_active_loop_change)
         checkbox_sizer.Add(self.active_loop_cb, 0, wx.ALL, 5)
@@ -332,17 +337,18 @@ class MainFrame(wx.Frame):
         controls_box.Add(checkbox_sizer, 0)
 
         # Position/Seek slider (only for local files)
-        position_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Position"))
+        position_box = wx.StaticBoxSizer(wx.VERTICAL, controls_static_box, _("Position"))
+        position_static_box = position_box.GetStaticBox()
 
         # Time display
         time_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.active_position_label = wx.StaticText(panel, label="0:00")
+        self.active_position_label = wx.StaticText(position_static_box, label="0:00")
         self.active_position_label.SetName(_("Current position"))
         time_sizer.Add(self.active_position_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         time_sizer.AddStretchSpacer()
 
-        self.active_duration_label = wx.StaticText(panel, label="0:00")
+        self.active_duration_label = wx.StaticText(position_static_box, label="0:00")
         self.active_duration_label.SetName(_("Total duration"))
         time_sizer.Add(self.active_duration_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
@@ -350,7 +356,7 @@ class MainFrame(wx.Frame):
 
         # Position slider
         self.active_position_slider = wx.Slider(
-            panel, value=0, minValue=0, maxValue=1000,
+            position_static_box, value=0, minValue=0, maxValue=1000,
             style=wx.SL_HORIZONTAL
         )
         self.active_position_slider.SetName(_("Playback position"))

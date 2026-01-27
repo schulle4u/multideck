@@ -200,9 +200,8 @@ class ThemeManager:
             if widget_type in native_controls or isinstance(widget, (wx.CheckBox, wx.RadioButton)):
                 return
 
-            # Bind focus events for better keyboard accessibility
-            widget.Bind(wx.EVT_SET_FOCUS, lambda evt: self._handle_focus(evt, True))
-            widget.Bind(wx.EVT_KILL_FOCUS, lambda evt: self._handle_focus(evt, False))
+            # Note: Focus event binding removed to avoid interfering with
+            # screen reader accessibility and accumulating duplicate handlers
 
             # StaticBox - only set foreground for label visibility
             if isinstance(widget, wx.StaticBox):
@@ -268,37 +267,6 @@ class ThemeManager:
         except Exception:
             # Silently ignore widgets that don't support theming
             pass
-
-    def _handle_focus(self, event, has_focus: bool):
-        """
-        Handle visual feedback when a widget gains or loses focus.
-        
-        Args:
-            event: The wx.FocusEvent
-            has_focus: Boolean indicating if the widget gained focus
-        """
-        widget = event.GetEventObject()
-        colors = self.colors
-        
-        if has_focus:
-            # Check if widget supports SetBorderColour (mostly custom or specific native)
-            if hasattr(widget, "SetBorderColour"):
-                widget.SetBorderColour(colors['highlight'])
-            # Alternative: slight background shift for text controls if border isn't supported
-            elif isinstance(widget, wx.TextCtrl):
-                widget.SetBackgroundColour(wx.Colour(40, 40, 40) if self._current_theme == 'dark' else wx.Colour(245, 245, 255))
-        else:
-            if hasattr(widget, "SetBorderColour"):
-                widget.SetBorderColour(colors['border'])
-            elif isinstance(widget, wx.TextCtrl):
-                widget.SetBackgroundColour(colors['input_bg'])
-            # Highlight border or background on focus (only win32 for the moment)
-            if sys.platform == 'win32':
-                if isinstance(widget, (wx.TextCtrl, wx.ComboBox, wx.Choice)):
-                    widget.SetBorderColour(colors['highlight']) # Note: Support varies by OS
-
-        widget.Refresh()
-        event.Skip() # Ensure the event propagates further
 
     def get_status_color(self, status: str) -> wx.Colour:
         """

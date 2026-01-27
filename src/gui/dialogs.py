@@ -91,6 +91,7 @@ class OptionsDialog(wx.Dialog):
         lang_choices = [LANGUAGE_NAMES.get(lang, lang) for lang in languages]
 
         self.language_choice = wx.Choice(panel, choices=lang_choices)
+        self.language_choice.SetName(_("Language"))
         self.language_choice.SetSelection(languages.index(current_lang))
         lang_sizer.Add(self.language_choice, 1, wx.EXPAND | wx.ALL, 5)
 
@@ -105,6 +106,7 @@ class OptionsDialog(wx.Dialog):
         deck_choices = [str(n) for n in VALID_DECK_COUNTS]
 
         self.deck_count_choice = wx.Choice(panel, choices=deck_choices)
+        self.deck_count_choice.SetName(_("Number of Decks"))
         self.deck_count_choice.SetSelection(VALID_DECK_COUNTS.index(current_deck_count))
         deck_sizer.Add(self.deck_count_choice, 1, wx.EXPAND | wx.ALL, 5)
 
@@ -120,6 +122,7 @@ class OptionsDialog(wx.Dialog):
         theme_values = ['system', 'light', 'dark']
 
         self.theme_choice = wx.Choice(panel, choices=theme_choices)
+        self.theme_choice.SetName(_("Theme"))
         if current_theme in theme_values:
             self.theme_choice.SetSelection(theme_values.index(current_theme))
         self.theme_values = theme_values
@@ -153,6 +156,7 @@ class OptionsDialog(wx.Dialog):
         current_device = self.config_manager.get('Audio', 'output_device', 'default')
 
         self.device_choice = wx.Choice(panel, choices=device_choices)
+        self.device_choice.SetName(_("Output Device"))
         # Find and set current selection
         if current_device in self.device_values:
             self.device_choice.SetSelection(self.device_values.index(current_device))
@@ -171,6 +175,7 @@ class OptionsDialog(wx.Dialog):
         buffer_choices = ['512', '1024', '2048', '4096']
 
         self.buffer_choice = wx.Choice(panel, choices=buffer_choices)
+        self.buffer_choice.SetName(_("Buffer Size"))
         if str(current_buffer) in buffer_choices:
             self.buffer_choice.SetSelection(buffer_choices.index(str(current_buffer)))
         buffer_sizer.Add(self.buffer_choice, 1, wx.EXPAND | wx.ALL, 5)
@@ -186,6 +191,7 @@ class OptionsDialog(wx.Dialog):
         rate_choices = ['44100', '48000']
 
         self.rate_choice = wx.Choice(panel, choices=rate_choices)
+        self.rate_choice.SetName(_("Sample Rate"))
         if str(current_rate) in rate_choices:
             self.rate_choice.SetSelection(rate_choices.index(str(current_rate)))
         rate_sizer.Add(self.rate_choice, 1, wx.EXPAND | wx.ALL, 5)
@@ -234,25 +240,29 @@ class OptionsDialog(wx.Dialog):
         current_interval = self.config_manager.getint('Automation', 'switch_interval', 10)
         self.interval_spin = wx.SpinCtrl(panel, value=str(current_interval),
                                          min=1, max=300, initial=current_interval)
+        self.interval_spin.SetName(_("Switch Interval (seconds)"))
         interval_sizer.Add(self.interval_spin, 1, wx.EXPAND | wx.ALL, 5)
 
         sizer.Add(interval_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
         # Crossfade enabled
         self.crossfade_check = wx.CheckBox(panel, label=_("Enable Crossfade"))
+        self.crossfade_check.SetName(_("Enable Crossfade"))
         crossfade_enabled = self.config_manager.getboolean('Automation', 'crossfade_enabled', True)
         self.crossfade_check.SetValue(crossfade_enabled)
         sizer.Add(self.crossfade_check, 0, wx.ALL, 10)
 
-        # Crossfade duration
+        # Crossfade duration (in tenths of seconds for accessibility)
         duration_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        duration_label = wx.StaticText(panel, label=_("Crossfade Duration (seconds):"))
+        duration_label = wx.StaticText(panel, label=_("Crossfade Duration (0.1s):"))
         duration_sizer.Add(duration_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_duration = self.config_manager.getfloat('Automation', 'crossfade_duration', 2.0)
-        self.crossfade_spin = wx.SpinCtrlDouble(panel, value=str(current_duration),
-                                                 min=0.5, max=10.0, initial=current_duration, inc=0.5)
-        self.crossfade_spin.SetDigits(1)
+        # Convert seconds to tenths (e.g., 2.0s -> 20)
+        current_duration_tenths = int(current_duration * 10)
+        self.crossfade_spin = wx.SpinCtrl(panel, value=str(current_duration_tenths),
+                                          min=5, max=100, initial=current_duration_tenths)
+        self.crossfade_spin.SetName(_("Crossfade Duration (0.1s)"))
         duration_sizer.Add(self.crossfade_spin, 1, wx.EXPAND | wx.ALL, 5)
 
         sizer.Add(duration_sizer, 0, wx.EXPAND | wx.ALL, 5)
@@ -280,6 +290,7 @@ class OptionsDialog(wx.Dialog):
             format_values.extend(['mp3', 'ogg', 'flac'])
 
         self.format_choice = wx.Choice(panel, choices=format_choices)
+        self.format_choice.SetName(_("Format"))
         if current_format in format_values:
             self.format_choice.SetSelection(format_values.index(current_format))
         else:
@@ -299,6 +310,7 @@ class OptionsDialog(wx.Dialog):
         bitrate_labels = [f'{b} kbps' for b in bitrate_choices]
 
         self.bitrate_choice = wx.Choice(panel, choices=bitrate_labels)
+        self.bitrate_choice.SetName(_("Bitrate (MP3/OGG)"))
         if str(current_bitrate) in bitrate_choices:
             self.bitrate_choice.SetSelection(bitrate_choices.index(str(current_bitrate)))
         else:
@@ -326,6 +338,7 @@ class OptionsDialog(wx.Dialog):
         depth_choices = ['16', '24', '32']
 
         self.depth_choice = wx.Choice(panel, choices=depth_choices)
+        self.depth_choice.SetName(_("Bit Depth (WAV only)"))
         if str(current_depth) in depth_choices:
             self.depth_choice.SetSelection(depth_choices.index(str(current_depth)))
         depth_sizer.Add(self.depth_choice, 1, wx.EXPAND | wx.ALL, 5)
@@ -340,6 +353,7 @@ class OptionsDialog(wx.Dialog):
         current_preroll = self.config_manager.getint('Recorder', 'pre_roll_seconds', 30)
         self.preroll_spin = wx.SpinCtrl(panel, value=str(current_preroll),
                                         min=0, max=120, initial=current_preroll)
+        self.preroll_spin.SetName(_("Pre-Roll (seconds)"))
         self.preroll_spin.SetToolTip(_("Buffer audio before recording starts (0 to disable)"))
         preroll_sizer.Add(self.preroll_spin, 1, wx.EXPAND | wx.ALL, 5)
 
@@ -352,9 +366,11 @@ class OptionsDialog(wx.Dialog):
 
         current_dir = self.config_manager.get('Recorder', 'output_directory', '')
         self.output_dir_text = wx.TextCtrl(panel, value=current_dir)
+        self.output_dir_text.SetName(_("Output Directory"))
         dir_sizer.Add(self.output_dir_text, 1, wx.EXPAND | wx.ALL, 5)
 
         browse_btn = wx.Button(panel, label=_("Browse..."))
+        browse_btn.SetName(_("Browse for Output Directory"))
         browse_btn.Bind(wx.EVT_BUTTON, self._on_browse_output_dir)
         dir_sizer.Add(browse_btn, 0, wx.ALL, 5)
 
@@ -377,6 +393,7 @@ class OptionsDialog(wx.Dialog):
 
         # Auto-reconnect
         self.auto_reconnect_check = wx.CheckBox(panel, label=_("Auto-reconnect on connection loss"))
+        self.auto_reconnect_check.SetName(_("Auto-reconnect on connection loss"))
         self.auto_reconnect_check.SetValue(
             self.config_manager.getboolean('Streaming', 'auto_reconnect', True)
         )
@@ -390,6 +407,7 @@ class OptionsDialog(wx.Dialog):
         current_wait = self.config_manager.getint('Streaming', 'reconnect_wait', 5)
         self.wait_spin = wx.SpinCtrl(panel, value=str(current_wait),
                                      min=1, max=60, initial=current_wait)
+        self.wait_spin.SetName(_("Reconnect Wait (seconds)"))
         wait_sizer.Add(self.wait_spin, 1, wx.EXPAND | wx.ALL, 5)
 
         sizer.Add(wait_sizer, 0, wx.EXPAND | wx.ALL, 5)
@@ -430,7 +448,8 @@ class OptionsDialog(wx.Dialog):
         # Save automation settings
         self.config_manager.set('Automation', 'switch_interval', self.interval_spin.GetValue())
         self.config_manager.set('Automation', 'crossfade_enabled', self.crossfade_check.GetValue())
-        self.config_manager.set('Automation', 'crossfade_duration', self.crossfade_spin.GetValue())
+        # Convert tenths back to seconds (e.g., 20 -> 2.0s)
+        self.config_manager.set('Automation', 'crossfade_duration', self.crossfade_spin.GetValue() / 10.0)
 
         # Save recorder settings
         self.config_manager.set('Recorder', 'format',
