@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-01-27 10:05+0100\n"
-"PO-Revision-Date: 2026-01-27 10:08+0100\n"
+"PO-Revision-Date: 2026-01-27 10:20+0100\n"
 "Last-Translator: Steffen Schultz\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -154,11 +154,11 @@ msgstr "&Neues Projekt..."
 
 #: gui/main_frame.py:101
 msgid "&Open Project..."
-msgstr "Projekt öffnen..."
+msgstr "Projekt ö&ffnen..."
 
 #: gui/main_frame.py:102
 msgid "&Save Project"
-msgstr "Projekt speichern"
+msgstr "Projekt &speichern"
 
 #: gui/main_frame.py:103
 msgid "Save Project &As..."
@@ -203,7 +203,7 @@ msgstr "Deck"
 
 #: gui/main_frame.py:145
 msgid "&Deck"
-msgstr "&Deck"
+msgstr "D&eck"
 
 #: gui/main_frame.py:149 gui/main_frame.py:1819
 msgid "Start &Recording"
