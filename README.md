@@ -18,7 +18,7 @@ An accessible, cross-platform audio player that enables simultaneous playback of
   - **Automatic Mode**: Automatic switching between decks, supports crossfade
 - **Project Management**
   - Save and load complete deck configurations (.mdap files)
-  - Portable mode support
+  - Import/export M3U files
 - **Master Output Recorder**
   - Record combined audio output to WAV, mp3, ogg or flac files
   - Real-time recording with status display and optional pre-roll buffer
