@@ -966,7 +966,7 @@ class MainFrame(wx.Frame):
             project_name = os.path.basename(self.current_project_file)
             title = f"{APP_NAME} - {project_name}"
         if self._project_modified:
-            title = f"{title}*"
+            title = f"{title} " + _("[Unsaved]")
         self.SetTitle(title)
 
     def _mark_project_modified(self):

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-27 10:05+0100\n"
+"POT-Creation-Date: 2026-01-27 14:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -476,6 +476,10 @@ msgstr ""
 
 #: gui/main_frame.py:915
 msgid "Invalid time format. Use M:SS or H:MM:SS (e.g., 1:30 or 1:05:30)"
+msgstr ""
+
+#: gui/main_frame.py:969
+msgid "[Unsaved]"
 msgstr ""
 
 #: gui/main_frame.py:991
