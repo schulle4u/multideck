@@ -405,6 +405,7 @@ class MainFrame(wx.Frame):
             mode_radios[mode].SetValue(True)
         # Set the mode
         self.mixer.set_mode(mode)
+        self._mark_project_modified()
 
     def _on_mixer_mode_changed(self, old_mode, new_mode):
         """Handle mixer mode change"""
