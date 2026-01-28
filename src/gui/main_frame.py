@@ -253,6 +253,8 @@ class MainFrame(wx.Frame):
         self.deck_listbox.SetName(_("Deck Selection"))
         self.deck_listbox.Bind(wx.EVT_LISTBOX, self._on_deck_listbox_select)
         self.deck_listbox.Bind(wx.EVT_CONTEXT_MENU, self._on_deck_context_menu)
+        # Use CHAR_HOOK to intercept Enter before native ListBox processing
+        self.deck_listbox.Bind(wx.EVT_CHAR_HOOK, self._on_deck_listbox_key)
         list_box.Add(self.deck_listbox, 1, wx.EXPAND | wx.ALL, 5)
 
         main_sizer.Add(list_box, 1, wx.EXPAND | wx.ALL, 5)
@@ -646,6 +648,17 @@ class MainFrame(wx.Frame):
     def _on_active_menu(self, event):
         """Show menu for active deck (from button)"""
         self._show_deck_context_menu(self.active_menu_btn)
+
+    def _on_deck_listbox_key(self, event):
+        """Handle key events in deck listbox for accessibility"""
+        key = event.GetKeyCode()
+        # Open context menu on Enter or Application/Menu key
+        # This helps VoiceOver users on macOS who can't trigger EVT_CONTEXT_MENU
+        if key in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+            self._show_deck_context_menu(self.deck_listbox)
+            # Don't Skip() - we handled the event
+        else:
+            event.Skip()
 
     def _on_deck_context_menu(self, event):
         """Show context menu for deck listbox (right-click or Shift+F10)"""
