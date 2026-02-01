@@ -7,7 +7,7 @@ import wx.adv
 import os
 from pathlib import Path
 
-from gui.dialogs import OptionsDialog
+from gui.dialogs import OptionsDialog, CustomTextEntryDialog
 from gui.theme_manager import ThemeManager
 from audio.audio_engine import AudioEngine
 from audio.mixer import Mixer
@@ -498,11 +498,11 @@ class MainFrame(wx.Frame):
 
     def _on_deck_load_url(self, deck):
         """Handle deck URL loading"""
-        dlg = wx.TextEntryDialog(
+        dlg = CustomTextEntryDialog(
             self,
             _("Enter stream URL:"),
             _("Load Stream"),
-            "http://"
+            default_value = "http://"
         )
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -699,7 +699,7 @@ class MainFrame(wx.Frame):
         if not deck:
             return
 
-        dlg = wx.TextEntryDialog(self, _("Enter new deck name:"), _("Rename Deck"), deck.name)
+        dlg = CustomTextEntryDialog(self, _("Enter new deck name:"), _("Rename Deck"), default_value = deck.name)
         if dlg.ShowModal() == wx.ID_OK:
             new_name = dlg.GetValue().strip()
             if new_name:
@@ -880,11 +880,11 @@ class MainFrame(wx.Frame):
         current_pos = format_time(deck.get_position_seconds())
         duration_str = format_time(duration)
 
-        dlg = wx.TextEntryDialog(
+        dlg = CustomTextEntryDialog(
             self,
             _("Enter time (M:SS or H:MM:SS):") + f"\n{_('Duration')}: {duration_str}",
             _("Jump to Time"),
-            current_pos
+            default_value = current_pos
         )
 
         if dlg.ShowModal() == wx.ID_OK:
