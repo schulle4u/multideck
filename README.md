@@ -22,6 +22,9 @@ An accessible, cross-platform audio player that enables simultaneous playback of
 - **Master Output Recorder**
   - Record combined audio output to WAV, mp3, ogg or flac files
   - Real-time recording with status display and optional pre-roll buffer
+- **Commandline interface**
+  - Load project files and play them in your server environment or on embedded computers.
+  - Optional silent mode for usage in scripts.
 
 ## Installation
 
