@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-01 11:07+0100\n"
+"POT-Creation-Date: 2026-02-01 12:20+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,127 +43,135 @@ msgstr ""
 msgid "Streaming"
 msgstr ""
 
+#: gui/dialogs.py:73 gui/dialogs.py:74
+msgid "OK"
+msgstr ""
+
 #: gui/dialogs.py:75 gui/dialogs.py:76
+msgid "Cancel"
+msgstr ""
+
+#: gui/dialogs.py:77 gui/dialogs.py:78
 msgid "Apply"
 msgstr ""
 
-#: gui/dialogs.py:120 gui/dialogs.py:128 gui/dialogs.py:572
+#: gui/dialogs.py:122 gui/dialogs.py:130 gui/dialogs.py:574
 msgid "Language"
 msgstr ""
 
-#: gui/dialogs.py:136 gui/dialogs.py:143
+#: gui/dialogs.py:138 gui/dialogs.py:145
 msgid "Number of Decks"
 msgstr ""
 
-#: gui/dialogs.py:151 gui/dialogs.py:159
+#: gui/dialogs.py:153 gui/dialogs.py:161
 msgid "Theme"
 msgstr ""
 
-#: gui/dialogs.py:155
+#: gui/dialogs.py:157
 msgid "System"
 msgstr ""
 
-#: gui/dialogs.py:155
+#: gui/dialogs.py:157
 msgid "Light"
 msgstr ""
 
-#: gui/dialogs.py:155
+#: gui/dialogs.py:157
 msgid "Dark"
 msgstr ""
 
-#: gui/dialogs.py:178 gui/dialogs.py:193
+#: gui/dialogs.py:180 gui/dialogs.py:195
 msgid "Output Device"
 msgstr ""
 
-#: gui/dialogs.py:183
+#: gui/dialogs.py:185
 msgid "System Default"
 msgstr ""
 
-#: gui/dialogs.py:205 gui/dialogs.py:212
+#: gui/dialogs.py:207 gui/dialogs.py:214
 msgid "Buffer Size"
 msgstr ""
 
-#: gui/dialogs.py:221 gui/dialogs.py:228
+#: gui/dialogs.py:223 gui/dialogs.py:230
 msgid "Sample Rate"
 msgstr ""
 
-#: gui/dialogs.py:271 gui/dialogs.py:277
+#: gui/dialogs.py:273 gui/dialogs.py:279
 msgid "Switch Interval (seconds)"
 msgstr ""
 
-#: gui/dialogs.py:283 gui/dialogs.py:284
+#: gui/dialogs.py:285 gui/dialogs.py:286
 msgid "Enable Crossfade"
 msgstr ""
 
-#: gui/dialogs.py:291 gui/dialogs.py:299
+#: gui/dialogs.py:293 gui/dialogs.py:301
 msgid "Crossfade Duration (0.1s)"
 msgstr ""
 
-#: gui/dialogs.py:314 gui/dialogs.py:327
+#: gui/dialogs.py:316 gui/dialogs.py:329
 msgid "Format"
 msgstr ""
 
-#: gui/dialogs.py:339 gui/dialogs.py:347
+#: gui/dialogs.py:341 gui/dialogs.py:349
 msgid "Bitrate (MP3/OGG)"
 msgstr ""
 
-#: gui/dialogs.py:361
+#: gui/dialogs.py:363
 msgid "Note: Install FFmpeg for MP3, OGG, and FLAC support."
 msgstr ""
 
-#: gui/dialogs.py:368 gui/dialogs.py:375
+#: gui/dialogs.py:370 gui/dialogs.py:377
 msgid "Bit Depth (WAV only)"
 msgstr ""
 
-#: gui/dialogs.py:384 gui/dialogs.py:390
+#: gui/dialogs.py:386 gui/dialogs.py:392
 msgid "Pre-Roll (seconds)"
 msgstr ""
 
-#: gui/dialogs.py:391
+#: gui/dialogs.py:393
 msgid "Buffer audio before recording starts (0 to disable)"
 msgstr ""
 
-#: gui/dialogs.py:398 gui/dialogs.py:403
+#: gui/dialogs.py:400 gui/dialogs.py:405
 msgid "Output Directory"
 msgstr ""
 
-#: gui/dialogs.py:406
+#: gui/dialogs.py:408
 msgid "Browse..."
 msgstr ""
 
-#: gui/dialogs.py:407
+#: gui/dialogs.py:409
 msgid "Browse for Output Directory"
 msgstr ""
 
-#: gui/dialogs.py:418
+#: gui/dialogs.py:420
 msgid "Choose Recording Output Directory"
 msgstr ""
 
-#: gui/dialogs.py:429 gui/dialogs.py:430
+#: gui/dialogs.py:431 gui/dialogs.py:432
 msgid "Auto-reconnect on connection loss"
 msgstr ""
 
-#: gui/dialogs.py:438 gui/dialogs.py:444
+#: gui/dialogs.py:440 gui/dialogs.py:446
 msgid "Reconnect Wait (seconds)"
 msgstr ""
 
-#: gui/dialogs.py:574
+#: gui/dialogs.py:576
 msgid "Number of decks"
 msgstr ""
 
-#: gui/dialogs.py:595
+#: gui/dialogs.py:597
 msgid "Buffer size"
 msgstr ""
 
-#: gui/dialogs.py:597
+#: gui/dialogs.py:599
 msgid "Sample rate"
 msgstr ""
 
-#: gui/dialogs.py:634
+#: gui/dialogs.py:636
 msgid "The following settings require restarting the application to take effect:"
 msgstr ""
 
-#: gui/dialogs.py:635
+#: gui/dialogs.py:637
 msgid "Restart Required"
 msgstr ""
 
