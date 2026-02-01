@@ -17,7 +17,7 @@ class OptionsDialog(wx.Dialog):
         Initialize options dialog.
 
         Args:
-            parent: Parent window
+            parent: Parent window (MainFrame)
             config_manager: ConfigManager instance
             theme_manager: ThemeManager instance (optional)
         """
@@ -25,11 +25,17 @@ class OptionsDialog(wx.Dialog):
 
         self.config_manager = config_manager
         self.theme_manager = theme_manager
+        self.main_frame = parent
+        self._applied_sections = set()  # Track which sections were applied via Apply buttons
+        self._initial_device = config_manager.get('Audio', 'output_device', 'default')
         self._create_ui()
 
         # Apply theme to dialog if theme manager is available
         if self.theme_manager:
             self.theme_manager.apply_theme(self)
+
+    # Tab name constants matching notebook page order
+    TAB_NAMES = ['general', 'audio', 'automation', 'recorder', 'streaming']
 
     def _create_ui(self):
         """Create dialog UI"""
@@ -37,44 +43,72 @@ class OptionsDialog(wx.Dialog):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Notebook for different option categories
-        notebook = wx.Notebook(panel)
+        self.notebook = wx.Notebook(panel)
 
         # General tab
-        general_panel = self._create_general_tab(notebook)
-        notebook.AddPage(general_panel, _("General"))
+        general_panel = self._create_general_tab(self.notebook)
+        self.notebook.AddPage(general_panel, _("General"))
 
         # Audio tab
-        audio_panel = self._create_audio_tab(notebook)
-        notebook.AddPage(audio_panel, _("Audio"))
+        audio_panel = self._create_audio_tab(self.notebook)
+        self.notebook.AddPage(audio_panel, _("Audio"))
 
         # Automation tab
-        automation_panel = self._create_automation_tab(notebook)
-        notebook.AddPage(automation_panel, _("Automation"))
+        automation_panel = self._create_automation_tab(self.notebook)
+        self.notebook.AddPage(automation_panel, _("Automation"))
 
         # Recorder tab
-        recorder_panel = self._create_recorder_tab(notebook)
-        notebook.AddPage(recorder_panel, _("Recorder"))
+        recorder_panel = self._create_recorder_tab(self.notebook)
+        self.notebook.AddPage(recorder_panel, _("Recorder"))
 
         # Streaming tab
-        streaming_panel = self._create_streaming_tab(notebook)
-        notebook.AddPage(streaming_panel, _("Streaming"))
+        streaming_panel = self._create_streaming_tab(self.notebook)
+        self.notebook.AddPage(streaming_panel, _("Streaming"))
 
-        main_sizer.Add(notebook, 1, wx.EXPAND | wx.ALL, 10)
+        main_sizer.Add(self.notebook, 1, wx.EXPAND | wx.ALL, 10)
 
-        # Buttons
-        button_sizer = wx.StdDialogButtonSizer()
+        # Buttons: OK, Cancel, Apply
+        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        button_sizer.AddStretchSpacer()
         ok_button = wx.Button(panel, wx.ID_OK)
         cancel_button = wx.Button(panel, wx.ID_CANCEL)
-        button_sizer.AddButton(ok_button)
-        button_sizer.AddButton(cancel_button)
-        button_sizer.Realize()
+        self.apply_button = wx.Button(panel, wx.ID_APPLY, label=_("Apply"))
+        self.apply_button.SetName(_("Apply"))
+        self.apply_button.Disable()
 
-        main_sizer.Add(button_sizer, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
+        button_sizer.Add(ok_button, 0, wx.ALL, 5)
+        button_sizer.Add(cancel_button, 0, wx.ALL, 5)
+        button_sizer.Add(self.apply_button, 0, wx.ALL, 5)
+
+        main_sizer.Add(button_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
         panel.SetSizer(main_sizer)
 
-        # Bind OK button
+        # Snapshot initial control values for change detection
+        self._snapshot_initial_values()
+
+        # Bind buttons
         ok_button.Bind(wx.EVT_BUTTON, self._on_ok)
+        self.apply_button.Bind(wx.EVT_BUTTON, self._on_apply)
+
+        # Bind notebook page change to update Apply button state
+        self.notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._on_page_changed)
+
+        # Bind change events on all controls to update Apply button state
+        # Note: theme_choice is excluded here because it already has a dedicated
+        # handler (_on_theme_change) for live preview, which also updates Apply state.
+        for ctrl in (self.language_choice, self.deck_count_choice,
+                     self.device_choice, self.buffer_choice, self.rate_choice,
+                     self.format_choice, self.bitrate_choice, self.depth_choice):
+            ctrl.Bind(wx.EVT_CHOICE, self._on_control_changed)
+
+        for ctrl in (self.interval_spin, self.crossfade_spin,
+                     self.preroll_spin, self.wait_spin):
+            ctrl.Bind(wx.EVT_SPINCTRL, self._on_control_changed)
+
+        self.crossfade_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
+        self.auto_reconnect_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
+        self.output_dir_text.Bind(wx.EVT_TEXT, self._on_control_changed)
 
     def _create_general_tab(self, parent):
         """Create general options tab"""
@@ -422,10 +456,110 @@ class OptionsDialog(wx.Dialog):
             self.theme_manager.set_theme(selected_theme)
             # Re-apply theme to this dialog
             self.theme_manager.apply_theme(self)
+        self._update_apply_state()
 
-    def _on_ok(self, event):
-        """Handle OK button"""
-        # Save general settings
+    # --- Change detection ---
+
+    def _snapshot_initial_values(self):
+        """Capture current control values as baseline for change detection"""
+        self._initial_values = {
+            'general': (
+                self.language_choice.GetSelection(),
+                self.deck_count_choice.GetSelection(),
+                self.theme_choice.GetSelection(),
+            ),
+            'audio': (
+                self.device_choice.GetSelection(),
+                self.buffer_choice.GetSelection(),
+                self.rate_choice.GetSelection(),
+            ),
+            'automation': (
+                self.interval_spin.GetValue(),
+                self.crossfade_check.GetValue(),
+                self.crossfade_spin.GetValue(),
+            ),
+            'recorder': (
+                self.format_choice.GetSelection(),
+                self.bitrate_choice.GetSelection(),
+                self.depth_choice.GetSelection(),
+                self.preroll_spin.GetValue(),
+                self.output_dir_text.GetValue(),
+            ),
+            'streaming': (
+                self.auto_reconnect_check.GetValue(),
+                self.wait_spin.GetValue(),
+            ),
+        }
+
+    def _get_current_values(self, tab_name):
+        """Get current control values for a given tab"""
+        if tab_name == 'general':
+            return (
+                self.language_choice.GetSelection(),
+                self.deck_count_choice.GetSelection(),
+                self.theme_choice.GetSelection(),
+            )
+        elif tab_name == 'audio':
+            return (
+                self.device_choice.GetSelection(),
+                self.buffer_choice.GetSelection(),
+                self.rate_choice.GetSelection(),
+            )
+        elif tab_name == 'automation':
+            return (
+                self.interval_spin.GetValue(),
+                self.crossfade_check.GetValue(),
+                self.crossfade_spin.GetValue(),
+            )
+        elif tab_name == 'recorder':
+            return (
+                self.format_choice.GetSelection(),
+                self.bitrate_choice.GetSelection(),
+                self.depth_choice.GetSelection(),
+                self.preroll_spin.GetValue(),
+                self.output_dir_text.GetValue(),
+            )
+        elif tab_name == 'streaming':
+            return (
+                self.auto_reconnect_check.GetValue(),
+                self.wait_spin.GetValue(),
+            )
+        return ()
+
+    def _get_active_tab_name(self):
+        """Get the name of the currently active notebook tab"""
+        idx = self.notebook.GetSelection()
+        if 0 <= idx < len(self.TAB_NAMES):
+            return self.TAB_NAMES[idx]
+        return ''
+
+    def _has_tab_changes(self, tab_name):
+        """Check if the given tab has unsaved changes compared to initial values"""
+        return self._get_current_values(tab_name) != self._initial_values.get(tab_name)
+
+    def _update_apply_state(self):
+        """Enable or disable the Apply button based on current tab changes"""
+        tab_name = self._get_active_tab_name()
+        self.apply_button.Enable(self._has_tab_changes(tab_name))
+
+    def _on_page_changed(self, event):
+        """Handle notebook tab change - update Apply button state"""
+        event.Skip()
+        # Use CallAfter because the page selection may not be updated yet
+        wx.CallAfter(self._update_apply_state)
+
+    def _on_control_changed(self, event):
+        """Handle any control value change - update Apply button state"""
+        event.Skip()
+        self._update_apply_state()
+
+    # --- Per-section save methods ---
+
+    def _save_general(self):
+        """Save general settings to config and return restart reasons"""
+        old_language = self.config_manager.get('General', 'language', 'en')
+        old_deck_count = self.config_manager.get('General', 'deck_count', '10')
+
         languages = ['en', 'de']
         self.config_manager.set('General', 'language', languages[self.language_choice.GetSelection()])
         self.config_manager.set('General', 'deck_count',
@@ -433,7 +567,18 @@ class OptionsDialog(wx.Dialog):
         self.config_manager.set('General', 'theme',
                                self.theme_values[self.theme_choice.GetSelection()])
 
-        # Save audio settings
+        restart_reasons = []
+        if self.config_manager.get('General', 'language', 'en') != old_language:
+            restart_reasons.append(_("Language"))
+        if self.config_manager.get('General', 'deck_count', '10') != old_deck_count:
+            restart_reasons.append(_("Number of decks"))
+        return restart_reasons
+
+    def _save_audio(self):
+        """Save audio settings to config and return restart reasons"""
+        old_buffer_size = self.config_manager.get('Audio', 'buffer_size', '2048')
+        old_sample_rate = self.config_manager.get('Audio', 'sample_rate', '44100')
+
         self.config_manager.set('Audio', 'output_device',
                                self.device_values[self.device_choice.GetSelection()])
 
@@ -445,16 +590,24 @@ class OptionsDialog(wx.Dialog):
         self.config_manager.set('Audio', 'sample_rate',
                                rate_choices[self.rate_choice.GetSelection()])
 
-        # Save automation settings
+        restart_reasons = []
+        if self.config_manager.get('Audio', 'buffer_size', '2048') != old_buffer_size:
+            restart_reasons.append(_("Buffer size"))
+        if self.config_manager.get('Audio', 'sample_rate', '44100') != old_sample_rate:
+            restart_reasons.append(_("Sample rate"))
+        return restart_reasons
+
+    def _save_automation(self):
+        """Save automation settings to config"""
         self.config_manager.set('Automation', 'switch_interval', self.interval_spin.GetValue())
         self.config_manager.set('Automation', 'crossfade_enabled', self.crossfade_check.GetValue())
         # Convert tenths back to seconds (e.g., 20 -> 2.0s)
         self.config_manager.set('Automation', 'crossfade_duration', self.crossfade_spin.GetValue() / 10.0)
 
-        # Save recorder settings
+    def _save_recorder(self):
+        """Save recorder settings to config"""
         self.config_manager.set('Recorder', 'format',
                                self.format_values[self.format_choice.GetSelection()])
-
         self.config_manager.set('Recorder', 'bitrate',
                                self.bitrate_values[self.bitrate_choice.GetSelection()])
 
@@ -464,23 +617,83 @@ class OptionsDialog(wx.Dialog):
 
         self.config_manager.set('Recorder', 'pre_roll_seconds',
                                self.preroll_spin.GetValue())
-
         self.config_manager.set('Recorder', 'output_directory',
                                self.output_dir_text.GetValue())
 
-        # Save streaming settings
+    def _save_streaming(self):
+        """Save streaming settings to config"""
         self.config_manager.set('Streaming', 'auto_reconnect',
                                self.auto_reconnect_check.GetValue())
         self.config_manager.set('Streaming', 'reconnect_wait', self.wait_spin.GetValue())
 
-        # Save configuration
+    def _show_restart_message(self, restart_reasons):
+        """Show restart message if any settings require it"""
+        if restart_reasons:
+            reason_list = ", ".join(restart_reasons)
+            wx.MessageBox(
+                _("The following settings require restarting the application to take effect:") + "\n\n" + reason_list,
+                _("Restart Required"),
+                wx.OK | wx.ICON_INFORMATION
+            )
+
+    # --- Apply button handler ---
+
+    def _apply_section(self, tab_name):
+        """Save, apply, and mark a single section as applied. Returns restart reasons."""
+        restart_reasons = []
+        if tab_name == 'general':
+            restart_reasons = self._save_general()
+        elif tab_name == 'audio':
+            old_device = self._initial_device
+            restart_reasons = self._save_audio()
+            self.config_manager.save()
+            self.main_frame.apply_audio_settings(old_device)
+            self._initial_device = self.config_manager.get('Audio', 'output_device', 'default')
+        elif tab_name == 'automation':
+            self._save_automation()
+            self.config_manager.save()
+            self.main_frame.apply_automation_settings()
+        elif tab_name == 'recorder':
+            self._save_recorder()
+            self.config_manager.save()
+            self.main_frame.apply_recorder_settings()
+        elif tab_name == 'streaming':
+            self._save_streaming()
+            self.config_manager.save()
+            self.main_frame.apply_streaming_settings()
+
         self.config_manager.save()
+        self._applied_sections.add(tab_name)
+        # Update baseline so Apply disables after applying
+        self._initial_values[tab_name] = self._get_current_values(tab_name)
+        self._update_apply_state()
+        return restart_reasons
 
-        # Show restart message
-        wx.MessageBox(
-            _("Some settings may require restarting the application to take effect."),
-            _("Settings Saved"),
-            wx.OK | wx.ICON_INFORMATION
-        )
+    def _on_apply(self, event):
+        """Apply only the currently active tab's settings"""
+        tab_name = self._get_active_tab_name()
+        if not tab_name:
+            return
+        restart_reasons = self._apply_section(tab_name)
+        self._show_restart_message(restart_reasons)
 
+    # --- OK button handler ---
+
+    def _on_ok(self, event):
+        """Handle OK button - save and apply all sections not yet applied"""
+        restart_reasons = []
+
+        if 'general' not in self._applied_sections:
+            restart_reasons.extend(self._save_general())
+        if 'audio' not in self._applied_sections:
+            restart_reasons.extend(self._save_audio())
+        if 'automation' not in self._applied_sections:
+            self._save_automation()
+        if 'recorder' not in self._applied_sections:
+            self._save_recorder()
+        if 'streaming' not in self._applied_sections:
+            self._save_streaming()
+
+        self.config_manager.save()
+        self._show_restart_message(restart_reasons)
         self.EndModal(wx.ID_OK)

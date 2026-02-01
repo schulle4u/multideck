@@ -1444,27 +1444,56 @@ class MainFrame(wx.Frame):
 
     def _on_options(self, event):
         """Show options dialog"""
-        # Remember current device setting
+        dlg = OptionsDialog(self, self.config_manager, self.theme_manager)
+        # Remember current device setting before dialog opens
         old_device = self.config_manager.get('Audio', 'output_device', 'default')
 
-        dlg = OptionsDialog(self, self.config_manager, self.theme_manager)
         if dlg.ShowModal() == wx.ID_OK:
-            # Reload recorder settings
-            rec_format = self.config_manager.get('Recorder', 'format', 'wav')
-            rec_bitrate = self.config_manager.getint('Recorder', 'bitrate', 192)
-            self.recorder.set_format(rec_format)
-            self.recorder.set_bitrate(rec_bitrate)
+            applied = dlg._applied_sections
 
-            # Note: Automation settings (switch_interval, crossfade_enabled, crossfade_duration)
-            # are NOT reloaded here to preserve project-specific values.
-            # Global settings only apply at startup or when creating a new project.
-
-            # Check if audio device changed and apply at runtime
-            new_device = self.config_manager.get('Audio', 'output_device', 'default')
-            if new_device != old_device:
-                self._apply_audio_device_change(new_device)
+            # Apply sections that weren't already applied via per-tab Apply buttons
+            if 'audio' not in applied:
+                self.apply_audio_settings(old_device)
+            if 'automation' not in applied:
+                self.apply_automation_settings()
+            if 'recorder' not in applied:
+                self.apply_recorder_settings()
+            if 'streaming' not in applied:
+                self.apply_streaming_settings()
 
         dlg.Destroy()
+
+    def apply_audio_settings(self, old_device):
+        """Apply audio settings from config at runtime.
+
+        Args:
+            old_device: Previous device setting to compare against for hot-swap
+        """
+        new_device = self.config_manager.get('Audio', 'output_device', 'default')
+        if new_device != old_device:
+            self._apply_audio_device_change(new_device)
+
+    def apply_automation_settings(self):
+        """Apply automation settings from config to current mixer"""
+        self.mixer.auto_switch_interval = self.config_manager.getint('Automation', 'switch_interval', 10)
+        self.mixer.crossfade_enabled = self.config_manager.getboolean('Automation', 'crossfade_enabled', True)
+        self.mixer.crossfade_duration = self.config_manager.getfloat('Automation', 'crossfade_duration', 2.0)
+
+    def apply_recorder_settings(self):
+        """Apply recorder settings from config at runtime"""
+        self.recorder.set_format(self.config_manager.get('Recorder', 'format', 'wav'))
+        self.recorder.set_bitrate(self.config_manager.getint('Recorder', 'bitrate', 192))
+        if not self.recorder.is_recording:
+            self.recorder.bit_depth = self.config_manager.getint('Recorder', 'bit_depth', 16)
+        self.recorder.set_pre_roll_seconds(self.config_manager.getfloat('Recorder', 'pre_roll_seconds', 30.0))
+
+    def apply_streaming_settings(self):
+        """Apply streaming settings from config to all active stream handlers"""
+        auto_reconnect = self.config_manager.getboolean('Streaming', 'auto_reconnect', True)
+        reconnect_wait = self.config_manager.getint('Streaming', 'reconnect_wait', 5)
+        for deck in self.mixer.decks:
+            if deck.stream_handler:
+                deck.stream_handler.set_reconnect_settings(auto_reconnect, reconnect_wait)
 
     def _apply_audio_device_change(self, new_device):
         """Apply audio device change at runtime without restart"""
