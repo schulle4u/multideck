@@ -70,12 +70,12 @@ class OptionsDialog(wx.Dialog):
         # Buttons: OK, Cancel, Apply
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
         button_sizer.AddStretchSpacer()
-        ok_button = wx.Button(panel, wx.ID_OK, label=_("OK"))
-        ok_button.SetName(_("OK"))
-        cancel_button = wx.Button(panel, wx.ID_CANCEL, label=_("Cancel"))
-        cancel_button.SetName(_("Cancel"))
-        self.apply_button = wx.Button(panel, wx.ID_APPLY, label=_("Apply"))
-        self.apply_button.SetName(_("Apply"))
+        ok_button = wx.Button(panel, wx.ID_OK, label=_("&OK"))
+        ok_button.SetName(_("&OK"))
+        cancel_button = wx.Button(panel, wx.ID_CANCEL, label=_("&Cancel"))
+        cancel_button.SetName(_("&Cancel"))
+        self.apply_button = wx.Button(panel, wx.ID_APPLY, label=_("&Apply"))
+        self.apply_button.SetName(_("&Apply"))
         self.apply_button.Disable()
 
         button_sizer.Add(ok_button, 0, wx.ALL, 5)

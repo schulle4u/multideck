@@ -987,6 +987,7 @@ class MainFrame(wx.Frame):
             _("Unsaved Changes"),
             wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION
         )
+        dlg.SetYesNoCancelLabels(_("&Yes"), _("&No"), _("&Cancel"))
         result = dlg.ShowModal()
         dlg.Destroy()
 
