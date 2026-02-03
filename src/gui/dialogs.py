@@ -775,6 +775,14 @@ class EffectsDialog(wx.Dialog):
             parent.theme_manager.apply_theme(self)
 
         self.Bind(wx.EVT_CLOSE, self._on_close)
+        self.Bind(wx.EVT_CHAR_HOOK, self._on_char_hook)
+
+    def _on_char_hook(self, event):
+        """Close dialog on Escape key."""
+        if event.GetKeyCode() == wx.WXK_ESCAPE:
+            self.Close()
+        else:
+            event.Skip()
 
     def _on_close(self, event):
         """Handle dialog close - clear reference in main frame."""
@@ -858,12 +866,11 @@ class EffectsDialog(wx.Dialog):
     def _create_reverb_section(self, parent, chain, name):
         box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Reverb"))
         sb = box.GetStaticBox()
+        sliders = []
 
         cb = wx.CheckBox(sb, label=_("Enable"))
         cb.SetName(f"{name}: {_('Enable Reverb')}")
         cb.SetValue(chain.reverb_enabled)
-        cb.Bind(wx.EVT_CHECKBOX,
-                lambda e: chain.enable_effect('reverb', e.IsChecked()))
         box.Add(cb, 0, wx.ALL, 5)
 
         if chain.reverb is not None:
@@ -871,36 +878,41 @@ class EffectsDialog(wx.Dialog):
                 sb, _("Room Size"), name,
                 int(chain.reverb.room_size * 100), 0, 100,
                 lambda v: chain.set_reverb_param(room_size=v / 100.0),
-                fmt_func=lambda v: f"{v}%"),
+                fmt_func=lambda v: f"{v}%", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             box.Add(self._make_slider(
                 sb, _("Damping"), name,
                 int(chain.reverb.damping * 100), 0, 100,
                 lambda v: chain.set_reverb_param(damping=v / 100.0),
-                fmt_func=lambda v: f"{v}%"),
+                fmt_func=lambda v: f"{v}%", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             box.Add(self._make_slider(
                 sb, _("Wet Level"), name,
                 int(chain.reverb.wet_level * 100), 0, 100,
                 lambda v: chain.set_reverb_param(wet_level=v / 100.0),
-                fmt_func=lambda v: f"{v}%"),
+                fmt_func=lambda v: f"{v}%", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             box.Add(self._make_slider(
                 sb, _("Dry Level"), name,
                 int(chain.reverb.dry_level * 100), 0, 100,
                 lambda v: chain.set_reverb_param(dry_level=v / 100.0),
-                fmt_func=lambda v: f"{v}%"),
+                fmt_func=lambda v: f"{v}%", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             box.Add(self._make_slider(
                 sb, _("Width"), name,
                 int(chain.reverb.width * 100), 0, 100,
                 lambda v: chain.set_reverb_param(width=v / 100.0),
-                fmt_func=lambda v: f"{v}%"),
+                fmt_func=lambda v: f"{v}%", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
+
+        self._set_sliders_enabled(sliders, chain.reverb_enabled)
+        cb.Bind(wx.EVT_CHECKBOX, lambda e, s=sliders: (
+            chain.enable_effect('reverb', e.IsChecked()),
+            self._set_sliders_enabled(s, e.IsChecked())))
 
         return box
 
@@ -909,12 +921,11 @@ class EffectsDialog(wx.Dialog):
     def _create_delay_section(self, parent, chain, name):
         box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Delay"))
         sb = box.GetStaticBox()
+        sliders = []
 
         cb = wx.CheckBox(sb, label=_("Enable"))
         cb.SetName(f"{name}: {_('Enable Delay')}")
         cb.SetValue(chain.delay_enabled)
-        cb.Bind(wx.EVT_CHECKBOX,
-                lambda e: chain.enable_effect('delay', e.IsChecked()))
         box.Add(cb, 0, wx.ALL, 5)
 
         if chain.delay is not None:
@@ -923,22 +934,27 @@ class EffectsDialog(wx.Dialog):
                 sb, _("Delay Time"), name,
                 int(chain.delay.delay_seconds * 1000), 0, 2000,
                 lambda v: chain.set_delay_param(delay_seconds=v / 1000.0),
-                fmt_func=lambda v: f"{v} ms"),
+                fmt_func=lambda v: f"{v} ms", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             box.Add(self._make_slider(
                 sb, _("Feedback"), name,
                 int(chain.delay.feedback * 100), 0, 95,
                 lambda v: chain.set_delay_param(feedback=v / 100.0),
-                fmt_func=lambda v: f"{v}%"),
+                fmt_func=lambda v: f"{v}%", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             box.Add(self._make_slider(
                 sb, _("Mix"), name,
                 int(chain.delay.mix * 100), 0, 100,
                 lambda v: chain.set_delay_param(mix=v / 100.0),
-                fmt_func=lambda v: f"{v}%"),
+                fmt_func=lambda v: f"{v}%", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
+
+        self._set_sliders_enabled(sliders, chain.delay_enabled)
+        cb.Bind(wx.EVT_CHECKBOX, lambda e, s=sliders: (
+            chain.enable_effect('delay', e.IsChecked()),
+            self._set_sliders_enabled(s, e.IsChecked())))
 
         return box
 
@@ -947,12 +963,11 @@ class EffectsDialog(wx.Dialog):
     def _create_eq_section(self, parent, chain, name):
         box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Equalizer"))
         sb = box.GetStaticBox()
+        sliders = []
 
         cb = wx.CheckBox(sb, label=_("Enable"))
         cb.SetName(f"{name}: {_('Enable Equalizer')}")
         cb.SetValue(chain.eq_enabled)
-        cb.Bind(wx.EVT_CHECKBOX,
-                lambda e: chain.enable_effect('eq', e.IsChecked()))
         box.Add(cb, 0, wx.ALL, 5)
 
         if chain.eq_low is not None:
@@ -961,22 +976,27 @@ class EffectsDialog(wx.Dialog):
                 sb, _("Bass (200 Hz)"), name,
                 int(chain.eq_low.gain_db), -12, 12,
                 lambda v: chain.set_eq_param('low', gain_db=float(v)),
-                fmt_func=lambda v: f"{v:+d} dB"),
+                fmt_func=lambda v: f"{v:+d} dB", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             box.Add(self._make_slider(
                 sb, _("Mid (1 kHz)"), name,
                 int(chain.eq_mid.gain_db), -12, 12,
                 lambda v: chain.set_eq_param('mid', gain_db=float(v)),
-                fmt_func=lambda v: f"{v:+d} dB"),
+                fmt_func=lambda v: f"{v:+d} dB", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             box.Add(self._make_slider(
                 sb, _("Treble (8 kHz)"), name,
                 int(chain.eq_high.gain_db), -12, 12,
                 lambda v: chain.set_eq_param('high', gain_db=float(v)),
-                fmt_func=lambda v: f"{v:+d} dB"),
+                fmt_func=lambda v: f"{v:+d} dB", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
+
+        self._set_sliders_enabled(sliders, chain.eq_enabled)
+        cb.Bind(wx.EVT_CHECKBOX, lambda e, s=sliders: (
+            chain.enable_effect('eq', e.IsChecked()),
+            self._set_sliders_enabled(s, e.IsChecked())))
 
         return box
 
@@ -985,12 +1005,11 @@ class EffectsDialog(wx.Dialog):
     def _create_chorus_section(self, parent, chain, name):
         box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Chorus"))
         sb = box.GetStaticBox()
+        sliders = []
 
         cb = wx.CheckBox(sb, label=_("Enable"))
         cb.SetName(f"{name}: {_('Enable Chorus')}")
         cb.SetValue(chain.chorus_enabled)
-        cb.Bind(wx.EVT_CHECKBOX,
-                lambda e: chain.enable_effect('chorus', e.IsChecked()))
         box.Add(cb, 0, wx.ALL, 5)
 
         if chain.chorus is not None:
@@ -999,22 +1018,27 @@ class EffectsDialog(wx.Dialog):
                 sb, _("Rate"), name,
                 int(chain.chorus.rate_hz * 10), 1, 100,
                 lambda v: chain.set_chorus_param(rate_hz=v / 10.0),
-                fmt_func=lambda v: f"{v / 10.0:.1f} Hz"),
+                fmt_func=lambda v: f"{v / 10.0:.1f} Hz", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             box.Add(self._make_slider(
                 sb, _("Depth"), name,
                 int(chain.chorus.depth * 100), 0, 100,
                 lambda v: chain.set_chorus_param(depth=v / 100.0),
-                fmt_func=lambda v: f"{v}%"),
+                fmt_func=lambda v: f"{v}%", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             box.Add(self._make_slider(
                 sb, _("Mix"), name,
                 int(chain.chorus.mix * 100), 0, 100,
                 lambda v: chain.set_chorus_param(mix=v / 100.0),
-                fmt_func=lambda v: f"{v}%"),
+                fmt_func=lambda v: f"{v}%", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
+
+        self._set_sliders_enabled(sliders, chain.chorus_enabled)
+        cb.Bind(wx.EVT_CHECKBOX, lambda e, s=sliders: (
+            chain.enable_effect('chorus', e.IsChecked()),
+            self._set_sliders_enabled(s, e.IsChecked())))
 
         return box
 
@@ -1023,12 +1047,11 @@ class EffectsDialog(wx.Dialog):
     def _create_compressor_section(self, parent, chain, name):
         box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Compressor"))
         sb = box.GetStaticBox()
+        sliders = []
 
         cb = wx.CheckBox(sb, label=_("Enable"))
         cb.SetName(f"{name}: {_('Enable Compressor')}")
         cb.SetValue(chain.compressor_enabled)
-        cb.Bind(wx.EVT_CHECKBOX,
-                lambda e: chain.enable_effect('compressor', e.IsChecked()))
         box.Add(cb, 0, wx.ALL, 5)
 
         if chain.compressor is not None:
@@ -1037,7 +1060,7 @@ class EffectsDialog(wx.Dialog):
                 sb, _("Threshold"), name,
                 int(chain.compressor.threshold_db), -60, 0,
                 lambda v: chain.set_compressor_param(threshold_db=float(v)),
-                fmt_func=lambda v: f"{v} dB"),
+                fmt_func=lambda v: f"{v} dB", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             # Ratio: 1 to 20 (slider 10-200, mapped to 1.0-20.0)
@@ -1045,7 +1068,7 @@ class EffectsDialog(wx.Dialog):
                 sb, _("Ratio"), name,
                 int(chain.compressor.ratio * 10), 10, 200,
                 lambda v: chain.set_compressor_param(ratio=v / 10.0),
-                fmt_func=lambda v: f"{v / 10.0:.1f}:1"),
+                fmt_func=lambda v: f"{v / 10.0:.1f}:1", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             # Attack: 0.1 to 100 ms (slider 1-1000, mapped to 0.1-100.0)
@@ -1053,7 +1076,7 @@ class EffectsDialog(wx.Dialog):
                 sb, _("Attack"), name,
                 int(chain.compressor.attack_ms * 10), 1, 1000,
                 lambda v: chain.set_compressor_param(attack_ms=v / 10.0),
-                fmt_func=lambda v: f"{v / 10.0:.1f} ms"),
+                fmt_func=lambda v: f"{v / 10.0:.1f} ms", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             # Release: 1 to 500 ms
@@ -1061,8 +1084,13 @@ class EffectsDialog(wx.Dialog):
                 sb, _("Release"), name,
                 int(chain.compressor.release_ms), 1, 500,
                 lambda v: chain.set_compressor_param(release_ms=float(v)),
-                fmt_func=lambda v: f"{v} ms"),
+                fmt_func=lambda v: f"{v} ms", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
+
+        self._set_sliders_enabled(sliders, chain.compressor_enabled)
+        cb.Bind(wx.EVT_CHECKBOX, lambda e, s=sliders: (
+            chain.enable_effect('compressor', e.IsChecked()),
+            self._set_sliders_enabled(s, e.IsChecked())))
 
         return box
 
@@ -1071,12 +1099,11 @@ class EffectsDialog(wx.Dialog):
     def _create_limiter_section(self, parent, chain, name):
         box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Limiter"))
         sb = box.GetStaticBox()
+        sliders = []
 
         cb = wx.CheckBox(sb, label=_("Enable"))
         cb.SetName(f"{name}: {_('Enable Limiter')}")
         cb.SetValue(chain.limiter_enabled)
-        cb.Bind(wx.EVT_CHECKBOX,
-                lambda e: chain.enable_effect('limiter', e.IsChecked()))
         box.Add(cb, 0, wx.ALL, 5)
 
         if chain.limiter is not None:
@@ -1085,7 +1112,7 @@ class EffectsDialog(wx.Dialog):
                 sb, _("Threshold"), name,
                 int(chain.limiter.threshold_db), -30, 0,
                 lambda v: chain.set_limiter_param(threshold_db=float(v)),
-                fmt_func=lambda v: f"{v} dB"),
+                fmt_func=lambda v: f"{v} dB", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
 
             # Release: 1 to 500 ms
@@ -1093,15 +1120,26 @@ class EffectsDialog(wx.Dialog):
                 sb, _("Release"), name,
                 int(chain.limiter.release_ms), 1, 500,
                 lambda v: chain.set_limiter_param(release_ms=float(v)),
-                fmt_func=lambda v: f"{v} ms"),
+                fmt_func=lambda v: f"{v} ms", collect=sliders),
                 0, wx.EXPAND | wx.ALL, 3)
+
+        self._set_sliders_enabled(sliders, chain.limiter_enabled)
+        cb.Bind(wx.EVT_CHECKBOX, lambda e, s=sliders: (
+            chain.enable_effect('limiter', e.IsChecked()),
+            self._set_sliders_enabled(s, e.IsChecked())))
 
         return box
 
     # --- Slider helper ---
 
+    @staticmethod
+    def _set_sliders_enabled(sliders, enabled):
+        """Enable or disable a list of sliders."""
+        for s in sliders:
+            s.Enable(enabled)
+
     def _make_slider(self, parent, label, chain_name, value, min_val, max_val,
-                     callback, fmt_func=None):
+                     callback, fmt_func=None, collect=None):
         """
         Create a labeled slider with value display.
 
@@ -1114,6 +1152,7 @@ class EffectsDialog(wx.Dialog):
             max_val: Maximum slider value
             callback: Function called with slider value on change
             fmt_func: Optional function to format the display value
+            collect: Optional list to append the slider widget to
         """
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -1137,5 +1176,8 @@ class EffectsDialog(wx.Dialog):
             callback(v)
 
         slider.Bind(wx.EVT_SLIDER, on_slider)
+
+        if collect is not None:
+            collect.append(slider)
 
         return sizer
