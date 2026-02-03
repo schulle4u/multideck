@@ -13,6 +13,9 @@ configparser>=6.0.0
 # Audio Processing
 numpy>=1.24.0
 
+# Audio Effects
+pedalboard>=0.9.0
+
 # External dependency: FFmpeg (for MP3 support and streaming)
 # Windows: Download from https://www.gyan.dev/ffmpeg/builds/ (ffmpeg-release-essentials.zip)
 #          Extract and add the bin folder to your PATH

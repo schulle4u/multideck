@@ -747,3 +747,395 @@ class CustomTextEntryDialog(wx.Dialog):
     def GetValue(self):
         """Return value from custom text entry dialog"""
         return self.text_ctrl.GetValue()
+
+
+class EffectsDialog(wx.Dialog):
+    """Modeless dialog for real-time audio effect controls."""
+
+    def __init__(self, parent, mixer):
+        """
+        Initialize effects dialog.
+
+        Args:
+            parent: Parent window (MainFrame)
+            mixer: Mixer instance with master_effects and per-deck effect chains
+        """
+        super().__init__(parent, title=_("Audio Effects"),
+                         style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+
+        self.mixer = mixer
+        self.main_frame = parent
+
+        self._create_ui()
+        self.SetSize(700, 600)
+        self.Center()
+
+        # Apply theme
+        if hasattr(parent, 'theme_manager') and parent.theme_manager:
+            parent.theme_manager.apply_theme(self)
+
+        self.Bind(wx.EVT_CLOSE, self._on_close)
+
+    def _on_close(self, event):
+        """Handle dialog close - clear reference in main frame."""
+        if hasattr(self.main_frame, '_effects_dialog'):
+            self.main_frame._effects_dialog = None
+        self.Destroy()
+
+    def _create_ui(self):
+        """Create the dialog UI with notebook tabs."""
+        panel = wx.Panel(self)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.notebook = wx.Notebook(panel)
+
+        # Master effects tab
+        master_panel = self._create_effect_panel(
+            self.notebook, self.mixer.master_effects, _("Master"))
+        self.notebook.AddPage(master_panel, _("Master Effects"))
+
+        # Per-deck tabs (only for decks that exist in the mixer)
+        for deck in self.mixer.decks:
+            if deck.effects:
+                deck_panel = self._create_effect_panel(
+                    self.notebook, deck.effects, deck.name)
+                self.notebook.AddPage(deck_panel, deck.name)
+
+        main_sizer.Add(self.notebook, 1, wx.EXPAND | wx.ALL, 5)
+
+        # Close button
+        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        button_sizer.AddStretchSpacer()
+        close_btn = wx.Button(panel, wx.ID_CLOSE, _("&Close"))
+        close_btn.Bind(wx.EVT_BUTTON, lambda e: self.Close())
+        button_sizer.Add(close_btn, 0, wx.ALL, 5)
+        main_sizer.Add(button_sizer, 0, wx.EXPAND | wx.BOTTOM | wx.RIGHT, 5)
+
+        panel.SetSizer(main_sizer)
+
+    def _create_effect_panel(self, parent, effect_chain, chain_name):
+        """Create a scrolled panel with all effect controls for one chain."""
+        panel = wx.ScrolledWindow(parent)
+        panel.SetScrollRate(0, 10)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Global enable
+        enable_cb = wx.CheckBox(panel, label=_("Enable effects for {}").format(chain_name))
+        enable_cb.SetValue(effect_chain.enabled)
+        enable_cb.Bind(wx.EVT_CHECKBOX,
+                       lambda e: self._set_chain_enabled(effect_chain, e.IsChecked()))
+        sizer.Add(enable_cb, 0, wx.ALL, 10)
+
+        sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+
+        # Reverb
+        sizer.Add(self._create_reverb_section(panel, effect_chain, chain_name),
+                  0, wx.EXPAND | wx.ALL, 5)
+        # Delay
+        sizer.Add(self._create_delay_section(panel, effect_chain, chain_name),
+                  0, wx.EXPAND | wx.ALL, 5)
+        # EQ
+        sizer.Add(self._create_eq_section(panel, effect_chain, chain_name),
+                  0, wx.EXPAND | wx.ALL, 5)
+        # Chorus
+        sizer.Add(self._create_chorus_section(panel, effect_chain, chain_name),
+                  0, wx.EXPAND | wx.ALL, 5)
+        # Compressor
+        sizer.Add(self._create_compressor_section(panel, effect_chain, chain_name),
+                  0, wx.EXPAND | wx.ALL, 5)
+        # Limiter
+        sizer.Add(self._create_limiter_section(panel, effect_chain, chain_name),
+                  0, wx.EXPAND | wx.ALL, 5)
+
+        panel.SetSizer(sizer)
+        return panel
+
+    def _set_chain_enabled(self, effect_chain, enabled):
+        effect_chain.enabled = enabled
+
+    # --- Reverb ---
+
+    def _create_reverb_section(self, parent, chain, name):
+        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Reverb"))
+        sb = box.GetStaticBox()
+
+        cb = wx.CheckBox(sb, label=_("Enable"))
+        cb.SetName(f"{name}: {_('Enable Reverb')}")
+        cb.SetValue(chain.reverb_enabled)
+        cb.Bind(wx.EVT_CHECKBOX,
+                lambda e: chain.enable_effect('reverb', e.IsChecked()))
+        box.Add(cb, 0, wx.ALL, 5)
+
+        if chain.reverb is not None:
+            box.Add(self._make_slider(
+                sb, _("Room Size"), name,
+                int(chain.reverb.room_size * 100), 0, 100,
+                lambda v: chain.set_reverb_param(room_size=v / 100.0),
+                fmt_func=lambda v: f"{v}%"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            box.Add(self._make_slider(
+                sb, _("Damping"), name,
+                int(chain.reverb.damping * 100), 0, 100,
+                lambda v: chain.set_reverb_param(damping=v / 100.0),
+                fmt_func=lambda v: f"{v}%"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            box.Add(self._make_slider(
+                sb, _("Wet Level"), name,
+                int(chain.reverb.wet_level * 100), 0, 100,
+                lambda v: chain.set_reverb_param(wet_level=v / 100.0),
+                fmt_func=lambda v: f"{v}%"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            box.Add(self._make_slider(
+                sb, _("Dry Level"), name,
+                int(chain.reverb.dry_level * 100), 0, 100,
+                lambda v: chain.set_reverb_param(dry_level=v / 100.0),
+                fmt_func=lambda v: f"{v}%"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            box.Add(self._make_slider(
+                sb, _("Width"), name,
+                int(chain.reverb.width * 100), 0, 100,
+                lambda v: chain.set_reverb_param(width=v / 100.0),
+                fmt_func=lambda v: f"{v}%"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+        return box
+
+    # --- Delay ---
+
+    def _create_delay_section(self, parent, chain, name):
+        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Delay"))
+        sb = box.GetStaticBox()
+
+        cb = wx.CheckBox(sb, label=_("Enable"))
+        cb.SetName(f"{name}: {_('Enable Delay')}")
+        cb.SetValue(chain.delay_enabled)
+        cb.Bind(wx.EVT_CHECKBOX,
+                lambda e: chain.enable_effect('delay', e.IsChecked()))
+        box.Add(cb, 0, wx.ALL, 5)
+
+        if chain.delay is not None:
+            # Delay time: 0 to 2000 ms (mapped to 0.0 - 2.0 s)
+            box.Add(self._make_slider(
+                sb, _("Delay Time"), name,
+                int(chain.delay.delay_seconds * 1000), 0, 2000,
+                lambda v: chain.set_delay_param(delay_seconds=v / 1000.0),
+                fmt_func=lambda v: f"{v} ms"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            box.Add(self._make_slider(
+                sb, _("Feedback"), name,
+                int(chain.delay.feedback * 100), 0, 95,
+                lambda v: chain.set_delay_param(feedback=v / 100.0),
+                fmt_func=lambda v: f"{v}%"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            box.Add(self._make_slider(
+                sb, _("Mix"), name,
+                int(chain.delay.mix * 100), 0, 100,
+                lambda v: chain.set_delay_param(mix=v / 100.0),
+                fmt_func=lambda v: f"{v}%"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+        return box
+
+    # --- EQ ---
+
+    def _create_eq_section(self, parent, chain, name):
+        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Equalizer"))
+        sb = box.GetStaticBox()
+
+        cb = wx.CheckBox(sb, label=_("Enable"))
+        cb.SetName(f"{name}: {_('Enable Equalizer')}")
+        cb.SetValue(chain.eq_enabled)
+        cb.Bind(wx.EVT_CHECKBOX,
+                lambda e: chain.enable_effect('eq', e.IsChecked()))
+        box.Add(cb, 0, wx.ALL, 5)
+
+        if chain.eq_low is not None:
+            # EQ gains: -12 to +12 dB
+            box.Add(self._make_slider(
+                sb, _("Bass (200 Hz)"), name,
+                int(chain.eq_low.gain_db), -12, 12,
+                lambda v: chain.set_eq_param('low', gain_db=float(v)),
+                fmt_func=lambda v: f"{v:+d} dB"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            box.Add(self._make_slider(
+                sb, _("Mid (1 kHz)"), name,
+                int(chain.eq_mid.gain_db), -12, 12,
+                lambda v: chain.set_eq_param('mid', gain_db=float(v)),
+                fmt_func=lambda v: f"{v:+d} dB"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            box.Add(self._make_slider(
+                sb, _("Treble (8 kHz)"), name,
+                int(chain.eq_high.gain_db), -12, 12,
+                lambda v: chain.set_eq_param('high', gain_db=float(v)),
+                fmt_func=lambda v: f"{v:+d} dB"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+        return box
+
+    # --- Chorus ---
+
+    def _create_chorus_section(self, parent, chain, name):
+        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Chorus"))
+        sb = box.GetStaticBox()
+
+        cb = wx.CheckBox(sb, label=_("Enable"))
+        cb.SetName(f"{name}: {_('Enable Chorus')}")
+        cb.SetValue(chain.chorus_enabled)
+        cb.Bind(wx.EVT_CHECKBOX,
+                lambda e: chain.enable_effect('chorus', e.IsChecked()))
+        box.Add(cb, 0, wx.ALL, 5)
+
+        if chain.chorus is not None:
+            # Rate: 0.1 to 10 Hz (slider 1-100 mapped to 0.1-10.0)
+            box.Add(self._make_slider(
+                sb, _("Rate"), name,
+                int(chain.chorus.rate_hz * 10), 1, 100,
+                lambda v: chain.set_chorus_param(rate_hz=v / 10.0),
+                fmt_func=lambda v: f"{v / 10.0:.1f} Hz"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            box.Add(self._make_slider(
+                sb, _("Depth"), name,
+                int(chain.chorus.depth * 100), 0, 100,
+                lambda v: chain.set_chorus_param(depth=v / 100.0),
+                fmt_func=lambda v: f"{v}%"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            box.Add(self._make_slider(
+                sb, _("Mix"), name,
+                int(chain.chorus.mix * 100), 0, 100,
+                lambda v: chain.set_chorus_param(mix=v / 100.0),
+                fmt_func=lambda v: f"{v}%"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+        return box
+
+    # --- Compressor ---
+
+    def _create_compressor_section(self, parent, chain, name):
+        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Compressor"))
+        sb = box.GetStaticBox()
+
+        cb = wx.CheckBox(sb, label=_("Enable"))
+        cb.SetName(f"{name}: {_('Enable Compressor')}")
+        cb.SetValue(chain.compressor_enabled)
+        cb.Bind(wx.EVT_CHECKBOX,
+                lambda e: chain.enable_effect('compressor', e.IsChecked()))
+        box.Add(cb, 0, wx.ALL, 5)
+
+        if chain.compressor is not None:
+            # Threshold: -60 to 0 dB
+            box.Add(self._make_slider(
+                sb, _("Threshold"), name,
+                int(chain.compressor.threshold_db), -60, 0,
+                lambda v: chain.set_compressor_param(threshold_db=float(v)),
+                fmt_func=lambda v: f"{v} dB"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            # Ratio: 1 to 20 (slider 10-200, mapped to 1.0-20.0)
+            box.Add(self._make_slider(
+                sb, _("Ratio"), name,
+                int(chain.compressor.ratio * 10), 10, 200,
+                lambda v: chain.set_compressor_param(ratio=v / 10.0),
+                fmt_func=lambda v: f"{v / 10.0:.1f}:1"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            # Attack: 0.1 to 100 ms (slider 1-1000, mapped to 0.1-100.0)
+            box.Add(self._make_slider(
+                sb, _("Attack"), name,
+                int(chain.compressor.attack_ms * 10), 1, 1000,
+                lambda v: chain.set_compressor_param(attack_ms=v / 10.0),
+                fmt_func=lambda v: f"{v / 10.0:.1f} ms"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            # Release: 1 to 500 ms
+            box.Add(self._make_slider(
+                sb, _("Release"), name,
+                int(chain.compressor.release_ms), 1, 500,
+                lambda v: chain.set_compressor_param(release_ms=float(v)),
+                fmt_func=lambda v: f"{v} ms"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+        return box
+
+    # --- Limiter ---
+
+    def _create_limiter_section(self, parent, chain, name):
+        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Limiter"))
+        sb = box.GetStaticBox()
+
+        cb = wx.CheckBox(sb, label=_("Enable"))
+        cb.SetName(f"{name}: {_('Enable Limiter')}")
+        cb.SetValue(chain.limiter_enabled)
+        cb.Bind(wx.EVT_CHECKBOX,
+                lambda e: chain.enable_effect('limiter', e.IsChecked()))
+        box.Add(cb, 0, wx.ALL, 5)
+
+        if chain.limiter is not None:
+            # Threshold: -30 to 0 dB
+            box.Add(self._make_slider(
+                sb, _("Threshold"), name,
+                int(chain.limiter.threshold_db), -30, 0,
+                lambda v: chain.set_limiter_param(threshold_db=float(v)),
+                fmt_func=lambda v: f"{v} dB"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+            # Release: 1 to 500 ms
+            box.Add(self._make_slider(
+                sb, _("Release"), name,
+                int(chain.limiter.release_ms), 1, 500,
+                lambda v: chain.set_limiter_param(release_ms=float(v)),
+                fmt_func=lambda v: f"{v} ms"),
+                0, wx.EXPAND | wx.ALL, 3)
+
+        return box
+
+    # --- Slider helper ---
+
+    def _make_slider(self, parent, label, chain_name, value, min_val, max_val,
+                     callback, fmt_func=None):
+        """
+        Create a labeled slider with value display.
+
+        Args:
+            parent: Parent window
+            label: Parameter label text
+            chain_name: Name of the effect chain (for accessibility)
+            value: Initial slider value
+            min_val: Minimum slider value
+            max_val: Maximum slider value
+            callback: Function called with slider value on change
+            fmt_func: Optional function to format the display value
+        """
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        lbl = wx.StaticText(parent, label=label + ":", size=(120, -1))
+        sizer.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
+
+        slider = wx.Slider(parent, value=value, minValue=min_val, maxValue=max_val,
+                           style=wx.SL_HORIZONTAL)
+        slider.SetName(f"{chain_name}: {label}")
+        sizer.Add(slider, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 5)
+
+        if fmt_func is None:
+            fmt_func = lambda v: str(v)
+        val_lbl = wx.StaticText(parent, label=fmt_func(value), size=(70, -1),
+                                style=wx.ALIGN_RIGHT)
+        sizer.Add(val_lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
+
+        def on_slider(event):
+            v = slider.GetValue()
+            val_lbl.SetLabel(fmt_func(v))
+            callback(v)
+
+        slider.Bind(wx.EVT_SLIDER, on_slider)
+
+        return sizer

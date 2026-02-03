@@ -130,6 +130,8 @@ class MainFrame(wx.Frame):
         tools_menu = wx.Menu()
         self.record_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Recording") + "\tCtrl+R")
         tools_menu.AppendSeparator()
+        self.effects_menu_item = tools_menu.Append(wx.ID_ANY, _("Audio &Effects...") + "\tCtrl+Shift+E")
+        tools_menu.AppendSeparator()
         tools_menu.Append(wx.ID_PREFERENCES, _("&Options...") + "\tCtrl+P")
         menu_bar.Append(tools_menu, _("&Tools"))
 
@@ -153,6 +155,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._on_toggle_statusbar, self.statusbar_item)
         self.Bind(wx.EVT_MENU, self._on_toggle_theme, self.theme_item)
         self.Bind(wx.EVT_MENU, self._on_toggle_recording, self.record_menu_item)
+        self.Bind(wx.EVT_MENU, self._on_show_effects_dialog, self.effects_menu_item)
         self.Bind(wx.EVT_MENU, self._on_options, id=wx.ID_PREFERENCES)
         self.Bind(wx.EVT_MENU, self._on_help, id=wx.ID_HELP)
         self.Bind(wx.EVT_MENU, self._on_about, id=wx.ID_ABOUT)
@@ -1132,6 +1135,8 @@ class MainFrame(wx.Frame):
         return {
             'mixer': self.mixer.to_dict(),
             'decks': [deck.to_dict() for deck in self.mixer.decks],
+            'master_effects': self.mixer.get_master_effects_dict(),
+            'deck_effects': [deck.get_effects_dict() for deck in self.mixer.decks],
         }
 
     def _load_project_data(self, project_data):
@@ -1147,6 +1152,15 @@ class MainFrame(wx.Frame):
                 if i < len(self.mixer.decks) and deck_data:
                     self.mixer.decks[i].from_dict(deck_data)
                     self._update_deck_panel(i + 1)
+
+        # Load effects settings
+        if 'master_effects' in project_data and project_data['master_effects']:
+            self.mixer.load_master_effects_dict(project_data['master_effects'])
+
+        deck_effects = project_data.get('deck_effects', [])
+        for i, fx_data in enumerate(deck_effects):
+            if i < len(self.mixer.decks) and fx_data:
+                self.mixer.decks[i].load_effects_dict(fx_data)
 
     def _update_mixer_ui(self):
         """Update mixer UI controls after loading project"""
@@ -1456,6 +1470,16 @@ class MainFrame(wx.Frame):
         self.theme_manager.apply_theme(self)
         self.Refresh()
         self.Update()
+
+    def _on_show_effects_dialog(self, event):
+        """Show modeless effects dialog (single instance)."""
+        if hasattr(self, '_effects_dialog') and self._effects_dialog:
+            self._effects_dialog.Raise()
+            self._effects_dialog.SetFocus()
+            return
+        from gui.dialogs import EffectsDialog
+        self._effects_dialog = EffectsDialog(self, self.mixer)
+        self._effects_dialog.Show()
 
     def _on_options(self, event):
         """Show options dialog"""

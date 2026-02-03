@@ -249,6 +249,20 @@ class ProjectManager:
                 else:
                     project_data['decks'].append({})  # Empty deck
 
+            # Load effects settings
+            # Master effects
+            if config.has_section('MasterEffects'):
+                project_data['master_effects'] = dict(config.items('MasterEffects'))
+
+            # Per-deck effects
+            project_data['deck_effects'] = []
+            for i in range(1, 11):
+                section = f'Deck{i}Effects'
+                if config.has_section(section):
+                    project_data['deck_effects'].append(dict(config.items(section)))
+                else:
+                    project_data['deck_effects'].append({})
+
             return project_data
         except Exception as e:
             raise Exception(f"Failed to load project: {e}")
@@ -280,6 +294,21 @@ class ProjectManager:
                     section = f'Deck{i}'
                     config.add_section(section)
                     config.set(section, '; Empty deck', '')
+
+            # Save effects settings
+            # Master effects
+            if 'master_effects' in project_data and project_data['master_effects']:
+                config.add_section('MasterEffects')
+                for key, value in project_data['master_effects'].items():
+                    config.set('MasterEffects', key, str(value))
+
+            # Per-deck effects
+            for i, fx_data in enumerate(project_data.get('deck_effects', []), start=1):
+                if fx_data:
+                    section = f'Deck{i}Effects'
+                    config.add_section(section)
+                    for key, value in fx_data.items():
+                        config.set(section, key, str(value))
 
             # Write to file
             with open(filepath, 'w', encoding='utf-8') as f:

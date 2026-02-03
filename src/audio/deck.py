@@ -66,6 +66,9 @@ class Deck:
         self._lock = threading.RLock()
         self._play_thread: Optional[threading.Thread] = None
 
+        # Effect chain (assigned by Mixer)
+        self.effects = None
+
         # Callbacks
         self.on_state_change: Optional[Callable] = None
         self.on_playback_end: Optional[Callable] = None
@@ -407,6 +410,17 @@ class Deck:
             'mute': self.mute,
             'loop': self.loop,
         }
+
+    def get_effects_dict(self) -> dict:
+        """Export per-deck effects configuration for project saving."""
+        if self.effects:
+            return self.effects.to_dict()
+        return {}
+
+    def load_effects_dict(self, data: dict):
+        """Load per-deck effects configuration from project data."""
+        if self.effects and data:
+            self.effects.from_dict(data)
 
     def from_dict(self, data: dict) -> bool:
         """

@@ -11,6 +11,7 @@ from typing import List, Optional, Callable
 from audio.deck import Deck
 from audio.audio_engine import AudioEngine
 from audio.recorder import Recorder
+from audio.effects import EffectChain
 from config.defaults import MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC, DECK_STATE_PLAYING
 from utils.logger import get_logger
 from utils.helpers import generate_recording_filename, sanitize_filename
@@ -38,11 +39,15 @@ class Mixer:
         self.num_decks = num_decks
         self.recorder = recorder
 
-        # Create decks
+        # Create decks with per-deck effect chains
         self.decks: List[Deck] = []
         for i in range(num_decks):
             deck = Deck(i + 1, audio_engine.sample_rate)
+            deck.effects = EffectChain(audio_engine.sample_rate)
             self.decks.append(deck)
+
+        # Master effect chain
+        self.master_effects = EffectChain(audio_engine.sample_rate)
 
         # Mixer settings
         self.master_volume = 0.8
@@ -115,6 +120,9 @@ class Mixer:
 
             # Apply master volume
             audio_data *= self.master_volume
+
+            # Apply master effects
+            audio_data = self.master_effects.process(audio_data)
 
             # Handle recorder: buffer for pre-roll and/or write to file
             if self.recorder:
@@ -349,6 +357,10 @@ class Mixer:
             # Apply volume and balance
             left_vol, right_vol = deck.get_left_right_volumes()
             chunk = self.audio_engine.apply_volume_and_balance(chunk, left_vol, right_vol)
+
+            # Apply per-deck effects
+            if deck.effects:
+                chunk = deck.effects.process(chunk)
 
             return chunk
 
@@ -803,6 +815,14 @@ class Mixer:
             'crossfade_enabled': self.crossfade_enabled,
             'crossfade_duration': self.crossfade_duration,
         }
+
+    def get_master_effects_dict(self) -> dict:
+        """Export master effects configuration for project saving."""
+        return self.master_effects.to_dict()
+
+    def load_master_effects_dict(self, data: dict):
+        """Load master effects configuration from project data."""
+        self.master_effects.from_dict(data)
 
     def from_dict(self, data: dict):
         """Load mixer configuration"""
