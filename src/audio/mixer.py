@@ -5,12 +5,15 @@ Mixer - Manages multiple decks and operating modes
 import numpy as np
 import threading
 import time
+from pathlib import Path
 from typing import List, Optional, Callable
 
 from audio.deck import Deck
 from audio.audio_engine import AudioEngine
+from audio.recorder import Recorder
 from config.defaults import MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC, DECK_STATE_PLAYING
 from utils.logger import get_logger
+from utils.helpers import generate_recording_filename, sanitize_filename
 
 # Module logger
 logger = get_logger('mixer')
@@ -71,9 +74,15 @@ class Mixer:
         self._last_underflow_time = 0
         self._underflow_count = 0
 
+        # Per-deck recorders
+        self.deck_recorders: dict = {}  # deck_id -> Recorder
+        self._recorder_config: dict = {}  # Shared config for creating deck recorders
+
         # Callbacks
         self.on_mode_change: Optional[Callable] = None
         self.on_active_deck_change: Optional[Callable] = None
+        self.on_deck_recording_started: Optional[Callable] = None
+        self.on_deck_recording_stopped: Optional[Callable] = None
 
         # Start audio stream
         self._start_playback()
@@ -153,6 +162,7 @@ class Mixer:
             if deck.is_playing:
                 audio = self._get_deck_audio(deck, frames)
                 if audio is not None:
+                    self._feed_deck_recorder(deck.deck_id, audio)
                     audio_streams.append(audio)
 
         if audio_streams:
@@ -162,14 +172,22 @@ class Mixer:
 
     def _generate_solo_mode(self, frames: int) -> np.ndarray:
         """Generate audio for Solo mode (only active deck plays)"""
+        handled_deck_ids = set()
+        result = self.audio_engine.create_silence(frames)
+
         if 0 <= self.active_deck_index < len(self.decks):
             deck = self.decks[self.active_deck_index]
             if deck.is_playing:
                 audio = self._get_deck_audio(deck, frames)
                 if audio is not None:
-                    return audio
+                    self._feed_deck_recorder(deck.deck_id, audio)
+                    result = audio
+                handled_deck_ids.add(deck.deck_id)
 
-        return self.audio_engine.create_silence(frames)
+        # Feed recorders for non-active playing decks that have active recorders
+        self._feed_non_active_deck_recorders(frames, handled_deck_ids)
+
+        return result
 
     def _generate_automatic_mode(self, frames: int) -> np.ndarray:
         """Generate audio for Automatic mode (solo with auto-switching and crossfade)"""
@@ -194,10 +212,21 @@ class Mixer:
         from_audio = None
         to_audio = None
 
+        handled_deck_ids = set()
+
         if from_deck and from_deck.is_playing:
             from_audio = self._get_deck_audio(from_deck, frames)
+            if from_audio is not None:
+                self._feed_deck_recorder(from_deck.deck_id, from_audio)
+            handled_deck_ids.add(from_deck.deck_id)
         if to_deck and to_deck.is_playing:
             to_audio = self._get_deck_audio(to_deck, frames)
+            if to_audio is not None:
+                self._feed_deck_recorder(to_deck.deck_id, to_audio)
+            handled_deck_ids.add(to_deck.deck_id)
+
+        # Feed recorders for non-active playing decks that have active recorders
+        self._feed_non_active_deck_recorders(frames, handled_deck_ids)
 
         # Create output buffer
         output = self.audio_engine.create_silence(frames)
@@ -326,6 +355,142 @@ class Mixer:
         except Exception as e:
             logger.error(f"Error getting deck audio: {e}")
             return None
+
+    # --- Per-deck recording ---
+
+    def set_recorder_config(self, config: dict):
+        """
+        Store recorder configuration for creating per-deck recorders.
+
+        Args:
+            config: Dict with keys: sample_rate, channels, bit_depth, format, bitrate, pre_roll_seconds
+        """
+        self._recorder_config = config
+
+    def start_deck_recording(self, deck_id: int, output_directory: str) -> bool:
+        """
+        Start recording a specific deck's output to a separate file.
+
+        Args:
+            deck_id: Deck ID (1-based)
+            output_directory: Directory to save the recording
+
+        Returns:
+            True if recording started successfully
+        """
+        if deck_id in self.deck_recorders and self.deck_recorders[deck_id].is_recording:
+            return False
+
+        deck = self.get_deck_by_id(deck_id)
+        if not deck:
+            return False
+
+        config = self._recorder_config
+        if not config:
+            return False
+
+        try:
+            recorder = Recorder(
+                sample_rate=config.get('sample_rate', 44100),
+                channels=config.get('channels', 2),
+                bit_depth=config.get('bit_depth', 16),
+                format=config.get('format', 'wav'),
+                bitrate=config.get('bitrate', 192),
+                pre_roll_seconds=config.get('pre_roll_seconds', 30.0),
+            )
+
+            # Set up callbacks
+            def on_started(filepath):
+                if self.on_deck_recording_started:
+                    self.on_deck_recording_started(deck_id, filepath)
+
+            def on_stopped(filepath, frames):
+                if self.on_deck_recording_stopped:
+                    self.on_deck_recording_stopped(deck_id, filepath, frames)
+
+            recorder.on_recording_started = on_started
+            recorder.on_recording_stopped = on_stopped
+
+            self.deck_recorders[deck_id] = recorder
+
+            # Generate full output file path with deck name
+            deck_name = sanitize_filename(deck.name)
+            prefix = f"deck{deck_id}_{deck_name}"
+            fmt = config.get('format', 'wav')
+            filename = generate_recording_filename(fmt, prefix)
+            output_file = str(Path(output_directory) / filename)
+
+            recorder.start_recording(output_file=output_file)
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to start deck {deck_id} recording: {e}")
+            if deck_id in self.deck_recorders:
+                del self.deck_recorders[deck_id]
+            return False
+
+    def stop_deck_recording(self, deck_id: int):
+        """
+        Stop recording a specific deck.
+
+        Args:
+            deck_id: Deck ID (1-based)
+        """
+        recorder = self.deck_recorders.get(deck_id)
+        if recorder:
+            try:
+                if recorder.is_recording:
+                    recorder.stop_recording()
+            except Exception as e:
+                logger.error(f"Error stopping deck {deck_id} recording: {e}")
+            finally:
+                del self.deck_recorders[deck_id]
+
+    def is_deck_recording(self, deck_id: int) -> bool:
+        """Check if a specific deck is being recorded."""
+        recorder = self.deck_recorders.get(deck_id)
+        return recorder is not None and recorder.is_recording
+
+    def stop_all_deck_recordings(self):
+        """Stop all active per-deck recordings."""
+        for deck_id in list(self.deck_recorders.keys()):
+            self.stop_deck_recording(deck_id)
+
+    def _feed_deck_recorder(self, deck_id: int, audio_data):
+        """
+        Feed audio data to a deck's recorder for writing or pre-roll buffering.
+
+        Args:
+            deck_id: Deck ID (1-based)
+            audio_data: Audio data as numpy array
+        """
+        recorder = self.deck_recorders.get(deck_id)
+        if recorder:
+            try:
+                if recorder.is_recording:
+                    recorder.write_frames(audio_data)
+                else:
+                    recorder.buffer_frames(audio_data)
+            except Exception as e:
+                logger.error(f"Error feeding deck {deck_id} recorder: {e}")
+
+    def _feed_non_active_deck_recorders(self, frames: int, exclude_deck_ids: set):
+        """
+        Generate and feed audio for decks that are playing but not part of the
+        current audible output (e.g. non-active decks in solo mode).
+        Only runs for decks that have an active recorder.
+
+        Args:
+            frames: Number of frames to generate
+            exclude_deck_ids: Set of deck IDs already handled
+        """
+        for deck in self.decks:
+            if deck.deck_id in exclude_deck_ids:
+                continue
+            if deck.is_playing and deck.deck_id in self.deck_recorders:
+                audio = self._get_deck_audio(deck, frames)
+                if audio is not None:
+                    self._feed_deck_recorder(deck.deck_id, audio)
 
     def set_mode(self, mode: str):
         """
@@ -649,6 +814,7 @@ class Mixer:
 
     def cleanup(self):
         """Cleanup resources"""
+        self.stop_all_deck_recordings()
         self._stop_automatic_switching()
         self.audio_engine.stop_stream()
         self._loaded_audio_cache.clear()

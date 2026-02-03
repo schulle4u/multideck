@@ -51,6 +51,8 @@ class MainFrame(wx.Frame):
         # Mixer (with recorder reference for master output recording)
         num_decks = self.config_manager.get_deck_count()
         self.mixer = Mixer(self.audio_engine, num_decks, self.recorder)
+        self.mixer.on_deck_recording_started = self._on_deck_recording_started
+        self.mixer.on_deck_recording_stopped = self._on_deck_recording_stopped
 
         # Load automation/crossfade settings
         self.mixer.auto_switch_interval = self.config_manager.getint('Automation', 'switch_interval', 10)
@@ -542,6 +544,8 @@ class MainFrame(wx.Frame):
                 else:
                     file_info = os.path.basename(deck.file_path)
                 display_text = f"{deck.name}: {file_info}"
+            if self.mixer.is_deck_recording(deck.deck_id):
+                display_text = f"[REC] {display_text}"
             self.deck_listbox.Append(display_text)
         # Restore selection
         if current_selection != wx.NOT_FOUND and current_selection < self.deck_listbox.GetCount():
@@ -684,11 +688,19 @@ class MainFrame(wx.Frame):
         unload_item = menu.Append(wx.ID_ANY, _("Unload Deck") + "\tDel")
         unload_item.Enable(deck.state != DECK_STATE_EMPTY)
 
+        menu.AppendSeparator()
+        if self.mixer.is_deck_recording(deck.deck_id):
+            record_deck_item = menu.Append(wx.ID_ANY, _("Stop Recording Deck") + "\tCtrl+Shift+R")
+        else:
+            record_deck_item = menu.Append(wx.ID_ANY, _("Start Recording Deck") + "\tCtrl+Shift+R")
+        record_deck_item.Enable(deck.state != DECK_STATE_EMPTY)
+
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_file(deck), load_file_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_url(deck), load_url_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_rename(), rename_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_toggle_loop(), toggle_loop_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_unload(), unload_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_toggle_deck_recording(deck), record_deck_item)
 
         parent_widget.PopupMenu(menu)
         menu.Destroy()
@@ -722,6 +734,8 @@ class MainFrame(wx.Frame):
         """Unload the active deck"""
         deck = self._get_selected_deck()
         if deck:
+            if self.mixer.is_deck_recording(deck.deck_id):
+                self.mixer.stop_deck_recording(deck.deck_id)
             deck.unload()
             self._update_active_deck_controls()
             self._update_deck_panel(deck.deck_id)
@@ -1487,6 +1501,8 @@ class MainFrame(wx.Frame):
         if not self.recorder.is_recording:
             self.recorder.bit_depth = self.config_manager.getint('Recorder', 'bit_depth', 16)
         self.recorder.set_pre_roll_seconds(self.config_manager.getfloat('Recorder', 'pre_roll_seconds', 30.0))
+        # Update config for future per-deck recorders
+        self.mixer.set_recorder_config(self._get_recorder_config())
 
     def apply_streaming_settings(self):
         """Apply streaming settings from config to all active stream handlers"""
@@ -1614,6 +1630,11 @@ class MainFrame(wx.Frame):
         record_id = wx.NewIdRef()
         accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('R'), record_id))
         self.Bind(wx.EVT_MENU, self._on_toggle_recording, id=record_id)
+
+        # Ctrl+Shift+R for per-deck recording toggle
+        deck_record_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL | wx.ACCEL_SHIFT, ord('R'), deck_record_id))
+        self.Bind(wx.EVT_MENU, self._on_toggle_deck_recording_shortcut, id=deck_record_id)
 
         # F6 for jump to deck list (accessibility standard)
         jump_f6_id = wx.NewIdRef()
@@ -1812,6 +1833,70 @@ class MainFrame(wx.Frame):
         self.SetStatusText(_("Recording stopped: {}").format(os.path.basename(filepath)), 0)
         # Update menu item text
         self.record_menu_item.SetItemLabel(_("Start &Recording") + "\tCtrl+R")
+
+    # --- Per-deck recording ---
+
+    def _get_recorder_config(self) -> dict:
+        """Build recorder config dict from current settings."""
+        return {
+            'sample_rate': self.audio_engine.sample_rate,
+            'channels': 2,
+            'bit_depth': self.config_manager.getint('Recorder', 'bit_depth', 16),
+            'format': self.config_manager.get('Recorder', 'format', 'wav'),
+            'bitrate': self.config_manager.getint('Recorder', 'bitrate', 192),
+            'pre_roll_seconds': self.config_manager.getfloat('Recorder', 'pre_roll_seconds', 30.0),
+        }
+
+    def _on_toggle_deck_recording(self, deck):
+        """Toggle recording for a specific deck."""
+        if self.mixer.is_deck_recording(deck.deck_id):
+            self.mixer.stop_deck_recording(deck.deck_id)
+        else:
+            output_dir = self.config_manager.get('Recorder', 'output_directory', '')
+            if not output_dir:
+                dlg = wx.DirDialog(self, _("Choose recording output directory"))
+                if dlg.ShowModal() == wx.ID_OK:
+                    output_dir = dlg.GetPath()
+                else:
+                    dlg.Destroy()
+                    return
+                dlg.Destroy()
+
+            self.mixer.set_recorder_config(self._get_recorder_config())
+            if not self.mixer.start_deck_recording(deck.deck_id, output_dir):
+                wx.MessageBox(
+                    _("Failed to start recording for {}").format(deck.name),
+                    _("Error"),
+                    wx.OK | wx.ICON_ERROR
+                )
+
+    def _on_toggle_deck_recording_shortcut(self, event):
+        """Handle Ctrl+Shift+R for per-deck recording toggle."""
+        deck = self._get_selected_deck()
+        if deck and deck.state != DECK_STATE_EMPTY:
+            self._on_toggle_deck_recording(deck)
+
+    def _on_deck_recording_started(self, deck_id, filepath):
+        """Callback when a deck recording starts (called from audio thread)."""
+        wx.CallAfter(self._handle_deck_recording_started, deck_id, filepath)
+
+    def _handle_deck_recording_started(self, deck_id, filepath):
+        """Handle deck recording started on the GUI thread."""
+        deck = self.mixer.get_deck_by_id(deck_id)
+        deck_name = deck.name if deck else f"Deck {deck_id}"
+        self.SetStatusText(_("Recording started: {}").format(f"{deck_name} → {os.path.basename(filepath)}"), 0)
+        self._update_deck_listbox()
+
+    def _on_deck_recording_stopped(self, deck_id, filepath, frames):
+        """Callback when a deck recording stops (called from audio thread)."""
+        wx.CallAfter(self._handle_deck_recording_stopped, deck_id, filepath, frames)
+
+    def _handle_deck_recording_stopped(self, deck_id, filepath, frames):
+        """Handle deck recording stopped on the GUI thread."""
+        deck = self.mixer.get_deck_by_id(deck_id)
+        deck_name = deck.name if deck else f"Deck {deck_id}"
+        self.SetStatusText(_("Recording stopped: {}").format(f"{deck_name} → {os.path.basename(filepath)}"), 0)
+        self._update_deck_listbox()
 
     def _on_close(self, event):
         """Handle window close"""
