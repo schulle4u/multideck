@@ -108,21 +108,6 @@ For portable mode, place `config.ini` in the program directory. Otherwise, confi
 
 ### Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+O` | Load project |
-| `Ctrl+S` | Save project |
-| `Ctrl+P` | Open options |
-| `Ctrl+R` | Start/stop recorder |
-| `Ctrl+1` to `Ctrl+0` | Jump to deck 1-10 (Solo/Auto mode) |
-| `Ctrl+Tab` | Next deck (Solo/Auto mode) |
-| `Ctrl+Shift+Tab` | Previous deck |
-| `Space` | Play/pause active deck |
-| `Ctrl+M` | Mute/unmute active deck |
-| `Ctrl+L` | Toggle loop for active deck |
-| `F1` | Show keyboard shortcuts |
-| `Alt+F4` | Exit application |
-
 See `docs/shortcuts.txt` for complete keyboard reference.
 
 ## Project Structure

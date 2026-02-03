@@ -5,7 +5,9 @@ FILE MENU
 ---------
 Ctrl+O              Load project
 Ctrl+S              Save project
-Ctrl+Shift+S              Save project as
+Ctrl+Shift+S        Save project as
+Ctrl+I              Import M3u file
+Ctrl+E              Export M3u file
 Alt+F4              Exit application
 
 MODE SELECTION
@@ -46,6 +48,7 @@ Applications Key or Shift+F10    Open context menu for active deck
 RECORDER
 --------
 Ctrl+R              Start/Stop recording
+Ctrl+Shift+R              Start/Stop recording individual deck
 
 VIEW
 ----
@@ -55,6 +58,7 @@ Ctrl+Shift+T        Toggle theme (Light/Dark)
 TOOLS
 -----
 Ctrl+P              Open options dialog
+Ctrl+Shift+E        Open effects dialog
 
 HELP
 ----
