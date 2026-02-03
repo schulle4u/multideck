@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-03 12:02+0100\n"
-"PO-Revision-Date: 2026-02-03 12:13+0100\n"
+"POT-Creation-Date: 2026-02-03 20:20+0100\n"
+"PO-Revision-Date: 2026-02-03 20:21+0100\n"
 "Last-Translator: Steffen Schultz\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -183,145 +183,152 @@ msgstr "Neustart notwendig"
 msgid "Audio Effects"
 msgstr "Audioeffekte"
 
-#: gui/dialogs.py:794 gui/main_frame.py:388 gui/main_frame.py:448
+#: gui/dialogs.py:802 gui/main_frame.py:388 gui/main_frame.py:448
 #: gui/main_frame.py:1186 gui/main_frame.py:1829
 msgid "Master"
 msgstr "Master"
 
-#: gui/dialogs.py:795
+#: gui/dialogs.py:803
 msgid "Master Effects"
 msgstr "Mastereffekte"
 
-#: gui/dialogs.py:809
+#: gui/dialogs.py:817
 msgid "&Close"
 msgstr "&Schließen"
 
-#: gui/dialogs.py:823
+#: gui/dialogs.py:831
 #, python-brace-format
 msgid "Enable effects for {}"
 msgstr "Effekte für {} einschalten"
 
-#: gui/dialogs.py:859
+#: gui/dialogs.py:869
 msgid "Reverb"
 msgstr "Hall"
 
-#: gui/dialogs.py:862 gui/dialogs.py:913 gui/dialogs.py:951 gui/dialogs.py:989
-#: gui/dialogs.py:1027 gui/dialogs.py:1075
+#: gui/dialogs.py:873 gui/dialogs.py:928 gui/dialogs.py:970 gui/dialogs.py:1012
+#: gui/dialogs.py:1054 gui/dialogs.py:1106 gui/dialogs.py:1142
 msgid "Enable"
 msgstr "Einschalten"
 
-#: gui/dialogs.py:863
+#: gui/dialogs.py:874
 msgid "Enable Reverb"
 msgstr "Hall einschalten"
 
-#: gui/dialogs.py:871
+#: gui/dialogs.py:880
 msgid "Room Size"
 msgstr "Raumgröße"
 
-#: gui/dialogs.py:878
+#: gui/dialogs.py:887
 msgid "Damping"
 msgstr "Dämpfung"
 
-#: gui/dialogs.py:885
+#: gui/dialogs.py:894
 msgid "Wet Level"
 msgstr "Wet-Pegel"
 
-#: gui/dialogs.py:892
+#: gui/dialogs.py:901
 msgid "Dry Level"
 msgstr "Dry-Pegel"
 
-#: gui/dialogs.py:899
+#: gui/dialogs.py:908
 msgid "Width"
 msgstr "Breite"
 
-#: gui/dialogs.py:910
+#: gui/dialogs.py:924
 msgid "Delay"
 msgstr "Verzögerung"
 
-#: gui/dialogs.py:914
+#: gui/dialogs.py:929
 msgid "Enable Delay"
 msgstr "Verzögerung einschalten"
 
-#: gui/dialogs.py:923
+#: gui/dialogs.py:936
 msgid "Delay Time"
 msgstr "Verzögerungszeit"
 
-#: gui/dialogs.py:930
+#: gui/dialogs.py:943
 msgid "Feedback"
 msgstr "Feedback"
 
-#: gui/dialogs.py:937 gui/dialogs.py:1013
-#| msgid "Mixer"
+#: gui/dialogs.py:950 gui/dialogs.py:1034
 msgid "Mix"
 msgstr "Mix"
 
-#: gui/dialogs.py:948
+#: gui/dialogs.py:966
 msgid "Equalizer"
 msgstr "Equalizer"
 
-#: gui/dialogs.py:952
+#: gui/dialogs.py:971
 msgid "Enable Equalizer"
 msgstr "Equalizer einschalten"
 
-#: gui/dialogs.py:961
+#: gui/dialogs.py:978
 msgid "Bass (200 Hz)"
 msgstr "Bass (200 Hz)"
 
-#: gui/dialogs.py:968
+#: gui/dialogs.py:985
 msgid "Mid (1 kHz)"
 msgstr "Mitten (1 kHz)"
 
-#: gui/dialogs.py:975
+#: gui/dialogs.py:992
 msgid "Treble (8 kHz)"
 msgstr "Höhen (8 kHz)"
 
-#: gui/dialogs.py:986
+#: gui/dialogs.py:1008
 msgid "Chorus"
 msgstr "Chorus"
 
-#: gui/dialogs.py:990
+#: gui/dialogs.py:1013
 msgid "Enable Chorus"
 msgstr "Chorus einschalten"
 
-#: gui/dialogs.py:999
+#: gui/dialogs.py:1020
 msgid "Rate"
 msgstr "Rate"
 
-#: gui/dialogs.py:1006
+#: gui/dialogs.py:1027
 msgid "Depth"
 msgstr "Stärke"
 
-#: gui/dialogs.py:1024
+#: gui/dialogs.py:1050
 msgid "Compressor"
 msgstr "Kompressor"
 
-#: gui/dialogs.py:1028
+#: gui/dialogs.py:1055
 msgid "Enable Compressor"
 msgstr "Kompressor einschalten"
 
-#: gui/dialogs.py:1037 gui/dialogs.py:1085
+#: gui/dialogs.py:1062 gui/dialogs.py:1114
 msgid "Threshold"
 msgstr "Schwellenwert"
 
-#: gui/dialogs.py:1045
+#: gui/dialogs.py:1070
 msgid "Ratio"
 msgstr "Verhältnis"
 
-#: gui/dialogs.py:1053
+#: gui/dialogs.py:1078
 msgid "Attack"
 msgstr "Attack"
 
-#: gui/dialogs.py:1061 gui/dialogs.py:1093
+#: gui/dialogs.py:1086 gui/dialogs.py:1122
 msgid "Release"
 msgstr "Release"
 
-#: gui/dialogs.py:1072
+#: gui/dialogs.py:1102
 msgid "Limiter"
 msgstr "Limiter"
 
-#: gui/dialogs.py:1076
+#: gui/dialogs.py:1107
 msgid "Enable Limiter"
 msgstr "Limiter einschalten"
+
+#: gui/dialogs.py:1138 gui/dialogs.py:1150
+msgid "Gain"
+msgstr "Gain"
+
+#: gui/dialogs.py:1143
+msgid "Enable Gain"
+msgstr "Gain einschalten"
 
 #: gui/main_frame.py:102
 msgid "&New Project..."

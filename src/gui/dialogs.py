@@ -854,7 +854,9 @@ class EffectsDialog(wx.Dialog):
         # Limiter
         sizer.Add(self._create_limiter_section(panel, effect_chain, chain_name),
                   0, wx.EXPAND | wx.ALL, 5)
-
+        # Gain
+        sizer.Add(self._create_gain_section(panel, effect_chain, chain_name),
+                  0, wx.EXPAND | wx.ALL, 5)
         panel.SetSizer(sizer)
         return panel
 
@@ -1126,6 +1128,34 @@ class EffectsDialog(wx.Dialog):
         self._set_sliders_enabled(sliders, chain.limiter_enabled)
         cb.Bind(wx.EVT_CHECKBOX, lambda e, s=sliders: (
             chain.enable_effect('limiter', e.IsChecked()),
+            self._set_sliders_enabled(s, e.IsChecked())))
+
+        return box
+
+    # --- Gain ---
+
+    def _create_gain_section(self, parent, chain, name):
+        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Gain"))
+        sb = box.GetStaticBox()
+        sliders = []
+
+        cb = wx.CheckBox(sb, label=_("Enable"))
+        cb.SetName(f"{name}: {_('Enable Gain')}")
+        cb.SetValue(chain.gain_enabled)
+        box.Add(cb, 0, wx.ALL, 5)
+
+        if chain.gain is not None:
+            # Gain: -24 to +24 dB
+            box.Add(self._make_slider(
+                sb, _("Gain"), name,
+                int(chain.gain.gain_db), -24, 24,
+                lambda v: chain.set_gain_param(gain_db=float(v)),
+                fmt_func=lambda v: f"{v:+d} dB", collect=sliders),
+                0, wx.EXPAND | wx.ALL, 3)
+
+        self._set_sliders_enabled(sliders, chain.gain_enabled)
+        cb.Bind(wx.EVT_CHECKBOX, lambda e, s=sliders: (
+            chain.enable_effect('gain', e.IsChecked()),
             self._set_sliders_enabled(s, e.IsChecked())))
 
         return box

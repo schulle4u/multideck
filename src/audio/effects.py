@@ -48,6 +48,7 @@ class EffectChain:
         self.chorus = None
         self.compressor = None
         self.limiter = None
+        self.gain = None
 
         # Enable flags
         self.reverb_enabled = False
@@ -56,6 +57,7 @@ class EffectChain:
         self.chorus_enabled = False
         self.compressor_enabled = False
         self.limiter_enabled = False
+        self.gain_enabled = False
 
         if _check_pedalboard():
             self._initialize_effects()
@@ -64,7 +66,8 @@ class EffectChain:
         """Create all effect objects with default parameters."""
         from pedalboard import (
             Reverb, Delay, Chorus, Compressor, Limiter,
-            LowShelfFilter, PeakFilter, HighShelfFilter
+            LowShelfFilter, PeakFilter, HighShelfFilter,
+            Gain
         )
 
         self.reverb = Reverb(
@@ -117,6 +120,10 @@ class EffectChain:
             release_ms=50.0,
         )
 
+        self.gain = Gain(
+            gain_db=0.0,
+        )
+
         self._rebuild_board()
 
     def _rebuild_board(self):
@@ -139,6 +146,8 @@ class EffectChain:
             active.append(self.delay)
         if self.limiter_enabled and self.limiter is not None:
             active.append(self.limiter)
+        if self.gain_enabled and self.gain is not None:
+            active.append(self.gain)
 
         self._board = Pedalboard(active)
 
@@ -228,6 +237,14 @@ class EffectChain:
                 if hasattr(self.limiter, key):
                     setattr(self.limiter, key, val)
 
+    def set_gain_param(self, **kwargs):
+        with self._lock:
+            if self.gain is None:
+                return
+            for key, val in kwargs.items():
+                if hasattr(self.gain, key):
+                    setattr(self.gain, key, val)
+
     # --- Serialization ---
 
     def to_dict(self) -> dict:
@@ -240,6 +257,7 @@ class EffectChain:
             'chorus_enabled': self.chorus_enabled,
             'compressor_enabled': self.compressor_enabled,
             'limiter_enabled': self.limiter_enabled,
+            'gain_enabled': self.gain_enabled,
         }
 
         if self.reverb is not None:
@@ -288,6 +306,11 @@ class EffectChain:
                 'limiter_release_ms': self.limiter.release_ms,
             })
 
+        if self.gain is not None:
+            d.update({
+                'gain_gain_db': self.gain.gain_db,
+            })
+
         return d
 
     def from_dict(self, data: dict):
@@ -301,6 +324,7 @@ class EffectChain:
             self.chorus_enabled = _parse_bool(data.get('chorus_enabled', False))
             self.compressor_enabled = _parse_bool(data.get('compressor_enabled', False))
             self.limiter_enabled = _parse_bool(data.get('limiter_enabled', False))
+            self.gain_enabled = _parse_bool(data.get('gain_enabled', False))
 
             if self.reverb is not None:
                 self.reverb.room_size = float(data.get('reverb_room_size', 0.5))
@@ -335,6 +359,9 @@ class EffectChain:
             if self.limiter is not None:
                 self.limiter.threshold_db = float(data.get('limiter_threshold_db', -1.0))
                 self.limiter.release_ms = float(data.get('limiter_release_ms', 50.0))
+
+            if self.gain is not None:
+                self.gain.gain_db = float(data.get('gain_gain_db', 0.0))
 
             self._rebuild_board()
 
