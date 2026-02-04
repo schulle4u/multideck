@@ -307,6 +307,11 @@ class Mixer:
                 # Apply volume and balance
                 left_vol, right_vol = deck.get_left_right_volumes()
                 chunk = self.audio_engine.apply_volume_and_balance(chunk, left_vol, right_vol)
+
+                # Apply per-deck effects
+                if deck.effects:
+                    chunk = deck.effects.process(chunk)
+
                 return chunk
 
             # Check if audio is cached (do NOT load in audio callback to prevent underflows)
