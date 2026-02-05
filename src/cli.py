@@ -138,6 +138,24 @@ class MultiDeckCLI:
 
             self.log(f"Loaded {loaded_count} deck(s)")
 
+            # Load effects settings
+            if 'master_effects' in project_data and project_data['master_effects']:
+                self.mixer.load_master_effects_dict(project_data['master_effects'])
+                if str(project_data['master_effects'].get('enabled', '')).lower() == 'true':
+                    self.log("  Master effects enabled")
+
+            deck_effects = project_data.get('deck_effects', [])
+            effects_enabled = []
+            for i, fx_data in enumerate(deck_effects):
+                if i < len(self.mixer.decks) and fx_data:
+                    self.mixer.decks[i].load_effects_dict(fx_data)
+                    if str(fx_data.get('enabled', '')).lower() == 'true':
+                        effects_enabled.append(i + 1)
+
+            if effects_enabled:
+                deck_list = ', '.join(str(d) for d in effects_enabled)
+                self.log(f"  Deck effects enabled for deck(s): {deck_list}")
+
             # Now apply mode using set_mode() to start auto-switch thread if needed
             if target_mode != MODE_MIXER:
                 self.mixer.set_mode(target_mode)
