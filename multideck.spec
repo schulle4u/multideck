@@ -20,7 +20,7 @@ IS_LINUX = platform.system() == 'Linux'
 
 # Application info
 APP_NAME = 'MultiDeck Audio Player'
-APP_VERSION = '0.2.3'
+APP_VERSION = '0.3.0'
 APP_BUNDLE_ID = 'com.multideck.audioplayer'
 
 # Platform-specific icon
