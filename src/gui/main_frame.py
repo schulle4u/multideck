@@ -59,6 +59,12 @@ class MainFrame(wx.Frame):
         self.mixer.crossfade_enabled = self.config_manager.getboolean('Automation', 'crossfade_enabled', True)
         self.mixer.crossfade_duration = self.config_manager.getfloat('Automation', 'crossfade_duration', 2.0)
 
+        # Load level-based switching settings
+        self.mixer.level_switch_enabled = self.config_manager.getboolean('Automation', 'level_switch_enabled', False)
+        self.mixer.level_threshold_db = self.config_manager.getfloat('Automation', 'level_threshold_db', -30.0)
+        self.mixer.level_hysteresis_db = self.config_manager.getfloat('Automation', 'level_hysteresis_db', 3.0)
+        self.mixer.level_hold_time = self.config_manager.getfloat('Automation', 'level_hold_time', 3.0)
+
         # Theme manager
         self.theme_manager = ThemeManager(self.config_manager)
         self.theme_manager.register_callback(self._on_theme_changed)
@@ -122,6 +128,8 @@ class MainFrame(wx.Frame):
         view_menu = wx.Menu()
         self.statusbar_item = view_menu.AppendCheckItem(wx.ID_ANY, _("&Status Bar") + "\tCtrl+T")
         self.statusbar_item.Check(True)
+        self.level_meter_item = view_menu.AppendCheckItem(wx.ID_ANY, _("&Level Meter"))
+        self.level_meter_item.Check(self.config_manager.getboolean('UI', 'show_level_meter', True))
         view_menu.AppendSeparator()
         self.theme_item = view_menu.Append(wx.ID_ANY, _("Toggle &Theme") + "\tCtrl+Shift+T")
         menu_bar.Append(view_menu, _("&View"))
@@ -153,6 +161,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._on_export_m3u, self.export_m3u_item)
         self.Bind(wx.EVT_MENU, self._on_exit, id=wx.ID_EXIT)
         self.Bind(wx.EVT_MENU, self._on_toggle_statusbar, self.statusbar_item)
+        self.Bind(wx.EVT_MENU, self._on_toggle_level_meter, self.level_meter_item)
         self.Bind(wx.EVT_MENU, self._on_toggle_theme, self.theme_item)
         self.Bind(wx.EVT_MENU, self._on_toggle_recording, self.record_menu_item)
         self.Bind(wx.EVT_MENU, self._on_show_effects_dialog, self.effects_menu_item)
@@ -373,6 +382,22 @@ class MainFrame(wx.Frame):
         position_box.Add(self.active_position_slider, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
         controls_box.Add(position_box, 0, wx.EXPAND | wx.TOP, 5)
+
+        # Level meter
+        level_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        level_label = wx.StaticText(controls_static_box, label=_("Level:"))
+        level_sizer.Add(level_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        self.active_level_gauge = wx.Gauge(controls_static_box, range=100, style=wx.GA_HORIZONTAL)
+        self.active_level_gauge.SetName(_("Audio Level"))
+        if not self.config_manager.getboolean('UI', 'show_level_meter', True):
+            self.active_level_gauge.Hide()
+        level_sizer.Add(self.active_level_gauge, 1, wx.EXPAND | wx.ALL, 5)
+
+        self.active_level_db_label = wx.StaticText(controls_static_box, label="-inf dB")
+        level_sizer.Add(self.active_level_db_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        controls_box.Add(level_sizer, 0, wx.EXPAND | wx.TOP, 5)
 
         main_sizer.Add(controls_box, 2, wx.EXPAND | wx.ALL, 5)
 
@@ -813,13 +838,15 @@ class MainFrame(wx.Frame):
                 self._update_position_display(deck)
 
     def _on_position_timer(self, event):
-        """Timer callback to update position slider during playback"""
+        """Timer callback to update position slider and level meter during playback"""
         if self._slider_dragging:
             return  # Don't update while user is dragging
 
         deck = self._get_selected_deck()
-        if deck and deck.is_playing and deck.can_seek():
-            self._update_position_display(deck)
+        if deck:
+            if deck.is_playing and deck.can_seek():
+                self._update_position_display(deck)
+            self._update_level_meter(deck)
 
     def _update_position_display(self, deck):
         """Update position slider and time labels for a deck"""
@@ -843,6 +870,23 @@ class MainFrame(wx.Frame):
             self.active_position_slider.SetValue(slider_value)
 
         self.active_position_slider.Enable(True)
+
+    def _update_level_meter(self, deck):
+        """Update level meter gauge and dB label for a deck"""
+        gauge_visible = self.active_level_gauge.IsShown()
+        if deck.is_playing:
+            db = deck.rms_level_db
+            db_text = f"{db:.1f} dB" if db > -59.0 else "-inf dB"
+            self.active_level_db_label.SetLabel(db_text)
+            if gauge_visible:
+                gauge_value = int(max(0, min(100, ((db + 60.0) / 60.0) * 100)))
+                self.active_level_gauge.SetValue(gauge_value)
+                self.active_level_gauge.SetName(_("Audio Level: {}").format(db_text))
+        else:
+            self.active_level_db_label.SetLabel("-inf dB")
+            if gauge_visible:
+                self.active_level_gauge.SetValue(0)
+                self.active_level_gauge.SetName(_("Audio Level: -inf dB"))
 
     def _on_seek_forward(self, event):
         """Seek forward 5 seconds"""
@@ -1053,6 +1097,10 @@ class MainFrame(wx.Frame):
         self.mixer.auto_switch_interval = self.config_manager.getint('Automation', 'switch_interval', 10)
         self.mixer.crossfade_enabled = self.config_manager.getboolean('Automation', 'crossfade_enabled', True)
         self.mixer.crossfade_duration = self.config_manager.getfloat('Automation', 'crossfade_duration', 2.0)
+        self.mixer.level_switch_enabled = self.config_manager.getboolean('Automation', 'level_switch_enabled', False)
+        self.mixer.level_threshold_db = self.config_manager.getfloat('Automation', 'level_threshold_db', -30.0)
+        self.mixer.level_hysteresis_db = self.config_manager.getfloat('Automation', 'level_hysteresis_db', 3.0)
+        self.mixer.level_hold_time = self.config_manager.getfloat('Automation', 'level_hold_time', 3.0)
 
         # Update UI
         self._update_mixer_ui()
@@ -1199,6 +1247,18 @@ class MainFrame(wx.Frame):
             self.statusbar.Show()
         else:
             self.statusbar.Hide()
+        self.Layout()
+
+    def _on_toggle_level_meter(self, event):
+        """Toggle level meter gauge visibility"""
+        show = self.level_meter_item.IsChecked()
+        if show:
+            self.active_level_gauge.Show()
+        else:
+            self.active_level_gauge.Hide()
+            self.active_level_gauge.SetValue(0)
+        self.config_manager.set('UI', 'show_level_meter', show)
+        self.config_manager.save()
         self.Layout()
 
     def _on_toggle_theme(self, event):
@@ -1517,6 +1577,10 @@ class MainFrame(wx.Frame):
         self.mixer.auto_switch_interval = self.config_manager.getint('Automation', 'switch_interval', 10)
         self.mixer.crossfade_enabled = self.config_manager.getboolean('Automation', 'crossfade_enabled', True)
         self.mixer.crossfade_duration = self.config_manager.getfloat('Automation', 'crossfade_duration', 2.0)
+        self.mixer.level_switch_enabled = self.config_manager.getboolean('Automation', 'level_switch_enabled', False)
+        self.mixer.level_threshold_db = self.config_manager.getfloat('Automation', 'level_threshold_db', -30.0)
+        self.mixer.level_hysteresis_db = self.config_manager.getfloat('Automation', 'level_hysteresis_db', 3.0)
+        self.mixer.level_hold_time = self.config_manager.getfloat('Automation', 'level_hold_time', 3.0)
 
     def apply_recorder_settings(self):
         """Apply recorder settings from config at runtime"""

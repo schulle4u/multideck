@@ -64,6 +64,13 @@ class Mixer:
         self.crossfade_enabled = True
         self.crossfade_duration = 2.0  # seconds
 
+        # Level-based switching settings
+        self.level_switch_enabled = False
+        self.level_threshold_db = -30.0
+        self.level_hysteresis_db = 3.0
+        self.level_hold_time = 3.0
+        self._level_hold_until = 0.0  # Timestamp until level-switches are blocked
+
         # Crossfade state
         self._crossfade_active = False
         self._crossfade_from_deck = 0
@@ -302,6 +309,7 @@ class Mixer:
                 chunk = deck.stream_handler.get_audio_data(frames)
                 if chunk is None:
                     # No data available, return silence
+                    self._decay_deck_rms(deck)
                     return self.audio_engine.create_silence(frames)
 
                 # Apply volume and balance
@@ -312,16 +320,19 @@ class Mixer:
                 if deck.effects:
                     chunk = deck.effects.process(chunk)
 
+                self._update_deck_rms(deck, chunk)
                 return chunk
 
             # Check if audio is cached (do NOT load in audio callback to prevent underflows)
             if deck.deck_id not in self._loaded_audio_cache:
                 # Audio not preloaded - return silence to prevent underflow
                 # Audio should be loaded via ensure_deck_loaded() before playback
+                self._decay_deck_rms(deck)
                 return self.audio_engine.create_silence(frames)
 
             audio_data = self._loaded_audio_cache.get(deck.deck_id)
             if audio_data is None:
+                self._decay_deck_rms(deck)
                 return None
 
             # Get audio chunk at current position
@@ -338,6 +349,7 @@ class Mixer:
                     deck.stop()
                     if deck.on_playback_end:
                         deck.on_playback_end(deck.deck_id)
+                    self._decay_deck_rms(deck)
                     return None
 
             # Extract chunk
@@ -367,11 +379,33 @@ class Mixer:
             if deck.effects:
                 chunk = deck.effects.process(chunk)
 
+            self._update_deck_rms(deck, chunk)
             return chunk
 
         except Exception as e:
             logger.error(f"Error getting deck audio: {e}")
             return None
+
+    # --- Level metering ---
+
+    @staticmethod
+    def _update_deck_rms(deck: Deck, audio_data: np.ndarray):
+        """Update RMS level on deck from processed audio data."""
+        rms = np.sqrt(np.mean(audio_data ** 2))
+        deck.rms_level = 0.3 * rms + 0.7 * deck.rms_level
+        if deck.rms_level > 1e-6:
+            deck.rms_level_db = max(-60.0, 20 * np.log10(deck.rms_level))
+        else:
+            deck.rms_level_db = -60.0
+
+    @staticmethod
+    def _decay_deck_rms(deck: Deck):
+        """Decay RMS level for decks not producing audio."""
+        deck.rms_level *= 0.8
+        if deck.rms_level > 1e-6:
+            deck.rms_level_db = max(-60.0, 20 * np.log10(deck.rms_level))
+        else:
+            deck.rms_level_db = -60.0
 
     # --- Per-deck recording ---
 
@@ -495,19 +529,22 @@ class Mixer:
         """
         Generate and feed audio for decks that are playing but not part of the
         current audible output (e.g. non-active decks in solo mode).
-        Only runs for decks that have an active recorder.
+        Also generates audio for level metering when level-based switching is active.
 
         Args:
             frames: Number of frames to generate
             exclude_deck_ids: Set of deck IDs already handled
         """
+        need_levels = self.level_switch_enabled and self.mode == MODE_AUTOMATIC
         for deck in self.decks:
             if deck.deck_id in exclude_deck_ids:
                 continue
-            if deck.is_playing and deck.deck_id in self.deck_recorders:
+            if deck.is_playing and (deck.deck_id in self.deck_recorders or need_levels):
                 audio = self._get_deck_audio(deck, frames)
                 if audio is not None:
                     self._feed_deck_recorder(deck.deck_id, audio)
+            elif not deck.is_playing:
+                self._decay_deck_rms(deck)
 
     def set_mode(self, mode: str):
         """
@@ -772,6 +809,45 @@ class Mixer:
         """Check if any deck is currently playing"""
         return any(deck.is_playing for deck in self.decks)
 
+    def _check_level_switch(self) -> Optional[int]:
+        """
+        Check if a non-active deck exceeds the level threshold while the
+        active deck is below it.
+
+        Returns:
+            Target deck index, or None if no switch should happen.
+        """
+        # Hold time not elapsed yet
+        if time.time() < self._level_hold_until:
+            return None
+
+        # Don't switch during crossfade
+        if self._crossfade_active:
+            return None
+
+        # Check active deck level
+        if 0 <= self.active_deck_index < len(self.decks):
+            active_deck = self.decks[self.active_deck_index]
+            if active_deck.rms_level_db >= self.level_threshold_db:
+                # Active deck is loud enough, no switch needed
+                return None
+
+        # Find the loudest non-active deck that exceeds threshold + hysteresis
+        trigger_level = self.level_threshold_db + self.level_hysteresis_db
+        best_index = None
+        best_db = -60.0
+
+        loaded_indices = self._get_loaded_deck_indices()
+        for idx in loaded_indices:
+            if idx == self.active_deck_index:
+                continue
+            deck = self.decks[idx]
+            if deck.is_playing and deck.rms_level_db > trigger_level and deck.rms_level_db > best_db:
+                best_db = deck.rms_level_db
+                best_index = idx
+
+        return best_index
+
     def _start_automatic_switching(self):
         """Start automatic deck switching"""
         if self._auto_thread is None or not self._auto_thread.is_alive():
@@ -803,12 +879,25 @@ class Mixer:
 
             # Wait for the interval (check periodically to allow stopping)
             elapsed = 0.0
+            level_triggered = False
             while elapsed < wait_time and not self._auto_stop_event.is_set():
                 sleep_chunk = min(0.5, wait_time - elapsed)
                 time.sleep(sleep_chunk)
                 elapsed += sleep_chunk
 
-            if not self._auto_stop_event.is_set():
+                # Check for level-based switching during wait
+                if self.level_switch_enabled:
+                    target = self._check_level_switch()
+                    if target is not None:
+                        if self.crossfade_enabled and not self._crossfade_active:
+                            self._start_crossfade(self.active_deck_index, target)
+                        else:
+                            self.set_active_deck(target)
+                        self._level_hold_until = time.time() + self.level_hold_time
+                        level_triggered = True
+                        break
+
+            if not self._auto_stop_event.is_set() and not level_triggered:
                 self.next_deck()  # Will use crossfade automatically in automatic mode
 
     def to_dict(self) -> dict:
@@ -819,6 +908,10 @@ class Mixer:
             'auto_switch_interval': self.auto_switch_interval,
             'crossfade_enabled': self.crossfade_enabled,
             'crossfade_duration': self.crossfade_duration,
+            'level_switch_enabled': self.level_switch_enabled,
+            'level_threshold_db': self.level_threshold_db,
+            'level_hysteresis_db': self.level_hysteresis_db,
+            'level_hold_time': self.level_hold_time,
         }
 
     def get_master_effects_dict(self) -> dict:
@@ -836,6 +929,10 @@ class Mixer:
         self.auto_switch_interval = int(data.get('auto_switch_interval', 10))
         self.crossfade_enabled = bool(data.get('crossfade_enabled', True))
         self.crossfade_duration = float(data.get('crossfade_duration', 2.0))
+        self.level_switch_enabled = bool(data.get('level_switch_enabled', False))
+        self.level_threshold_db = float(data.get('level_threshold_db', -30.0))
+        self.level_hysteresis_db = float(data.get('level_hysteresis_db', 3.0))
+        self.level_hold_time = float(data.get('level_hold_time', 3.0))
 
     def cleanup(self):
         """Cleanup resources"""

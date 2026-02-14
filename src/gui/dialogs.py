@@ -105,10 +105,12 @@ class OptionsDialog(wx.Dialog):
             ctrl.Bind(wx.EVT_CHOICE, self._on_control_changed)
 
         for ctrl in (self.interval_spin, self.crossfade_spin,
+                     self.threshold_spin, self.hysteresis_spin, self.hold_time_spin,
                      self.preroll_spin, self.wait_spin):
             ctrl.Bind(wx.EVT_SPINCTRL, self._on_control_changed)
 
         self.crossfade_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
+        self.level_switch_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
         self.auto_reconnect_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
         self.output_dir_text.Bind(wx.EVT_TEXT, self._on_control_changed)
 
@@ -303,6 +305,62 @@ class OptionsDialog(wx.Dialog):
 
         sizer.Add(duration_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
+        # Separator
+        sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.ALL, 10)
+
+        # Level-based switching header
+        level_header = wx.StaticText(panel, label=_("Level-Based Switching"))
+        header_font = level_header.GetFont()
+        header_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        level_header.SetFont(header_font)
+        sizer.Add(level_header, 0, wx.ALL, 5)
+
+        # Enable level-based switching
+        self.level_switch_check = wx.CheckBox(panel, label=_("Enable level-based switching"))
+        self.level_switch_check.SetName(_("Enable level-based switching"))
+        level_switch_enabled = self.config_manager.getboolean('Automation', 'level_switch_enabled', False)
+        self.level_switch_check.SetValue(level_switch_enabled)
+        sizer.Add(self.level_switch_check, 0, wx.ALL, 10)
+
+        # Threshold
+        threshold_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        threshold_label = wx.StaticText(panel, label=_("Threshold (dB)") + ":")
+        threshold_sizer.Add(threshold_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        current_threshold = self.config_manager.getint('Automation', 'level_threshold_db', -30)
+        self.threshold_spin = wx.SpinCtrl(panel, value=str(current_threshold),
+                                          min=-60, max=0, initial=current_threshold)
+        self.threshold_spin.SetName(_("Threshold (dB)"))
+        threshold_sizer.Add(self.threshold_spin, 1, wx.EXPAND | wx.ALL, 5)
+
+        sizer.Add(threshold_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Hysteresis
+        hysteresis_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        hysteresis_label = wx.StaticText(panel, label=_("Hysteresis (dB)") + ":")
+        hysteresis_sizer.Add(hysteresis_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        current_hysteresis = self.config_manager.getint('Automation', 'level_hysteresis_db', 3)
+        self.hysteresis_spin = wx.SpinCtrl(panel, value=str(current_hysteresis),
+                                           min=0, max=20, initial=current_hysteresis)
+        self.hysteresis_spin.SetName(_("Hysteresis (dB)"))
+        hysteresis_sizer.Add(self.hysteresis_spin, 1, wx.EXPAND | wx.ALL, 5)
+
+        sizer.Add(hysteresis_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Hold time
+        hold_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        hold_label = wx.StaticText(panel, label=_("Hold Time (seconds)") + ":")
+        hold_sizer.Add(hold_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        current_hold = self.config_manager.getint('Automation', 'level_hold_time', 3)
+        self.hold_time_spin = wx.SpinCtrl(panel, value=str(current_hold),
+                                          min=1, max=30, initial=current_hold)
+        self.hold_time_spin.SetName(_("Hold Time (seconds)"))
+        hold_sizer.Add(self.hold_time_spin, 1, wx.EXPAND | wx.ALL, 5)
+
+        sizer.Add(hold_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
         panel.SetSizer(sizer)
         return panel
 
@@ -479,6 +537,10 @@ class OptionsDialog(wx.Dialog):
                 self.interval_spin.GetValue(),
                 self.crossfade_check.GetValue(),
                 self.crossfade_spin.GetValue(),
+                self.level_switch_check.GetValue(),
+                self.threshold_spin.GetValue(),
+                self.hysteresis_spin.GetValue(),
+                self.hold_time_spin.GetValue(),
             ),
             'recorder': (
                 self.format_choice.GetSelection(),
@@ -512,6 +574,10 @@ class OptionsDialog(wx.Dialog):
                 self.interval_spin.GetValue(),
                 self.crossfade_check.GetValue(),
                 self.crossfade_spin.GetValue(),
+                self.level_switch_check.GetValue(),
+                self.threshold_spin.GetValue(),
+                self.hysteresis_spin.GetValue(),
+                self.hold_time_spin.GetValue(),
             )
         elif tab_name == 'recorder':
             return (
@@ -605,6 +671,10 @@ class OptionsDialog(wx.Dialog):
         self.config_manager.set('Automation', 'crossfade_enabled', self.crossfade_check.GetValue())
         # Convert tenths back to seconds (e.g., 20 -> 2.0s)
         self.config_manager.set('Automation', 'crossfade_duration', self.crossfade_spin.GetValue() / 10.0)
+        self.config_manager.set('Automation', 'level_switch_enabled', self.level_switch_check.GetValue())
+        self.config_manager.set('Automation', 'level_threshold_db', self.threshold_spin.GetValue())
+        self.config_manager.set('Automation', 'level_hysteresis_db', self.hysteresis_spin.GetValue())
+        self.config_manager.set('Automation', 'level_hold_time', self.hold_time_spin.GetValue())
 
     def _save_recorder(self):
         """Save recorder settings to config"""

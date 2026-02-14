@@ -232,6 +232,11 @@ class ThemeManager:
                 widget.SetBackgroundColour(colors['input_bg'])
                 widget.SetForegroundColour(colors['input_fg'])
 
+            # Gauge
+            elif isinstance(widget, wx.Gauge):
+                if self._current_theme == 'dark':
+                    widget.SetBackgroundColour(colors['bg_alt'])
+
             # Sliders - only set if not causing issues
             elif isinstance(widget, wx.Slider):
                 # Uncomment to skip slider theming on Windows to preserve accessibility

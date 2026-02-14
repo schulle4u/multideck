@@ -62,6 +62,10 @@ class Deck:
         self.is_playing = False
         self.is_paused = False
 
+        # Level metering (written by audio thread, read by GUI)
+        self.rms_level = 0.0      # Linear RMS 0.0-1.0
+        self.rms_level_db = -60.0  # RMS in dB
+
         # Threading - use RLock to allow recursive locking (e.g., unload() calling stop())
         self._lock = threading.RLock()
         self._play_thread: Optional[threading.Thread] = None
