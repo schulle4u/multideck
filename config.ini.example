@@ -12,9 +12,14 @@ sample_rate = 48000
 switch_interval = 10
 crossfade_duration = 2.0
 crossfade_enabled = True
+level_switch_enabled = False
+level_threshold_db = -30
+level_hysteresis_db = 3
+level_hold_time = 3
 
 [UI]
 show_statusbar = true
+show_level_meter = true
 window_width = 1936
 window_height = 1048
 window_x = 
