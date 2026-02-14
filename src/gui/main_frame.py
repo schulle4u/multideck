@@ -384,20 +384,25 @@ class MainFrame(wx.Frame):
         controls_box.Add(position_box, 0, wx.EXPAND | wx.TOP, 5)
 
         # Level meter
-        level_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        level_label = wx.StaticText(controls_static_box, label=_("Level:"))
-        level_sizer.Add(level_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        level_box = wx.StaticBoxSizer(wx.HORIZONTAL, controls_static_box, _("Level"))
+        level_static_box = level_box.GetStaticBox()
 
-        self.active_level_gauge = wx.Gauge(controls_static_box, range=100, style=wx.GA_HORIZONTAL)
-        self.active_level_gauge.SetName(_("Audio Level"))
-        if not self.config_manager.getboolean('UI', 'show_level_meter', True):
-            self.active_level_gauge.Hide()
-        level_sizer.Add(self.active_level_gauge, 1, wx.EXPAND | wx.ALL, 5)
+        self.active_level_bar = wx.Panel(level_static_box, size=(-1, 20))
+        self.active_level_bar.SetMinSize((-1, 20))
+        self.active_level_bar._value = 0  # 0-100
+        self.active_level_bar.Bind(wx.EVT_PAINT, self._on_level_bar_paint)
+        level_box.Add(self.active_level_bar, 1, wx.EXPAND | wx.ALL, 5)
 
-        self.active_level_db_label = wx.StaticText(controls_static_box, label="-inf dB")
-        level_sizer.Add(self.active_level_db_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.active_level_db_label = wx.StaticText(level_static_box, label="-inf dB")
+        level_box.Add(self.active_level_db_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
-        controls_box.Add(level_sizer, 0, wx.EXPAND | wx.TOP, 5)
+        self.level_box = level_box
+        show_level = self.config_manager.getboolean('UI', 'show_level_meter', True)
+        if not show_level:
+            level_box.GetStaticBox().Hide()
+            level_box.ShowItems(False)
+
+        controls_box.Add(level_box, 0, wx.EXPAND | wx.TOP, 5)
 
         main_sizer.Add(controls_box, 2, wx.EXPAND | wx.ALL, 5)
 
@@ -872,21 +877,51 @@ class MainFrame(wx.Frame):
         self.active_position_slider.Enable(True)
 
     def _update_level_meter(self, deck):
-        """Update level meter gauge and dB label for a deck"""
-        gauge_visible = self.active_level_gauge.IsShown()
+        """Update level meter bar and dB label for a deck"""
         if deck.is_playing:
             db = deck.rms_level_db
             db_text = f"{db:.1f} dB" if db > -59.0 else "-inf dB"
             self.active_level_db_label.SetLabel(db_text)
-            if gauge_visible:
-                gauge_value = int(max(0, min(100, ((db + 60.0) / 60.0) * 100)))
-                self.active_level_gauge.SetValue(gauge_value)
-                self.active_level_gauge.SetName(_("Audio Level: {}").format(db_text))
+            new_value = int(max(0, min(100, ((db + 60.0) / 60.0) * 100)))
         else:
             self.active_level_db_label.SetLabel("-inf dB")
-            if gauge_visible:
-                self.active_level_gauge.SetValue(0)
-                self.active_level_gauge.SetName(_("Audio Level: -inf dB"))
+            new_value = 0
+
+        if self.active_level_bar._value != new_value:
+            self.active_level_bar._value = new_value
+            self.active_level_bar.Refresh(eraseBackground=False)
+
+    def _on_level_bar_paint(self, event):
+        """Paint the visual level meter bar"""
+        panel = event.GetEventObject()
+        dc = wx.BufferedPaintDC(panel)
+        w, h = panel.GetSize()
+
+        # Background
+        bg = panel.GetBackgroundColour()
+        dc.SetBackground(wx.Brush(bg))
+        dc.Clear()
+
+        # Draw border
+        dc.SetPen(wx.Pen(wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT), 1))
+        dc.SetBrush(wx.TRANSPARENT_BRUSH)
+        dc.DrawRectangle(0, 0, w, h)
+
+        # Draw filled portion
+        value = panel._value
+        if value > 0:
+            fill_w = int((value / 100.0) * (w - 2))
+            if fill_w > 0:
+                # Green for normal levels, yellow above -12dB, red above -3dB
+                if value > 95:  # roughly -3dB
+                    color = wx.Colour(220, 50, 50)
+                elif value > 80:  # roughly -12dB
+                    color = wx.Colour(220, 180, 50)
+                else:
+                    color = wx.Colour(50, 180, 50)
+                dc.SetPen(wx.TRANSPARENT_PEN)
+                dc.SetBrush(wx.Brush(color))
+                dc.DrawRectangle(1, 1, fill_w, h - 2)
 
     def _on_seek_forward(self, event):
         """Seek forward 5 seconds"""
@@ -1253,10 +1288,12 @@ class MainFrame(wx.Frame):
         """Toggle level meter gauge visibility"""
         show = self.level_meter_item.IsChecked()
         if show:
-            self.active_level_gauge.Show()
+            self.level_box.GetStaticBox().Show()
+            self.level_box.ShowItems(True)
         else:
-            self.active_level_gauge.Hide()
-            self.active_level_gauge.SetValue(0)
+            self.level_box.GetStaticBox().Hide()
+            self.level_box.ShowItems(False)
+            self.active_level_bar._value = 0
         self.config_manager.set('UI', 'show_level_meter', show)
         self.config_manager.save()
         self.Layout()

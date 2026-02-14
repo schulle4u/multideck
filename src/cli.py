@@ -101,6 +101,18 @@ class MultiDeckCLI:
             if 'crossfade_duration' in mixer_data:
                 self.mixer.crossfade_duration = float(mixer_data['crossfade_duration'])
 
+            if 'level_switch_enabled' in mixer_data:
+                self.mixer.level_switch_enabled = mixer_data['level_switch_enabled'].lower() == 'true' if isinstance(mixer_data['level_switch_enabled'], str) else bool(mixer_data['level_switch_enabled'])
+
+            if 'level_threshold_db' in mixer_data:
+                self.mixer.level_threshold_db = float(mixer_data['level_threshold_db'])
+
+            if 'level_hysteresis_db' in mixer_data:
+                self.mixer.level_hysteresis_db = float(mixer_data['level_hysteresis_db'])
+
+            if 'level_hold_time' in mixer_data:
+                self.mixer.level_hold_time = float(mixer_data['level_hold_time'])
+
             # Load deck configurations
             decks_data = project_data.get('decks', [])
             loaded_count = 0
@@ -185,6 +197,11 @@ class MultiDeckCLI:
         if self.mixer.mode == MODE_AUTOMATIC:
             print(f"Auto-switch interval: {self.mixer.auto_switch_interval}s")
             print(f"Crossfade: {'On' if self.mixer.crossfade_enabled else 'Off'} ({self.mixer.crossfade_duration}s)")
+            if self.mixer.level_switch_enabled:
+                print(f"Level-based switching: On (threshold: {self.mixer.level_threshold_db} dB, "
+                      f"hysteresis: {self.mixer.level_hysteresis_db} dB, hold: {self.mixer.level_hold_time}s)")
+            else:
+                print(f"Level-based switching: Off")
 
         print("-" * 50)
         print("Decks:")
@@ -247,6 +264,15 @@ class MultiDeckCLI:
         # Initialize mixer
         num_decks = config.get_deck_count()
         self.mixer = Mixer(self.audio_engine, num_decks=num_decks)
+
+        # Apply automation settings from config (project file may override these)
+        self.mixer.auto_switch_interval = config.getint('Automation', 'switch_interval', 10)
+        self.mixer.crossfade_enabled = config.getboolean('Automation', 'crossfade_enabled', True)
+        self.mixer.crossfade_duration = config.getfloat('Automation', 'crossfade_duration', 2.0)
+        self.mixer.level_switch_enabled = config.getboolean('Automation', 'level_switch_enabled', False)
+        self.mixer.level_threshold_db = config.getfloat('Automation', 'level_threshold_db', -30.0)
+        self.mixer.level_hysteresis_db = config.getfloat('Automation', 'level_hysteresis_db', 3.0)
+        self.mixer.level_hold_time = config.getfloat('Automation', 'level_hold_time', 3.0)
 
         # Set up deck change callback
         self.mixer.on_active_deck_change = self._on_deck_change

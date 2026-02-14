@@ -232,10 +232,9 @@ class ThemeManager:
                 widget.SetBackgroundColour(colors['input_bg'])
                 widget.SetForegroundColour(colors['input_fg'])
 
-            # Gauge
-            elif isinstance(widget, wx.Gauge):
-                if self._current_theme == 'dark':
-                    widget.SetBackgroundColour(colors['bg_alt'])
+            # Level meter bar (custom painted panel with _value attribute)
+            elif isinstance(widget, wx.Panel) and hasattr(widget, '_value'):
+                widget.SetBackgroundColour(colors['bg_alt'] if self._current_theme == 'dark' else colors['bg'])
 
             # Sliders - only set if not causing issues
             elif isinstance(widget, wx.Slider):
