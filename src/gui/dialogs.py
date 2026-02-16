@@ -21,7 +21,8 @@ class OptionsDialog(wx.Dialog):
             config_manager: ConfigManager instance
             theme_manager: ThemeManager instance (optional)
         """
-        super().__init__(parent, title=_("Options"), size=(500, 400))
+        super().__init__(parent, title=_("Options"),
+                         style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 
         self.config_manager = config_manager
         self.theme_manager = theme_manager
@@ -29,6 +30,8 @@ class OptionsDialog(wx.Dialog):
         self._applied_sections = set()  # Track which sections were applied via Apply buttons
         self._initial_device = config_manager.get('Audio', 'output_device', 'default')
         self._create_ui()
+        self.Fit()
+        self.SetMinSize(self.GetSize())
 
         # Apply theme to dialog if theme manager is available
         if self.theme_manager:
@@ -837,7 +840,12 @@ class EffectsDialog(wx.Dialog):
         self.main_frame = parent
 
         self._create_ui()
-        self.SetSize(700, 600)
+        self.Fit()
+        # ScrolledWindow tabs report small minimum height (content scrolls),
+        # so ensure a reasonable default size while respecting GTK minimums.
+        size = self.GetSize()
+        self.SetSize(max(size.width, 700), max(size.height, 600))
+        self.SetMinSize(size)
         self.Center()
 
         # Apply theme
