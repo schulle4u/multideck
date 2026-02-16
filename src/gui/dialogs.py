@@ -945,7 +945,9 @@ class EffectsDialog(wx.Dialog):
     # --- Reverb ---
 
     def _create_reverb_section(self, parent, chain, name):
-        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Reverb"))
+        section_panel = wx.Panel(parent)
+        section_sizer = wx.BoxSizer(wx.VERTICAL)
+        box = wx.StaticBoxSizer(wx.VERTICAL, section_panel, _("Reverb"))
         sb = box.GetStaticBox()
         sliders = []
 
@@ -995,12 +997,16 @@ class EffectsDialog(wx.Dialog):
             chain.enable_effect('reverb', e.IsChecked()),
             self._set_sliders_enabled(s, e.IsChecked())))
 
-        return box
+        section_sizer.Add(box, 1, wx.EXPAND)
+        section_panel.SetSizer(section_sizer)
+        return section_panel
 
     # --- Delay ---
 
     def _create_delay_section(self, parent, chain, name):
-        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Delay"))
+        section_panel = wx.Panel(parent)
+        section_sizer = wx.BoxSizer(wx.VERTICAL)
+        box = wx.StaticBoxSizer(wx.VERTICAL, section_panel, _("Delay"))
         sb = box.GetStaticBox()
         sliders = []
 
@@ -1037,12 +1043,16 @@ class EffectsDialog(wx.Dialog):
             chain.enable_effect('delay', e.IsChecked()),
             self._set_sliders_enabled(s, e.IsChecked())))
 
-        return box
+        section_sizer.Add(box, 1, wx.EXPAND)
+        section_panel.SetSizer(section_sizer)
+        return section_panel
 
     # --- EQ ---
 
     def _create_eq_section(self, parent, chain, name):
-        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Equalizer"))
+        section_panel = wx.Panel(parent)
+        section_sizer = wx.BoxSizer(wx.VERTICAL)
+        box = wx.StaticBoxSizer(wx.VERTICAL, section_panel, _("Equalizer"))
         sb = box.GetStaticBox()
         sliders = []
 
@@ -1079,12 +1089,16 @@ class EffectsDialog(wx.Dialog):
             chain.enable_effect('eq', e.IsChecked()),
             self._set_sliders_enabled(s, e.IsChecked())))
 
-        return box
+        section_sizer.Add(box, 1, wx.EXPAND)
+        section_panel.SetSizer(section_sizer)
+        return section_panel
 
     # --- Chorus ---
 
     def _create_chorus_section(self, parent, chain, name):
-        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Chorus"))
+        section_panel = wx.Panel(parent)
+        section_sizer = wx.BoxSizer(wx.VERTICAL)
+        box = wx.StaticBoxSizer(wx.VERTICAL, section_panel, _("Chorus"))
         sb = box.GetStaticBox()
         sliders = []
 
@@ -1121,12 +1135,16 @@ class EffectsDialog(wx.Dialog):
             chain.enable_effect('chorus', e.IsChecked()),
             self._set_sliders_enabled(s, e.IsChecked())))
 
-        return box
+        section_sizer.Add(box, 1, wx.EXPAND)
+        section_panel.SetSizer(section_sizer)
+        return section_panel
 
     # --- Compressor ---
 
     def _create_compressor_section(self, parent, chain, name):
-        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Compressor"))
+        section_panel = wx.Panel(parent)
+        section_sizer = wx.BoxSizer(wx.VERTICAL)
+        box = wx.StaticBoxSizer(wx.VERTICAL, section_panel, _("Compressor"))
         sb = box.GetStaticBox()
         sliders = []
 
@@ -1173,12 +1191,16 @@ class EffectsDialog(wx.Dialog):
             chain.enable_effect('compressor', e.IsChecked()),
             self._set_sliders_enabled(s, e.IsChecked())))
 
-        return box
+        section_sizer.Add(box, 1, wx.EXPAND)
+        section_panel.SetSizer(section_sizer)
+        return section_panel
 
     # --- Limiter ---
 
     def _create_limiter_section(self, parent, chain, name):
-        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Limiter"))
+        section_panel = wx.Panel(parent)
+        section_sizer = wx.BoxSizer(wx.VERTICAL)
+        box = wx.StaticBoxSizer(wx.VERTICAL, section_panel, _("Limiter"))
         sb = box.GetStaticBox()
         sliders = []
 
@@ -1209,12 +1231,16 @@ class EffectsDialog(wx.Dialog):
             chain.enable_effect('limiter', e.IsChecked()),
             self._set_sliders_enabled(s, e.IsChecked())))
 
-        return box
+        section_sizer.Add(box, 1, wx.EXPAND)
+        section_panel.SetSizer(section_sizer)
+        return section_panel
 
     # --- Gain ---
 
     def _create_gain_section(self, parent, chain, name):
-        box = wx.StaticBoxSizer(wx.VERTICAL, parent, _("Gain"))
+        section_panel = wx.Panel(parent)
+        section_sizer = wx.BoxSizer(wx.VERTICAL)
+        box = wx.StaticBoxSizer(wx.VERTICAL, section_panel, _("Gain"))
         sb = box.GetStaticBox()
         sliders = []
 
@@ -1237,7 +1263,9 @@ class EffectsDialog(wx.Dialog):
             chain.enable_effect('gain', e.IsChecked()),
             self._set_sliders_enabled(s, e.IsChecked())))
 
-        return box
+        section_sizer.Add(box, 1, wx.EXPAND)
+        section_panel.SetSizer(section_sizer)
+        return section_panel
 
     # --- Slider helper ---
 
