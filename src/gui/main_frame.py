@@ -198,7 +198,7 @@ class MainFrame(wx.Frame):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         # Operating mode
-        mode_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Operating Mode"))
+        mode_box = wx.StaticBoxSizer(wx.VERTICAL, panel, label=_("Operating Mode"))
         mode_static_box = mode_box.GetStaticBox()
 
         self.mixer_mode_radio = wx.RadioButton(mode_static_box, label=_("Mixer Mode") + "\tF3", style=wx.RB_GROUP)
@@ -218,7 +218,7 @@ class MainFrame(wx.Frame):
         sizer.Add(mode_box, 0, wx.ALL, 5)
 
         # Global playback controls
-        playback_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Global Playback"))
+        playback_box = wx.StaticBoxSizer(wx.VERTICAL, panel, label=_("Global Playback"))
         playback_static_box = playback_box.GetStaticBox()
 
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -237,7 +237,7 @@ class MainFrame(wx.Frame):
         sizer.Add(playback_box, 0, wx.ALL, 5)
 
         # Master volume
-        volume_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Master Volume"))
+        volume_box = wx.StaticBoxSizer(wx.VERTICAL, panel, label=_("Master Volume"))
         volume_static_box = volume_box.GetStaticBox()
 
         master_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -260,7 +260,7 @@ class MainFrame(wx.Frame):
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         # Left side: Deck listbox
-        list_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Deck Selection") + " (F6)")
+        list_box = wx.StaticBoxSizer(wx.VERTICAL, panel, label=_("Deck Selection") + " (F6)")
         list_static_box = list_box.GetStaticBox()
 
         self.deck_listbox = wx.ListBox(list_static_box, style=wx.LB_SINGLE)
@@ -274,7 +274,7 @@ class MainFrame(wx.Frame):
         main_sizer.Add(list_box, 1, wx.EXPAND | wx.ALL, 5)
 
         # Right side: Controls for active deck
-        controls_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Active Deck Controls"))
+        controls_box = wx.StaticBoxSizer(wx.VERTICAL, panel, label=_("Active Deck Controls"))
         controls_static_box = controls_box.GetStaticBox()
 
         # Deck name/status display
@@ -353,7 +353,7 @@ class MainFrame(wx.Frame):
         controls_box.Add(checkbox_sizer, 0)
 
         # Position/Seek slider (only for local files)
-        position_box = wx.StaticBoxSizer(wx.VERTICAL, controls_static_box, _("Position"))
+        position_box = wx.StaticBoxSizer(wx.VERTICAL, controls_static_box, label=_("Position"))
         position_static_box = position_box.GetStaticBox()
 
         # Time display
@@ -384,7 +384,7 @@ class MainFrame(wx.Frame):
         controls_box.Add(position_box, 0, wx.EXPAND | wx.TOP, 5)
 
         # Level meter
-        level_box = wx.StaticBoxSizer(wx.HORIZONTAL, controls_static_box, _("Level"))
+        level_box = wx.StaticBoxSizer(wx.HORIZONTAL, controls_static_box, label=_("Level"))
         level_static_box = level_box.GetStaticBox()
 
         self.active_level_bar = wx.Panel(level_static_box, size=(-1, 20))
