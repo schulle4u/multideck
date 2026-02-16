@@ -198,7 +198,9 @@ class MainFrame(wx.Frame):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         # Operating mode
-        mode_box = wx.StaticBoxSizer(wx.VERTICAL, panel, label=_("Operating Mode"))
+        mode_panel = wx.Panel(panel)
+        mode_panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        mode_box = wx.StaticBoxSizer(wx.VERTICAL, mode_panel, label=_("Operating Mode"))
         mode_static_box = mode_box.GetStaticBox()
 
         self.mixer_mode_radio = wx.RadioButton(mode_static_box, label=_("Mixer Mode") + "\tF3", style=wx.RB_GROUP)
@@ -215,10 +217,14 @@ class MainFrame(wx.Frame):
         mode_box.Add(self.solo_mode_radio, 0, wx.ALL, 5)
         mode_box.Add(self.auto_mode_radio, 0, wx.ALL, 5)
 
-        sizer.Add(mode_box, 0, wx.ALL, 5)
+        mode_panel_sizer.Add(mode_box, 1, wx.EXPAND)
+        mode_panel.SetSizer(mode_panel_sizer)
+        sizer.Add(mode_panel, 0, wx.ALL, 5)
 
         # Global playback controls
-        playback_box = wx.StaticBoxSizer(wx.VERTICAL, panel, label=_("Global Playback"))
+        playback_panel = wx.Panel(panel)
+        playback_panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        playback_box = wx.StaticBoxSizer(wx.VERTICAL, playback_panel, label=_("Global Playback"))
         playback_static_box = playback_box.GetStaticBox()
 
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -234,10 +240,14 @@ class MainFrame(wx.Frame):
         button_sizer.Add(self.global_stop_btn, 0, wx.ALL, 5)
 
         playback_box.Add(button_sizer, 0, wx.EXPAND)
-        sizer.Add(playback_box, 0, wx.ALL, 5)
+        playback_panel_sizer.Add(playback_box, 1, wx.EXPAND)
+        playback_panel.SetSizer(playback_panel_sizer)
+        sizer.Add(playback_panel, 0, wx.ALL, 5)
 
         # Master volume
-        volume_box = wx.StaticBoxSizer(wx.VERTICAL, panel, label=_("Master Volume"))
+        volume_panel = wx.Panel(panel)
+        volume_panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        volume_box = wx.StaticBoxSizer(wx.VERTICAL, volume_panel, label=_("Master Volume"))
         volume_static_box = volume_box.GetStaticBox()
 
         master_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -249,7 +259,9 @@ class MainFrame(wx.Frame):
         master_sizer.Add(self.master_volume_slider, 1, wx.EXPAND | wx.ALL, 5)
 
         volume_box.Add(master_sizer, 0, wx.EXPAND)
-        sizer.Add(volume_box, 1, wx.ALL | wx.EXPAND, 5)
+        volume_panel_sizer.Add(volume_box, 1, wx.EXPAND)
+        volume_panel.SetSizer(volume_panel_sizer)
+        sizer.Add(volume_panel, 1, wx.ALL | wx.EXPAND, 5)
 
         panel.SetSizer(sizer)
         return panel
@@ -260,7 +272,9 @@ class MainFrame(wx.Frame):
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         # Left side: Deck listbox
-        list_box = wx.StaticBoxSizer(wx.VERTICAL, panel, label=_("Deck Selection") + " (F6)")
+        list_panel = wx.Panel(panel)
+        list_panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        list_box = wx.StaticBoxSizer(wx.VERTICAL, list_panel, label=_("Deck Selection") + " (F6)")
         list_static_box = list_box.GetStaticBox()
 
         self.deck_listbox = wx.ListBox(list_static_box, style=wx.LB_SINGLE)
@@ -271,10 +285,14 @@ class MainFrame(wx.Frame):
         self.deck_listbox.Bind(wx.EVT_CHAR_HOOK, self._on_deck_listbox_key)
         list_box.Add(self.deck_listbox, 1, wx.EXPAND | wx.ALL, 5)
 
-        main_sizer.Add(list_box, 1, wx.EXPAND | wx.ALL, 5)
+        list_panel_sizer.Add(list_box, 1, wx.EXPAND)
+        list_panel.SetSizer(list_panel_sizer)
+        main_sizer.Add(list_panel, 1, wx.EXPAND | wx.ALL, 5)
 
         # Right side: Controls for active deck
-        controls_box = wx.StaticBoxSizer(wx.VERTICAL, panel, label=_("Active Deck Controls"))
+        controls_panel = wx.Panel(panel)
+        controls_panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        controls_box = wx.StaticBoxSizer(wx.VERTICAL, controls_panel, label=_("Active Deck Controls"))
         controls_static_box = controls_box.GetStaticBox()
 
         # Deck name/status display
@@ -353,7 +371,9 @@ class MainFrame(wx.Frame):
         controls_box.Add(checkbox_sizer, 0)
 
         # Position/Seek slider (only for local files)
-        position_box = wx.StaticBoxSizer(wx.VERTICAL, controls_static_box, label=_("Position"))
+        position_panel = wx.Panel(controls_static_box)
+        position_panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        position_box = wx.StaticBoxSizer(wx.VERTICAL, position_panel, label=_("Position"))
         position_static_box = position_box.GetStaticBox()
 
         # Time display
@@ -381,10 +401,14 @@ class MainFrame(wx.Frame):
         self.active_position_slider.Bind(wx.EVT_LEFT_UP, self._on_position_slider_up)
         position_box.Add(self.active_position_slider, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
-        controls_box.Add(position_box, 0, wx.EXPAND | wx.TOP, 5)
+        position_panel_sizer.Add(position_box, 1, wx.EXPAND)
+        position_panel.SetSizer(position_panel_sizer)
+        controls_box.Add(position_panel, 0, wx.EXPAND | wx.TOP, 5)
 
         # Level meter
-        level_box = wx.StaticBoxSizer(wx.HORIZONTAL, controls_static_box, label=_("Level"))
+        level_panel = wx.Panel(controls_static_box)
+        level_panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        level_box = wx.StaticBoxSizer(wx.HORIZONTAL, level_panel, label=_("Level"))
         level_static_box = level_box.GetStaticBox()
 
         self.active_level_bar = wx.Panel(level_static_box, size=(-1, 20))
@@ -397,14 +421,18 @@ class MainFrame(wx.Frame):
         level_box.Add(self.active_level_db_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         self.level_box = level_box
+        level_panel_sizer.Add(level_box, 1, wx.EXPAND)
+        level_panel.SetSizer(level_panel_sizer)
+        self.level_panel = level_panel
         show_level = self.config_manager.getboolean('UI', 'show_level_meter', True)
         if not show_level:
-            level_box.GetStaticBox().Hide()
-            level_box.ShowItems(False)
+            level_panel.Hide()
 
-        controls_box.Add(level_box, 0, wx.EXPAND | wx.TOP, 5)
+        controls_box.Add(level_panel, 0, wx.EXPAND | wx.TOP, 5)
 
-        main_sizer.Add(controls_box, 2, wx.EXPAND | wx.ALL, 5)
+        controls_panel_sizer.Add(controls_box, 1, wx.EXPAND)
+        controls_panel.SetSizer(controls_panel_sizer)
+        main_sizer.Add(controls_panel, 2, wx.EXPAND | wx.ALL, 5)
 
         panel.SetSizer(main_sizer)
         return panel
@@ -1288,11 +1316,9 @@ class MainFrame(wx.Frame):
         """Toggle level meter gauge visibility"""
         show = self.level_meter_item.IsChecked()
         if show:
-            self.level_box.GetStaticBox().Show()
-            self.level_box.ShowItems(True)
+            self.level_panel.Show()
         else:
-            self.level_box.GetStaticBox().Hide()
-            self.level_box.ShowItems(False)
+            self.level_panel.Hide()
             self.active_level_bar._value = 0
         self.config_manager.set('UI', 'show_level_meter', show)
         self.config_manager.save()
