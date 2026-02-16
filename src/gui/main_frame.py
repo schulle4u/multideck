@@ -273,6 +273,8 @@ class MainFrame(wx.Frame):
 
         # Left side: Deck listbox
         list_panel = wx.Panel(panel)
+        list_panel.SetName(_("Deck Selection"))
+        list_panel.SetLabel(_("Deck Selection"))
         list_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         list_box = wx.StaticBoxSizer(wx.VERTICAL, list_panel, label=_("Deck Selection") + " (F6)")
         list_static_box = list_box.GetStaticBox()
