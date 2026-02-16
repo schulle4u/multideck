@@ -279,6 +279,7 @@ class MainFrame(wx.Frame):
 
         self.deck_listbox = wx.ListBox(list_static_box, style=wx.LB_SINGLE)
         self.deck_listbox.SetName(_("Deck Selection"))
+        self.deck_listbox.SetLabel(_("Deck Selection"))
         self.deck_listbox.Bind(wx.EVT_LISTBOX, self._on_deck_listbox_select)
         self.deck_listbox.Bind(wx.EVT_CONTEXT_MENU, self._on_deck_context_menu)
         # Use CHAR_HOOK to intercept Enter before native ListBox processing
@@ -372,6 +373,8 @@ class MainFrame(wx.Frame):
 
         # Position/Seek slider (only for local files)
         position_panel = wx.Panel(controls_static_box)
+        position_panel.SetLabel(_("Position"))
+        position_panel.SetName(_("Position"))
         position_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         position_box = wx.StaticBoxSizer(wx.VERTICAL, position_panel, label=_("Position"))
         position_static_box = position_box.GetStaticBox()
@@ -407,6 +410,8 @@ class MainFrame(wx.Frame):
 
         # Level meter
         level_panel = wx.Panel(controls_static_box)
+        level_panel.SetLabel(_("Level"))
+        level_panel.SetName(_("Level"))
         level_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         level_box = wx.StaticBoxSizer(wx.HORIZONTAL, level_panel, label=_("Level"))
         level_static_box = level_box.GetStaticBox()
