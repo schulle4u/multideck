@@ -936,6 +936,7 @@ class EffectsDialog(wx.Dialog):
         sizer.Add(self._create_gain_section(panel, effect_chain, chain_name),
                   0, wx.EXPAND | wx.ALL, 5)
         panel.SetSizer(sizer)
+        panel.FitInside()
         return panel
 
     def _set_chain_enabled(self, effect_chain, enabled):
