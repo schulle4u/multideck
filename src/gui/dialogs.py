@@ -67,8 +67,10 @@ class OptionsDialog(wx.Dialog):
 
         page_names = [_("General"), _("Audio"), _("Automation"),
                       _("Recorder"), _("Streaming")]
+        wx.StaticText(panel, label=_("Cate&gories"))
         self.category_list = wx.ListBox(panel, choices=page_names)
         self.category_list.SetName(_("Categories"))
+        self.category_list.SetLabel(_("Categories"))
         self.category_list.SetSelection(0)
         book_sizer.Add(self.category_list, 0, wx.EXPAND | wx.ALL, 5)
 
@@ -943,8 +945,10 @@ class EffectsDialog(wx.Dialog):
             if deck.effects:
                 page_names.append(deck.name)
 
+        wx.StaticText(panel, label=_("&Effect Chains"))
         self.category_list = wx.ListBox(panel, choices=page_names)
         self.category_list.SetName(_("Effect Chains"))
+        self.category_list.SetLabel(_("Effect Chains"))
         self.category_list.SetSelection(0)
         book_sizer.Add(self.category_list, 0, wx.EXPAND | wx.ALL, 5)
 
