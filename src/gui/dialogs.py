@@ -37,7 +37,7 @@ class OptionsDialog(wx.Dialog):
         if self.theme_manager:
             self.theme_manager.apply_theme(self)
 
-    # Tab name constants matching notebook page order
+    # Tab name constants matching listbook page order
     TAB_NAMES = ['general', 'audio', 'automation', 'recorder', 'streaming']
 
     def _create_ui(self):
@@ -45,30 +45,30 @@ class OptionsDialog(wx.Dialog):
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # Notebook for different option categories
-        self.notebook = wx.Notebook(panel)
+        # Listbook for different option categories
+        self.listbook = wx.Listbook(panel)
 
         # General tab
-        general_panel = self._create_general_tab(self.notebook)
-        self.notebook.AddPage(general_panel, _("General"))
+        general_panel = self._create_general_tab(self.listbook)
+        self.listbook.AddPage(general_panel, _("General"))
 
         # Audio tab
-        audio_panel = self._create_audio_tab(self.notebook)
-        self.notebook.AddPage(audio_panel, _("Audio"))
+        audio_panel = self._create_audio_tab(self.listbook)
+        self.listbook.AddPage(audio_panel, _("Audio"))
 
         # Automation tab
-        automation_panel = self._create_automation_tab(self.notebook)
-        self.notebook.AddPage(automation_panel, _("Automation"))
+        automation_panel = self._create_automation_tab(self.listbook)
+        self.listbook.AddPage(automation_panel, _("Automation"))
 
         # Recorder tab
-        recorder_panel = self._create_recorder_tab(self.notebook)
-        self.notebook.AddPage(recorder_panel, _("Recorder"))
+        recorder_panel = self._create_recorder_tab(self.listbook)
+        self.listbook.AddPage(recorder_panel, _("Recorder"))
 
         # Streaming tab
-        streaming_panel = self._create_streaming_tab(self.notebook)
-        self.notebook.AddPage(streaming_panel, _("Streaming"))
+        streaming_panel = self._create_streaming_tab(self.listbook)
+        self.listbook.AddPage(streaming_panel, _("Streaming"))
 
-        main_sizer.Add(self.notebook, 1, wx.EXPAND | wx.ALL, 10)
+        main_sizer.Add(self.listbook, 1, wx.EXPAND | wx.ALL, 10)
 
         # Buttons: OK, Cancel, Apply
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -96,8 +96,8 @@ class OptionsDialog(wx.Dialog):
         ok_button.Bind(wx.EVT_BUTTON, self._on_ok)
         self.apply_button.Bind(wx.EVT_BUTTON, self._on_apply)
 
-        # Bind notebook page change to update Apply button state
-        self.notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._on_page_changed)
+        # Bind listbook page change to update Apply button state
+        self.listbook.Bind(wx.EVT_LISTBOOK_PAGE_CHANGED, self._on_page_changed)
 
         # Bind change events on all controls to update Apply button state
         # Note: theme_choice is excluded here because it already has a dedicated
@@ -598,8 +598,8 @@ class OptionsDialog(wx.Dialog):
         return ()
 
     def _get_active_tab_name(self):
-        """Get the name of the currently active notebook tab"""
-        idx = self.notebook.GetSelection()
+        """Get the name of the currently active listbook tab"""
+        idx = self.listbook.GetSelection()
         if 0 <= idx < len(self.TAB_NAMES):
             return self.TAB_NAMES[idx]
         return ''
@@ -614,7 +614,7 @@ class OptionsDialog(wx.Dialog):
         self.apply_button.Enable(self._has_tab_changes(tab_name))
 
     def _on_page_changed(self, event):
-        """Handle notebook tab change - update Apply button state"""
+        """Handle listbook tab change - update Apply button state"""
         event.Skip()
         # Use CallAfter because the page selection may not be updated yet
         wx.CallAfter(self._update_apply_state)
@@ -869,25 +869,25 @@ class EffectsDialog(wx.Dialog):
         self.Destroy()
 
     def _create_ui(self):
-        """Create the dialog UI with notebook tabs."""
+        """Create the dialog UI with listbook tabs."""
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.notebook = wx.Notebook(panel)
+        self.treebook = wx.Treebook(panel)
 
         # Master effects tab
         master_panel = self._create_effect_panel(
-            self.notebook, self.mixer.master_effects, _("Master"))
-        self.notebook.AddPage(master_panel, _("Master Effects"))
+            self.treebook, self.mixer.master_effects, _("Master"))
+        self.treebook.AddPage(master_panel, _("Master Effects"))
 
         # Per-deck tabs (only for decks that exist in the mixer)
         for deck in self.mixer.decks:
             if deck.effects:
                 deck_panel = self._create_effect_panel(
-                    self.notebook, deck.effects, deck.name)
-                self.notebook.AddPage(deck_panel, deck.name)
+                    self.treebook, deck.effects, deck.name)
+                self.treebook.AddPage(deck_panel, deck.name)
 
-        main_sizer.Add(self.notebook, 1, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(self.treebook, 1, wx.EXPAND | wx.ALL, 5)
 
         # Close button
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
