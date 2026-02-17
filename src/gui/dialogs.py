@@ -2,19 +2,11 @@
 Dialogs - Various dialog windows for MultiDeck Audio Player
 """
 
-import sys
-
 import wx
 import sounddevice as sd
 from config.defaults import VALID_DECK_COUNTS
 from utils.i18n import _, LANGUAGE_NAMES
 from audio.recorder import FFMPEG_AVAILABLE
-
-# Platform-based book widget selection:
-# wx.Listbook/wx.Treebook offer first-letter navigation and hierarchical views
-# on Windows (NVDA/JAWS), but their internal list/tree controls are not properly
-# exposed via AT-SPI on Linux (Orca). Fall back to wx.Notebook there.
-_USE_LISTBOOK = sys.platform == 'win32'
 
 
 class OptionsDialog(wx.Dialog):
@@ -45,6 +37,9 @@ class OptionsDialog(wx.Dialog):
         if self.theme_manager:
             self.theme_manager.apply_theme(self)
 
+        # Focus category list on dialog open
+        self.category_list.SetFocus()
+
     # Tab name constants matching book page order
     TAB_NAMES = ['general', 'audio', 'automation', 'recorder', 'streaming']
 
@@ -53,35 +48,55 @@ class OptionsDialog(wx.Dialog):
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # Book widget for option categories
-        if _USE_LISTBOOK:
-            self.book = wx.Listbook(panel)
-            self.book.GetListView().SetName(_("Categories"))
-            self.book.GetListView().SetLabel(_("Categories"))
-        else:
-            self.book = wx.Notebook(panel)
+        # ListBox (left) + page container (right) for option categories.
+        # Uses manual Show/Hide instead of wx.Simplebook/Listbook/Notebook
+        # to avoid focus-stealing and double screen reader announcements.
+        book_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        # General tab
-        general_panel = self._create_general_tab(self.book)
-        self.book.AddPage(general_panel, _("General"))
+        page_names = [_("General"), _("Audio"), _("Automation"),
+                      _("Recorder"), _("Streaming")]
+        self.category_list = wx.ListBox(panel, choices=page_names)
+        self.category_list.SetName(_("Categories"))
+        self.category_list.SetSelection(0)
+        book_sizer.Add(self.category_list, 0, wx.EXPAND | wx.ALL, 5)
 
-        # Audio tab
-        audio_panel = self._create_audio_tab(self.book)
-        self.book.AddPage(audio_panel, _("Audio"))
+        self.page_container = wx.Panel(panel)
+        self.page_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.pages = []
 
-        # Automation tab
-        automation_panel = self._create_automation_tab(self.book)
-        self.book.AddPage(automation_panel, _("Automation"))
+        # General page
+        general_panel = self._create_general_tab(self.page_container)
+        self.page_sizer.Add(general_panel, 1, wx.EXPAND)
+        self.pages.append(general_panel)
 
-        # Recorder tab
-        recorder_panel = self._create_recorder_tab(self.book)
-        self.book.AddPage(recorder_panel, _("Recorder"))
+        # Audio page
+        audio_panel = self._create_audio_tab(self.page_container)
+        self.page_sizer.Add(audio_panel, 1, wx.EXPAND)
+        self.pages.append(audio_panel)
 
-        # Streaming tab
-        streaming_panel = self._create_streaming_tab(self.book)
-        self.book.AddPage(streaming_panel, _("Streaming"))
+        # Automation page
+        automation_panel = self._create_automation_tab(self.page_container)
+        self.page_sizer.Add(automation_panel, 1, wx.EXPAND)
+        self.pages.append(automation_panel)
 
-        main_sizer.Add(self.book, 1, wx.EXPAND | wx.ALL, 10)
+        # Recorder page
+        recorder_panel = self._create_recorder_tab(self.page_container)
+        self.page_sizer.Add(recorder_panel, 1, wx.EXPAND)
+        self.pages.append(recorder_panel)
+
+        # Streaming page
+        streaming_panel = self._create_streaming_tab(self.page_container)
+        self.page_sizer.Add(streaming_panel, 1, wx.EXPAND)
+        self.pages.append(streaming_panel)
+
+        self.page_container.SetSizer(self.page_sizer)
+        # Show only the first page
+        for i, page in enumerate(self.pages):
+            page.Show(i == 0)
+
+        book_sizer.Add(self.page_container, 1, wx.EXPAND | wx.ALL, 5)
+
+        main_sizer.Add(book_sizer, 1, wx.EXPAND | wx.ALL, 10)
 
         # Buttons: OK, Cancel, Apply
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -109,11 +124,8 @@ class OptionsDialog(wx.Dialog):
         ok_button.Bind(wx.EVT_BUTTON, self._on_ok)
         self.apply_button.Bind(wx.EVT_BUTTON, self._on_apply)
 
-        # Bind page change to update Apply button state
-        if _USE_LISTBOOK:
-            self.book.Bind(wx.EVT_LISTBOOK_PAGE_CHANGED, self._on_page_changed)
-        else:
-            self.book.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._on_page_changed)
+        # Bind category selection to switch pages and update Apply button
+        self.category_list.Bind(wx.EVT_LISTBOX, self._on_page_changed)
 
         # Bind change events on all controls to update Apply button state
         # Note: theme_choice is excluded here because it already has a dedicated
@@ -615,7 +627,7 @@ class OptionsDialog(wx.Dialog):
 
     def _get_active_tab_name(self):
         """Get the name of the currently active tab"""
-        idx = self.book.GetSelection()
+        idx = self.category_list.GetSelection()
         if 0 <= idx < len(self.TAB_NAMES):
             return self.TAB_NAMES[idx]
         return ''
@@ -630,10 +642,13 @@ class OptionsDialog(wx.Dialog):
         self.apply_button.Enable(self._has_tab_changes(tab_name))
 
     def _on_page_changed(self, event):
-        """Handle tab change - update Apply button state"""
+        """Handle category selection change - switch page and update Apply button"""
         event.Skip()
-        # Use CallAfter because the page selection may not be updated yet
-        wx.CallAfter(self._update_apply_state)
+        idx = self.category_list.GetSelection()
+        for i, page in enumerate(self.pages):
+            page.Show(i == idx)
+        self.page_container.Layout()
+        self._update_apply_state()
 
     def _on_control_changed(self, event):
         """Handle any control value change - update Apply button state"""
@@ -868,6 +883,9 @@ class EffectsDialog(wx.Dialog):
         if hasattr(parent, 'theme_manager') and parent.theme_manager:
             parent.theme_manager.apply_theme(self)
 
+        # Focus category list on dialog open
+        self.category_list.SetFocus()
+
         self.Bind(wx.EVT_CLOSE, self._on_close)
         self.Bind(wx.EVT_CHAR_HOOK, self._on_char_hook)
 
@@ -884,34 +902,60 @@ class EffectsDialog(wx.Dialog):
             self.main_frame._effects_dialog = None
         self.Destroy()
 
+    def _on_page_changed(self, event):
+        """Handle category selection change - switch page."""
+        event.Skip()
+        idx = self.category_list.GetSelection()
+        for i, page in enumerate(self.pages):
+            page.Show(i == idx)
+        self.page_container.Layout()
+
     def _create_ui(self):
-        """Create the dialog UI with book widget tabs."""
+        """Create the dialog UI with ListBox + page container."""
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        if _USE_LISTBOOK:
-            # Using Listbook until sub-pages (e.g. VST effects) are needed;
-            # Treebook's internal TreeCtrl does not expose SetName/SetLabel
-            # to NVDA via MSAA.
-            self.book = wx.Listbook(panel)
-            self.book.GetListView().SetName(_("Effect Chains"))
-            self.book.GetListView().SetLabel(_("Effect Chains"))
-        else:
-            self.book = wx.Notebook(panel)
+        book_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        # Master effects tab
+        # Build page names list
+        page_names = [_("Master Effects")]
+        for deck in self.mixer.decks:
+            if deck.effects:
+                page_names.append(deck.name)
+
+        self.category_list = wx.ListBox(panel, choices=page_names)
+        self.category_list.SetName(_("Effect Chains"))
+        self.category_list.SetSelection(0)
+        book_sizer.Add(self.category_list, 0, wx.EXPAND | wx.ALL, 5)
+
+        self.page_container = wx.Panel(panel)
+        self.page_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.pages = []
+
+        # Master effects page
         master_panel = self._create_effect_panel(
-            self.book, self.mixer.master_effects, _("Master"))
-        self.book.AddPage(master_panel, _("Master Effects"))
+            self.page_container, self.mixer.master_effects, _("Master"))
+        self.page_sizer.Add(master_panel, 1, wx.EXPAND)
+        self.pages.append(master_panel)
 
-        # Per-deck tabs (only for decks that exist in the mixer)
+        # Per-deck pages
         for deck in self.mixer.decks:
             if deck.effects:
                 deck_panel = self._create_effect_panel(
-                    self.book, deck.effects, deck.name)
-                self.book.AddPage(deck_panel, deck.name)
+                    self.page_container, deck.effects, deck.name)
+                self.page_sizer.Add(deck_panel, 1, wx.EXPAND)
+                self.pages.append(deck_panel)
 
-        main_sizer.Add(self.book, 1, wx.EXPAND | wx.ALL, 5)
+        self.page_container.SetSizer(self.page_sizer)
+        # Show only the first page
+        for i, page in enumerate(self.pages):
+            page.Show(i == 0)
+
+        book_sizer.Add(self.page_container, 1, wx.EXPAND | wx.ALL, 5)
+
+        self.category_list.Bind(wx.EVT_LISTBOX, self._on_page_changed)
+
+        main_sizer.Add(book_sizer, 1, wx.EXPAND | wx.ALL, 5)
 
         # Close button
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
