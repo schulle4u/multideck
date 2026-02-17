@@ -9,6 +9,18 @@ from utils.i18n import _, LANGUAGE_NAMES
 from audio.recorder import FFMPEG_AVAILABLE
 
 
+class _ValueDisplayAccessible(wx.Accessible):
+    """Hides slider value labels from screen reader dialog descriptions.
+
+    NVDA collects ROLE_SYSTEM_STATICTEXT objects for its dialog description.
+    Changing the role to ROLE_SYSTEM_WHITESPACE prevents these purely visual
+    value displays (e.g. '50%', '+0 dB') from being included.
+    """
+
+    def GetRole(self, childId):
+        return (wx.ACC_OK, wx.ROLE_SYSTEM_WHITESPACE)
+
+
 class OptionsDialog(wx.Dialog):
     """Options/Preferences dialog"""
 
@@ -90,9 +102,7 @@ class OptionsDialog(wx.Dialog):
         self.pages.append(streaming_panel)
 
         self.page_container.SetSizer(self.page_sizer)
-        # Show only the first page
-        for i, page in enumerate(self.pages):
-            page.Show(i == 0)
+        self._show_page(0)
 
         book_sizer.Add(self.page_container, 1, wx.EXPAND | wx.ALL, 5)
 
@@ -644,11 +654,16 @@ class OptionsDialog(wx.Dialog):
     def _on_page_changed(self, event):
         """Handle category selection change - switch page and update Apply button"""
         event.Skip()
-        idx = self.category_list.GetSelection()
-        for i, page in enumerate(self.pages):
-            page.Show(i == idx)
-        self.page_container.Layout()
+        self._show_page(self.category_list.GetSelection())
         self._update_apply_state()
+
+    def _show_page(self, idx):
+        """Show page at idx, hide and disable all others."""
+        for i, page in enumerate(self.pages):
+            active = (i == idx)
+            page.Show(active)
+            page.Enable(active)
+        self.page_container.Layout()
 
     def _on_control_changed(self, event):
         """Handle any control value change - update Apply button state"""
@@ -905,9 +920,14 @@ class EffectsDialog(wx.Dialog):
     def _on_page_changed(self, event):
         """Handle category selection change - switch page."""
         event.Skip()
-        idx = self.category_list.GetSelection()
+        self._show_page(self.category_list.GetSelection())
+
+    def _show_page(self, idx):
+        """Show page at idx, hide and disable all others."""
         for i, page in enumerate(self.pages):
-            page.Show(i == idx)
+            active = (i == idx)
+            page.Show(active)
+            page.Enable(active)
         self.page_container.Layout()
 
     def _create_ui(self):
@@ -947,9 +967,7 @@ class EffectsDialog(wx.Dialog):
                 self.pages.append(deck_panel)
 
         self.page_container.SetSizer(self.page_sizer)
-        # Show only the first page
-        for i, page in enumerate(self.pages):
-            page.Show(i == 0)
+        self._show_page(0)
 
         book_sizer.Add(self.page_container, 1, wx.EXPAND | wx.ALL, 5)
 
@@ -1373,6 +1391,7 @@ class EffectsDialog(wx.Dialog):
             fmt_func = lambda v: str(v)
         val_lbl = wx.StaticText(parent, label=fmt_func(value), size=(70, -1),
                                 style=wx.ALIGN_RIGHT)
+        val_lbl.SetAccessible(_ValueDisplayAccessible(val_lbl))
         sizer.Add(val_lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
 
         def on_slider(event):
