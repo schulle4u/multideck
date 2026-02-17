@@ -55,8 +55,9 @@ class OptionsDialog(wx.Dialog):
 
         # Book widget for option categories
         if _USE_LISTBOOK:
-            wx.StaticText(panel, label=_("Categories"))
             self.book = wx.Listbook(panel)
+            self.book.GetListView().SetName(_("Categories"))
+            self.book.GetListView().SetLabel(_("Categories"))
         else:
             self.book = wx.Notebook(panel)
 
@@ -889,8 +890,12 @@ class EffectsDialog(wx.Dialog):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         if _USE_LISTBOOK:
-            wx.StaticText(panel, label=_("Effect Chains"))
-            self.book = wx.Treebook(panel)
+            # Using Listbook until sub-pages (e.g. VST effects) are needed;
+            # Treebook's internal TreeCtrl does not expose SetName/SetLabel
+            # to NVDA via MSAA.
+            self.book = wx.Listbook(panel)
+            self.book.GetListView().SetName(_("Effect Chains"))
+            self.book.GetListView().SetLabel(_("Effect Chains"))
         else:
             self.book = wx.Notebook(panel)
 
