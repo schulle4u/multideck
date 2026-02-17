@@ -55,6 +55,7 @@ class OptionsDialog(wx.Dialog):
 
         # Book widget for option categories
         if _USE_LISTBOOK:
+            wx.StaticText(panel, label=_("Categories"))
             self.book = wx.Listbook(panel)
         else:
             self.book = wx.Notebook(panel)
@@ -888,6 +889,7 @@ class EffectsDialog(wx.Dialog):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         if _USE_LISTBOOK:
+            wx.StaticText(panel, label=_("Effect Chains"))
             self.book = wx.Treebook(panel)
         else:
             self.book = wx.Notebook(panel)
