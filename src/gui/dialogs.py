@@ -3,6 +3,7 @@ Dialogs - Various dialog windows for MultiDeck Audio Player
 """
 
 import wx
+import sys
 import sounddevice as sd
 from config.defaults import VALID_DECK_COUNTS
 from utils.i18n import _, LANGUAGE_NAMES
@@ -1395,7 +1396,8 @@ class EffectsDialog(wx.Dialog):
             fmt_func = lambda v: str(v)
         val_lbl = wx.StaticText(parent, label=fmt_func(value), size=(70, -1),
                                 style=wx.ALIGN_RIGHT)
-        val_lbl.SetAccessible(_ValueDisplayAccessible(val_lbl))
+        if sys.platform == 'win32':
+            val_lbl.SetAccessible(_ValueDisplayAccessible(val_lbl))
         sizer.Add(val_lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
 
         def on_slider(event):
