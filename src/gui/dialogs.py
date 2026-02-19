@@ -1026,12 +1026,15 @@ class EffectsDialog(wx.Dialog):
             if deck.effects:
                 page_names.append(deck.name)
 
-        wx.StaticText(panel, label=_("&Effect Chains"))
+        list_sizer = wx.BoxSizer(wx.VERTICAL)
+        list_label = wx.StaticText(panel, label=_("&Effect Chains"))
+        list_sizer.Add(list_label, 0, wx.LEFT | wx.TOP | wx.BOTTOM, 5)
         self.category_list = wx.ListBox(panel, choices=page_names)
         self.category_list.SetName(_("Effect Chains"))
         self.category_list.SetLabel(_("Effect Chains"))
         self.category_list.SetSelection(0)
-        book_sizer.Add(self.category_list, 0, wx.EXPAND | wx.ALL, 5)
+        list_sizer.Add(self.category_list, 0, wx.EXPAND | wx.ALL, 5)
+        book_sizer.Add(list_sizer, 0, wx.EXPAND)
 
         self.page_container = wx.Panel(panel)
         self.page_sizer = wx.BoxSizer(wx.VERTICAL)
