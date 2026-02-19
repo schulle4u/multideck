@@ -60,7 +60,9 @@ class OptionsDialog(wx.Dialog):
         self._applied_sections = set()  # Track which sections were applied via Apply buttons
         self._initial_device = config_manager.get('Audio', 'output_device', 'default')
         self._create_ui()
-        self.Fit()
+        self._fit_to_pages()
+        size = self.GetSize()
+        self.SetSize(max(size.width, 500), max(size.height, 380))
         self.SetMinSize(self.GetSize())
 
         # Apply theme to dialog if theme manager is available
@@ -85,12 +87,15 @@ class OptionsDialog(wx.Dialog):
 
         page_names = [_("General"), _("Audio"), _("Automation"),
                       _("Recorder"), _("Streaming")]
-        wx.StaticText(panel, label=_("Cate&gories"))
+        list_sizer = wx.BoxSizer(wx.VERTICAL)
+        list_label = wx.StaticText(panel, label=_("Cate&gories"))
+        list_sizer.Add(list_label, 0, wx.LEFT | wx.TOP | wx.BOTTOM, 5)
         self.category_list = wx.ListBox(panel, choices=page_names)
         self.category_list.SetName(_("Categories"))
         self.category_list.SetLabel(_("Categories"))
         self.category_list.SetSelection(0)
-        book_sizer.Add(self.category_list, 0, wx.EXPAND | wx.ALL, 5)
+        list_sizer.Add(self.category_list, 1, wx.EXPAND | wx.ALL, 5)
+        book_sizer.Add(list_sizer, 0, wx.EXPAND)
 
         self.page_container = wx.Panel(panel)
         self.page_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -122,7 +127,6 @@ class OptionsDialog(wx.Dialog):
         self.pages.append(streaming_panel)
 
         self.page_container.SetSizer(self.page_sizer)
-        self._show_page(0)
 
         book_sizer.Add(self.page_container, 1, wx.EXPAND | wx.ALL, 5)
 
@@ -685,6 +689,21 @@ class OptionsDialog(wx.Dialog):
             page.Enable(active)
         self.page_container.Layout()
 
+    def _fit_to_pages(self):
+        """Set page_container minimum size to the largest page, then Fit().
+
+        All pages must be visible when this is called so their best sizes
+        are correctly reported. After measuring, only page 0 is shown.
+        """
+        max_w, max_h = 0, 0
+        for page in self.pages:
+            best = page.GetBestSize()
+            max_w = max(max_w, best.width)
+            max_h = max(max_h, best.height)
+        self.page_container.SetMinSize((max_w, max_h))
+        self._show_page(0)
+        self.Fit()
+
     def _on_control_changed(self, event):
         """Handle any control value change - update Apply button state"""
         event.Skip()
@@ -906,8 +925,8 @@ class EffectsDialog(wx.Dialog):
         self.main_frame = parent
 
         self._create_ui()
-        self.Fit()
-        # ScrolledWindow tabs report small minimum height (content scrolls),
+        self._fit_to_pages()
+        # ScrolledWindow pages report small minimum height (content scrolls),
         # so ensure a reasonable default size while respecting GTK minimums.
         size = self.GetSize()
         self.SetSize(max(size.width, 700), max(size.height, 600))
@@ -950,6 +969,21 @@ class EffectsDialog(wx.Dialog):
             page.Enable(active)
         self.page_container.Layout()
 
+    def _fit_to_pages(self):
+        """Set page_container minimum size to the largest page, then Fit().
+
+        All pages must be visible when this is called so their best sizes
+        are correctly reported. After measuring, only page 0 is shown.
+        """
+        max_w, max_h = 0, 0
+        for page in self.pages:
+            best = page.GetBestSize()
+            max_w = max(max_w, best.width)
+            max_h = max(max_h, best.height)
+        self.page_container.SetMinSize((max_w, max_h))
+        self._show_page(0)
+        self.Fit()
+
     def _create_ui(self):
         """Create the dialog UI with ListBox + page container."""
         panel = wx.Panel(self)
@@ -989,7 +1023,6 @@ class EffectsDialog(wx.Dialog):
                 self.pages.append(deck_panel)
 
         self.page_container.SetSizer(self.page_sizer)
-        self._show_page(0)
 
         book_sizer.Add(self.page_container, 1, wx.EXPAND | wx.ALL, 5)
 
