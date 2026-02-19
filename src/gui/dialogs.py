@@ -688,22 +688,13 @@ class OptionsDialog(wx.Dialog):
         self.page_container.Layout()
 
     def _fit_to_pages(self):
-        """Fit dialog to largest page, with fallback for unrealized controls.
+        """Show page 0 and fit the dialog to its content.
 
-        Only sets page_container's minimum size if GetBestSize() returns usable
-        values (> 0). On Windows, unrealized controls return (0, 0), which would
-        cause GTK to allow zero-height allocation and log 'negative content
-        height' warnings on Linux. The size fallback ensures a usable minimum
-        even when GetBestSize() reports nothing useful, and is only applied when
-        actually needed to avoid a redundant GTK layout pass on Linux.
+        Intentionally does NOT call GetBestSize() on individual pages: doing so
+        on unrealized widgets triggers GTK layout passes with for_size=0, which
+        causes 'negative content height' warnings for GtkSpinButton and similar
+        widgets. The hard-coded minimum size covers all tabs adequately.
         """
-        max_w, max_h = 0, 0
-        for page in self.pages:
-            best = page.GetBestSize()
-            max_w = max(max_w, best.width)
-            max_h = max(max_h, best.height)
-        if max_w > 0 and max_h > 0:
-            self.page_container.SetMinSize((max_w, max_h))
         self._show_page(0)
         self.Fit()
         size = self.GetSize()
