@@ -22,6 +22,23 @@ class _ValueDisplayAccessible(wx.Accessible):
         return (wx.ACC_OK, wx.ROLE_SYSTEM_WHITESPACE)
 
 
+class _FormattedSliderAccessible(wx.Accessible):
+    """Overrides the MSAA VALUE property of a slider with a formatted string.
+
+    wx.Slider reports its value as a percentage (0-100%) by default, which
+    is meaningless for parameters like dB or milliseconds. This class
+    returns the properly formatted value (e.g. '+3 dB', '300 ms') instead.
+    """
+
+    def __init__(self, slider, fmt_func):
+        super().__init__(slider)
+        self._slider = slider
+        self._fmt_func = fmt_func
+
+    def GetValue(self, childId):
+        return (wx.ACC_OK, self._fmt_func(self._slider.GetValue()))
+
+
 class OptionsDialog(wx.Dialog):
     """Options/Preferences dialog"""
 
@@ -1387,13 +1404,16 @@ class EffectsDialog(wx.Dialog):
         lbl = wx.StaticText(parent, label=label + ":", size=(120, -1))
         sizer.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
 
+        if fmt_func is None:
+            fmt_func = lambda v: str(v)
+
         slider = wx.Slider(parent, value=value, minValue=min_val, maxValue=max_val,
                            style=wx.SL_HORIZONTAL)
         slider.SetName(f"{chain_name}: {label}")
+        if sys.platform == 'win32':
+            slider.SetAccessible(_FormattedSliderAccessible(slider, fmt_func))
         sizer.Add(slider, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 5)
 
-        if fmt_func is None:
-            fmt_func = lambda v: str(v)
         val_lbl = wx.StaticText(parent, label=fmt_func(value), size=(70, -1),
                                 style=wx.ALIGN_RIGHT)
         if sys.platform == 'win32':
