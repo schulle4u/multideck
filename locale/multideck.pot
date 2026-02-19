@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-17 17:06+0100\n"
+"POT-Creation-Date: 2026-02-19 11:11+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,348 +19,332 @@ msgstr ""
 "X-Poedit-Basepath: ../src\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: gui/dialogs.py:36
+#: gui/dialogs.py:54
 msgid "Options"
 msgstr ""
 
-#: gui/dialogs.py:68
+#: gui/dialogs.py:86
 msgid "General"
 msgstr ""
 
-#: gui/dialogs.py:68
+#: gui/dialogs.py:86
 msgid "Audio"
 msgstr ""
 
-#: gui/dialogs.py:68
+#: gui/dialogs.py:86
 msgid "Automation"
 msgstr ""
 
-#: gui/dialogs.py:69
+#: gui/dialogs.py:87
 msgid "Recorder"
 msgstr ""
 
-#: gui/dialogs.py:69
+#: gui/dialogs.py:87
 msgid "Streaming"
 msgstr ""
 
-#: gui/dialogs.py:70
+#: gui/dialogs.py:88
 msgid "Cate&gories"
 msgstr ""
 
-#: gui/dialogs.py:72 gui/dialogs.py:73
+#: gui/dialogs.py:90 gui/dialogs.py:91
 msgid "Categories"
 msgstr ""
 
-#: gui/dialogs.py:116 gui/dialogs.py:117 gui/dialogs.py:852
+#: gui/dialogs.py:134 gui/dialogs.py:135 gui/dialogs.py:870
 msgid "&OK"
 msgstr ""
 
-#: gui/dialogs.py:118 gui/dialogs.py:119 gui/dialogs.py:853
+#: gui/dialogs.py:136 gui/dialogs.py:137 gui/dialogs.py:871
 #: gui/main_frame.py:1121
 msgid "&Cancel"
 msgstr ""
 
-#: gui/dialogs.py:120 gui/dialogs.py:121
+#: gui/dialogs.py:138 gui/dialogs.py:139
 msgid "&Apply"
 msgstr ""
 
-#: gui/dialogs.py:167 gui/dialogs.py:175 gui/dialogs.py:691
+#: gui/dialogs.py:185 gui/dialogs.py:193 gui/dialogs.py:709
 msgid "Language"
 msgstr ""
 
-#: gui/dialogs.py:183 gui/dialogs.py:190
-msgid "Number of Decks"
-msgstr ""
-
-#: gui/dialogs.py:198 gui/dialogs.py:206
-msgid "Theme"
-msgstr ""
-
-#: gui/dialogs.py:202
-msgid "System"
-msgstr ""
-
-#: gui/dialogs.py:202
-msgid "Light"
-msgstr ""
-
-#: gui/dialogs.py:202
-msgid "Dark"
-msgstr ""
-
-#: gui/dialogs.py:225 gui/dialogs.py:240
-msgid "Output Device"
-msgstr ""
-
-#: gui/dialogs.py:230
-msgid "System Default"
-msgstr ""
-
-#: gui/dialogs.py:252 gui/dialogs.py:259
-msgid "Buffer Size"
-msgstr ""
-
-#: gui/dialogs.py:268 gui/dialogs.py:275
-msgid "Sample Rate"
-msgstr ""
-
-#: gui/dialogs.py:318 gui/dialogs.py:324
-msgid "Switch Interval (seconds)"
-msgstr ""
-
-#: gui/dialogs.py:330 gui/dialogs.py:331
-msgid "Enable Crossfade"
-msgstr ""
-
-#: gui/dialogs.py:338 gui/dialogs.py:346
-msgid "Crossfade Duration (0.1s)"
-msgstr ""
-
-#: gui/dialogs.py:355
-msgid "Level-Based Switching"
-msgstr ""
-
-#: gui/dialogs.py:362 gui/dialogs.py:363
-msgid "Enable level-based switching"
-msgstr ""
-
-#: gui/dialogs.py:370 gui/dialogs.py:376
-msgid "Threshold (dB)"
-msgstr ""
-
-#: gui/dialogs.py:383 gui/dialogs.py:389
-msgid "Hysteresis (dB)"
-msgstr ""
-
-#: gui/dialogs.py:396 gui/dialogs.py:402
-msgid "Hold Time (seconds)"
-msgstr ""
-
-#: gui/dialogs.py:417 gui/dialogs.py:430
-msgid "Format"
-msgstr ""
-
-#: gui/dialogs.py:442 gui/dialogs.py:450
-msgid "Bitrate (MP3/OGG)"
-msgstr ""
-
-#: gui/dialogs.py:464
-msgid "Note: Install FFmpeg for MP3, OGG, and FLAC support."
-msgstr ""
-
-#: gui/dialogs.py:471 gui/dialogs.py:478
-msgid "Bit Depth (WAV only)"
-msgstr ""
-
-#: gui/dialogs.py:487 gui/dialogs.py:493
-msgid "Pre-Roll (seconds)"
-msgstr ""
-
-#: gui/dialogs.py:494
-msgid "Buffer audio before recording starts (0 to disable)"
-msgstr ""
-
-#: gui/dialogs.py:501 gui/dialogs.py:506
-msgid "Output Directory"
-msgstr ""
-
-#: gui/dialogs.py:509
-msgid "Browse..."
-msgstr ""
-
-#: gui/dialogs.py:510
-msgid "Browse for Output Directory"
-msgstr ""
-
-#: gui/dialogs.py:521
-msgid "Choose Recording Output Directory"
-msgstr ""
-
-#: gui/dialogs.py:532 gui/dialogs.py:533
-msgid "Auto-reconnect on connection loss"
-msgstr ""
-
-#: gui/dialogs.py:541 gui/dialogs.py:547
-msgid "Reconnect Wait (seconds)"
-msgstr ""
-
-#: gui/dialogs.py:693
+#: gui/dialogs.py:201 gui/dialogs.py:208 gui/dialogs.py:711
 msgid "Number of decks"
 msgstr ""
 
-#: gui/dialogs.py:714
+#: gui/dialogs.py:216 gui/dialogs.py:224
+msgid "Theme"
+msgstr ""
+
+#: gui/dialogs.py:220
+msgid "System"
+msgstr ""
+
+#: gui/dialogs.py:220
+msgid "Light"
+msgstr ""
+
+#: gui/dialogs.py:220
+msgid "Dark"
+msgstr ""
+
+#: gui/dialogs.py:243 gui/dialogs.py:258
+msgid "Output Device"
+msgstr ""
+
+#: gui/dialogs.py:248
+msgid "System Default"
+msgstr ""
+
+#: gui/dialogs.py:270 gui/dialogs.py:277 gui/dialogs.py:732
 msgid "Buffer size"
 msgstr ""
 
-#: gui/dialogs.py:716
+#: gui/dialogs.py:286 gui/dialogs.py:293 gui/dialogs.py:734
 msgid "Sample rate"
 msgstr ""
 
-#: gui/dialogs.py:757
+#: gui/dialogs.py:336 gui/dialogs.py:342
+msgid "Switch Interval (seconds)"
+msgstr ""
+
+#: gui/dialogs.py:348 gui/dialogs.py:349
+msgid "Enable Crossfade"
+msgstr ""
+
+#: gui/dialogs.py:356 gui/dialogs.py:364
+msgid "Crossfade Duration (0.1s)"
+msgstr ""
+
+#: gui/dialogs.py:373
+msgid "Level-Based Switching"
+msgstr ""
+
+#: gui/dialogs.py:380 gui/dialogs.py:381
+msgid "Enable level-based switching"
+msgstr ""
+
+#: gui/dialogs.py:388 gui/dialogs.py:394
+msgid "Threshold (dB)"
+msgstr ""
+
+#: gui/dialogs.py:401 gui/dialogs.py:407
+msgid "Hysteresis (dB)"
+msgstr ""
+
+#: gui/dialogs.py:414 gui/dialogs.py:420
+msgid "Hold Time (seconds)"
+msgstr ""
+
+#: gui/dialogs.py:435 gui/dialogs.py:448
+msgid "Format"
+msgstr ""
+
+#: gui/dialogs.py:460 gui/dialogs.py:468
+msgid "Bitrate (MP3/OGG)"
+msgstr ""
+
+#: gui/dialogs.py:482
+msgid "Note: Install FFmpeg for MP3, OGG, and FLAC support."
+msgstr ""
+
+#: gui/dialogs.py:489 gui/dialogs.py:496
+msgid "Bit Depth (WAV only)"
+msgstr ""
+
+#: gui/dialogs.py:505 gui/dialogs.py:511
+msgid "Pre-Roll (seconds)"
+msgstr ""
+
+#: gui/dialogs.py:512
+msgid "Buffer audio before recording starts (0 to disable)"
+msgstr ""
+
+#: gui/dialogs.py:519 gui/dialogs.py:524
+msgid "Output Directory"
+msgstr ""
+
+#: gui/dialogs.py:527 gui/dialogs.py:528
+msgid "Browse"
+msgstr ""
+
+#: gui/dialogs.py:539 gui/main_frame.py:1973 gui/main_frame.py:2015
+msgid "Choose recording output directory"
+msgstr ""
+
+#: gui/dialogs.py:550 gui/dialogs.py:551
+msgid "Auto-reconnect on connection loss"
+msgstr ""
+
+#: gui/dialogs.py:559 gui/dialogs.py:565
+msgid "Reconnect Wait (seconds)"
+msgstr ""
+
+#: gui/dialogs.py:775
 msgid "The following settings require restarting the application to take effect:"
 msgstr ""
 
-#: gui/dialogs.py:758
+#: gui/dialogs.py:776
 msgid "Restart Required"
 msgstr ""
 
-#: gui/dialogs.py:884
+#: gui/dialogs.py:902
 msgid "Audio Effects"
 msgstr ""
 
-#: gui/dialogs.py:943
+#: gui/dialogs.py:961
 msgid "Master Effects"
 msgstr ""
 
-#: gui/dialogs.py:948
+#: gui/dialogs.py:966
 msgid "&Effect Chains"
 msgstr ""
 
-#: gui/dialogs.py:950 gui/dialogs.py:951
+#: gui/dialogs.py:968 gui/dialogs.py:969
 msgid "Effect Chains"
 msgstr ""
 
-#: gui/dialogs.py:961 gui/main_frame.py:453 gui/main_frame.py:513
+#: gui/dialogs.py:979 gui/main_frame.py:453 gui/main_frame.py:513
 #: gui/main_frame.py:1304 gui/main_frame.py:1963
 msgid "Master"
 msgstr ""
 
-#: gui/dialogs.py:985
+#: gui/dialogs.py:1003
 msgid "&Close"
 msgstr ""
 
-#: gui/dialogs.py:999
+#: gui/dialogs.py:1017
 #, python-brace-format
 msgid "Enable effects for {}"
 msgstr ""
 
-#: gui/dialogs.py:1040
+#: gui/dialogs.py:1058
 msgid "Reverb"
 msgstr ""
 
-#: gui/dialogs.py:1044 gui/dialogs.py:1103 gui/dialogs.py:1149
-#: gui/dialogs.py:1195 gui/dialogs.py:1241 gui/dialogs.py:1297
-#: gui/dialogs.py:1337
+#: gui/dialogs.py:1062 gui/dialogs.py:1121 gui/dialogs.py:1167
+#: gui/dialogs.py:1213 gui/dialogs.py:1259 gui/dialogs.py:1315
+#: gui/dialogs.py:1355
 msgid "Enable"
 msgstr ""
 
-#: gui/dialogs.py:1045
+#: gui/dialogs.py:1063
 msgid "Enable Reverb"
 msgstr ""
 
-#: gui/dialogs.py:1051
+#: gui/dialogs.py:1069
 msgid "Room Size"
 msgstr ""
 
-#: gui/dialogs.py:1058
+#: gui/dialogs.py:1076
 msgid "Damping"
 msgstr ""
 
-#: gui/dialogs.py:1065
+#: gui/dialogs.py:1083
 msgid "Wet Level"
 msgstr ""
 
-#: gui/dialogs.py:1072
+#: gui/dialogs.py:1090
 msgid "Dry Level"
 msgstr ""
 
-#: gui/dialogs.py:1079
+#: gui/dialogs.py:1097
 msgid "Width"
 msgstr ""
 
-#: gui/dialogs.py:1099
+#: gui/dialogs.py:1117
 msgid "Delay"
 msgstr ""
 
-#: gui/dialogs.py:1104
+#: gui/dialogs.py:1122
 msgid "Enable Delay"
 msgstr ""
 
-#: gui/dialogs.py:1111
+#: gui/dialogs.py:1129
 msgid "Delay Time"
 msgstr ""
 
-#: gui/dialogs.py:1118
+#: gui/dialogs.py:1136
 msgid "Feedback"
 msgstr ""
 
-#: gui/dialogs.py:1125 gui/dialogs.py:1217
+#: gui/dialogs.py:1143 gui/dialogs.py:1235
 msgid "Mix"
 msgstr ""
 
-#: gui/dialogs.py:1145
+#: gui/dialogs.py:1163
 msgid "Equalizer"
 msgstr ""
 
-#: gui/dialogs.py:1150
+#: gui/dialogs.py:1168
 msgid "Enable Equalizer"
 msgstr ""
 
-#: gui/dialogs.py:1157
+#: gui/dialogs.py:1175
 msgid "Bass (200 Hz)"
 msgstr ""
 
-#: gui/dialogs.py:1164
+#: gui/dialogs.py:1182
 msgid "Mid (1 kHz)"
 msgstr ""
 
-#: gui/dialogs.py:1171
+#: gui/dialogs.py:1189
 msgid "Treble (8 kHz)"
 msgstr ""
 
-#: gui/dialogs.py:1191
+#: gui/dialogs.py:1209
 msgid "Chorus"
 msgstr ""
 
-#: gui/dialogs.py:1196
+#: gui/dialogs.py:1214
 msgid "Enable Chorus"
 msgstr ""
 
-#: gui/dialogs.py:1203
+#: gui/dialogs.py:1221
 msgid "Rate"
 msgstr ""
 
-#: gui/dialogs.py:1210
+#: gui/dialogs.py:1228
 msgid "Depth"
 msgstr ""
 
-#: gui/dialogs.py:1237
+#: gui/dialogs.py:1255
 msgid "Compressor"
 msgstr ""
 
-#: gui/dialogs.py:1242
+#: gui/dialogs.py:1260
 msgid "Enable Compressor"
 msgstr ""
 
-#: gui/dialogs.py:1249 gui/dialogs.py:1305
+#: gui/dialogs.py:1267 gui/dialogs.py:1323
 msgid "Threshold"
 msgstr ""
 
-#: gui/dialogs.py:1257
+#: gui/dialogs.py:1275
 msgid "Ratio"
 msgstr ""
 
-#: gui/dialogs.py:1265
+#: gui/dialogs.py:1283
 msgid "Attack"
 msgstr ""
 
-#: gui/dialogs.py:1273 gui/dialogs.py:1313
+#: gui/dialogs.py:1291 gui/dialogs.py:1331
 msgid "Release"
 msgstr ""
 
-#: gui/dialogs.py:1293
+#: gui/dialogs.py:1311
 msgid "Limiter"
 msgstr ""
 
-#: gui/dialogs.py:1298
+#: gui/dialogs.py:1316
 msgid "Enable Limiter"
 msgstr ""
 
-#: gui/dialogs.py:1333 gui/dialogs.py:1345
+#: gui/dialogs.py:1351 gui/dialogs.py:1363
 msgid "Gain"
 msgstr ""
 
-#: gui/dialogs.py:1338
+#: gui/dialogs.py:1356
 msgid "Enable Gain"
 msgstr ""
 
@@ -510,19 +494,11 @@ msgstr ""
 msgid "Menu..."
 msgstr ""
 
-#: gui/main_frame.py:333
-msgid "Volume:"
-msgstr ""
-
-#: gui/main_frame.py:340
+#: gui/main_frame.py:333 gui/main_frame.py:340
 msgid "Volume"
 msgstr ""
 
-#: gui/main_frame.py:348
-msgid "Balance:"
-msgstr ""
-
-#: gui/main_frame.py:355
+#: gui/main_frame.py:348 gui/main_frame.py:355
 msgid "Balance"
 msgstr ""
 
@@ -650,8 +626,8 @@ msgstr ""
 msgid "Load URL..."
 msgstr ""
 
-#: gui/main_frame.py:750
-msgid "Rename Deck..."
+#: gui/main_frame.py:750 gui/main_frame.py:782
+msgid "Rename Deck"
 msgstr ""
 
 #: gui/main_frame.py:753
@@ -672,10 +648,6 @@ msgstr ""
 
 #: gui/main_frame.py:782
 msgid "Enter new deck name:"
-msgstr ""
-
-#: gui/main_frame.py:782
-msgid "Rename Deck"
 msgstr ""
 
 #: gui/main_frame.py:967 gui/main_frame.py:979 gui/main_frame.py:1030
@@ -879,10 +851,6 @@ msgstr ""
 #: gui/main_frame.py:1955
 #, python-brace-format
 msgid "{}: Balance {}"
-msgstr ""
-
-#: gui/main_frame.py:1973 gui/main_frame.py:2015
-msgid "Choose recording output directory"
 msgstr ""
 
 #: gui/main_frame.py:1985

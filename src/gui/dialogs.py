@@ -198,14 +198,14 @@ class OptionsDialog(wx.Dialog):
 
         # Number of decks
         deck_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        deck_label = wx.StaticText(panel, label=_("Number of Decks") + ":")
+        deck_label = wx.StaticText(panel, label=_("Number of decks") + ":")
         deck_sizer.Add(deck_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_deck_count = self.config_manager.get_deck_count()
         deck_choices = [str(n) for n in VALID_DECK_COUNTS]
 
         self.deck_count_choice = wx.Choice(panel, choices=deck_choices)
-        self.deck_count_choice.SetName(_("Number of Decks"))
+        self.deck_count_choice.SetName(_("Number of decks"))
         self.deck_count_choice.SetSelection(VALID_DECK_COUNTS.index(current_deck_count))
         deck_sizer.Add(self.deck_count_choice, 1, wx.EXPAND | wx.ALL, 5)
 
@@ -267,14 +267,14 @@ class OptionsDialog(wx.Dialog):
 
         # Buffer size
         buffer_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        buffer_label = wx.StaticText(panel, label=_("Buffer Size") + ":")
+        buffer_label = wx.StaticText(panel, label=_("Buffer size") + ":")
         buffer_sizer.Add(buffer_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_buffer = self.config_manager.getint('Audio', 'buffer_size', 2048)
         buffer_choices = ['512', '1024', '2048', '4096']
 
         self.buffer_choice = wx.Choice(panel, choices=buffer_choices)
-        self.buffer_choice.SetName(_("Buffer Size"))
+        self.buffer_choice.SetName(_("Buffer size"))
         if str(current_buffer) in buffer_choices:
             self.buffer_choice.SetSelection(buffer_choices.index(str(current_buffer)))
         buffer_sizer.Add(self.buffer_choice, 1, wx.EXPAND | wx.ALL, 5)
@@ -283,14 +283,14 @@ class OptionsDialog(wx.Dialog):
 
         # Sample rate
         rate_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        rate_label = wx.StaticText(panel, label=_("Sample Rate") + ":")
+        rate_label = wx.StaticText(panel, label=_("Sample rate") + ":")
         rate_sizer.Add(rate_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_rate = self.config_manager.getint('Audio', 'sample_rate', 44100)
         rate_choices = ['44100', '48000']
 
         self.rate_choice = wx.Choice(panel, choices=rate_choices)
-        self.rate_choice.SetName(_("Sample Rate"))
+        self.rate_choice.SetName(_("Sample rate"))
         if str(current_rate) in rate_choices:
             self.rate_choice.SetSelection(rate_choices.index(str(current_rate)))
         rate_sizer.Add(self.rate_choice, 1, wx.EXPAND | wx.ALL, 5)
@@ -524,8 +524,8 @@ class OptionsDialog(wx.Dialog):
         self.output_dir_text.SetName(_("Output Directory"))
         dir_sizer.Add(self.output_dir_text, 1, wx.EXPAND | wx.ALL, 5)
 
-        browse_btn = wx.Button(panel, label=_("Browse..."))
-        browse_btn.SetName(_("Browse for Output Directory"))
+        browse_btn = wx.Button(panel, label=_("Browse") + "...")
+        browse_btn.SetName(_("Browse") + "...")
         browse_btn.Bind(wx.EVT_BUTTON, self._on_browse_output_dir)
         dir_sizer.Add(browse_btn, 0, wx.ALL, 5)
 
@@ -536,7 +536,7 @@ class OptionsDialog(wx.Dialog):
 
     def _on_browse_output_dir(self, event):
         """Handle browse button for output directory"""
-        dlg = wx.DirDialog(self, _("Choose Recording Output Directory"))
+        dlg = wx.DirDialog(self, _("Choose recording output directory"))
         if dlg.ShowModal() == wx.ID_OK:
             self.output_dir_text.SetValue(dlg.GetPath())
         dlg.Destroy()

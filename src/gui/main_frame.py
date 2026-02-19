@@ -330,7 +330,7 @@ class MainFrame(wx.Frame):
 
         # Volume slider
         volume_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        volume_label = wx.StaticText(controls_static_box, label=_("Volume:"))
+        volume_label = wx.StaticText(controls_static_box, label=_("Volume") + ":")
         volume_sizer.Add(volume_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         self.active_volume_slider = wx.Slider(
@@ -345,7 +345,7 @@ class MainFrame(wx.Frame):
 
         # Balance slider
         balance_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        balance_label = wx.StaticText(controls_static_box, label=_("Balance:"))
+        balance_label = wx.StaticText(controls_static_box, label=_("Balance") + ":")
         balance_sizer.Add(balance_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         self.active_balance_slider = wx.Slider(
@@ -747,7 +747,7 @@ class MainFrame(wx.Frame):
         load_url_item = menu.Append(wx.ID_ANY, _("Load URL...") + "\tCtrl+U")
         menu.AppendSeparator()
 
-        rename_item = menu.Append(wx.ID_ANY, _("Rename Deck...") + "\tF2")
+        rename_item = menu.Append(wx.ID_ANY, _("Rename Deck") + "...\tF2")
         menu.AppendSeparator()
 
         toggle_loop_item = menu.Append(wx.ID_ANY, _("Toggle Loop") + "\tCtrl+L")
