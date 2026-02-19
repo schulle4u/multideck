@@ -700,6 +700,7 @@ class OptionsDialog(wx.Dialog):
             sz = self.page_container.GetClientSize()
             if sz.width > 0 and sz.height > 0:
                 target.SetSize(0, 0, sz.width, sz.height)
+                target.Layout()
         for i, page in enumerate(self.pages):
             active = (i == idx)
             page.Show(active)
@@ -986,6 +987,7 @@ class EffectsDialog(wx.Dialog):
             sz = self.page_container.GetClientSize()
             if sz.width > 0 and sz.height > 0:
                 target.SetSize(0, 0, sz.width, sz.height)
+                target.Layout()
         for i, page in enumerate(self.pages):
             active = (i == idx)
             page.Show(active)
