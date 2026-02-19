@@ -70,8 +70,38 @@ class OptionsDialog(wx.Dialog):
         # Focus category list on dialog open
         self.category_list.SetFocus()
 
+        # Pre-size hidden pages on first show (Linux/GTK only).
+        # GTK measures page_container's preferred size on the first render frame
+        # including hidden children. Hidden pages start with allocation (0,0,0,0)
+        # so GtkSpinButton children get for_size=0 and warn. EVT_SHOW fires after
+        # widget realization but before the first GTK layout frame, making it the
+        # correct place to pre-allocate hidden pages.
+        if sys.platform != 'win32':
+            self.Bind(wx.EVT_SHOW, self._on_first_show)
+
     # Tab name constants matching book page order
     TAB_NAMES = ['general', 'audio', 'automation', 'recorder', 'streaming']
+
+    def _on_first_show(self, event):
+        """Pre-size hidden pages on first show to prevent GTK layout warnings.
+
+        GTK's GtkFixed iterates ALL children (including hidden ones) when
+        computing preferred size. Hidden pages start with allocation (0,0,0,0)
+        after realization, so GtkSpinButton children get for_size=0 and log
+        'for_size < min-size' warnings. Calling SetSize()+Layout() here ensures
+        every hidden page and its children have a valid allocation before GTK
+        runs its first layout frame.
+        """
+        event.Skip()
+        if not event.IsShown():
+            return
+        self.Unbind(wx.EVT_SHOW)
+        sz = self.page_container.GetClientSize()
+        if sz.width > 0 and sz.height > 0:
+            for page in self.pages:
+                if not page.IsShown():
+                    page.SetSize(0, 0, sz.width, sz.height)
+                    page.Layout()
 
     def _create_ui(self):
         """Create dialog UI"""
@@ -950,11 +980,35 @@ class EffectsDialog(wx.Dialog):
         if hasattr(parent, 'theme_manager') and parent.theme_manager:
             parent.theme_manager.apply_theme(self)
 
+        if sys.platform != 'win32':
+            self.Bind(wx.EVT_SHOW, self._on_first_show)
+
         # Focus category list on dialog open
         self.category_list.SetFocus()
 
         self.Bind(wx.EVT_CLOSE, self._on_close)
         self.Bind(wx.EVT_CHAR_HOOK, self._on_char_hook)
+
+    def _on_first_show(self, event):
+        """Pre-size hidden pages on first show to prevent GTK layout warnings.
+
+        GTK's GtkFixed iterates ALL children (including hidden ones) when
+        computing preferred size. Hidden pages start with allocation (0,0,0,0)
+        after realization, so GtkSpinButton children get for_size=0 and log
+        'for_size < min-size' warnings. Calling SetSize()+Layout() here ensures
+        every hidden page and its children have a valid allocation before GTK
+        runs its first layout frame.
+        """
+        event.Skip()
+        if not event.IsShown():
+            return
+        self.Unbind(wx.EVT_SHOW)
+        sz = self.page_container.GetClientSize()
+        if sz.width > 0 and sz.height > 0:
+            for page in self.pages:
+                if not page.IsShown():
+                    page.SetSize(0, 0, sz.width, sz.height)
+                    page.Layout()
 
     def _on_char_hook(self, event):
         """Close dialog on Escape key."""
