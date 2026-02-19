@@ -104,23 +104,31 @@ class OptionsDialog(wx.Dialog):
         self.page_sizer.Add(general_panel, 1, wx.EXPAND)
         self.pages.append(general_panel)
 
-        # Audio page
+        # Audio page (hidden at creation to avoid GTK allocating 0 size)
         audio_panel = self._create_audio_tab(self.page_container)
+        audio_panel.Show(False)
+        audio_panel.Enable(False)
         self.page_sizer.Add(audio_panel, 1, wx.EXPAND)
         self.pages.append(audio_panel)
 
-        # Automation page
+        # Automation page (hidden at creation)
         automation_panel = self._create_automation_tab(self.page_container)
+        automation_panel.Show(False)
+        automation_panel.Enable(False)
         self.page_sizer.Add(automation_panel, 1, wx.EXPAND)
         self.pages.append(automation_panel)
 
-        # Recorder page
+        # Recorder page (hidden at creation)
         recorder_panel = self._create_recorder_tab(self.page_container)
+        recorder_panel.Show(False)
+        recorder_panel.Enable(False)
         self.page_sizer.Add(recorder_panel, 1, wx.EXPAND)
         self.pages.append(recorder_panel)
 
-        # Streaming page
+        # Streaming page (hidden at creation)
         streaming_panel = self._create_streaming_tab(self.page_container)
+        streaming_panel.Show(False)
+        streaming_panel.Enable(False)
         self.page_sizer.Add(streaming_panel, 1, wx.EXPAND)
         self.pages.append(streaming_panel)
 
@@ -688,14 +696,14 @@ class OptionsDialog(wx.Dialog):
         self.page_container.Layout()
 
     def _fit_to_pages(self):
-        """Show page 0 and fit the dialog to its content.
+        """Fit the dialog to its initial content.
 
-        Intentionally does NOT call GetBestSize() on individual pages: doing so
-        on unrealized widgets triggers GTK layout passes with for_size=0, which
-        causes 'negative content height' warnings for GtkSpinButton and similar
-        widgets. The hard-coded minimum size covers all tabs adequately.
+        Non-first pages are already hidden at creation time (see _create_ui),
+        so no Show/Hide transitions happen here. This avoids GTK allocating
+        0-size to unrealized SpinCtrls and emitting 'negative content height'
+        or 'for_size < min-size' warnings. The hard-coded minimum is a fallback
+        for Windows where Fit() may return near-zero before window realization.
         """
-        self._show_page(0)
         self.Fit()
         size = self.GetSize()
         if size.width < 500 or size.height < 380:
@@ -923,11 +931,7 @@ class EffectsDialog(wx.Dialog):
 
         self._create_ui()
         self._fit_to_pages()
-        # ScrolledWindow pages report small minimum height (content scrolls),
-        # so ensure a reasonable default size while respecting GTK minimums.
-        size = self.GetSize()
-        self.SetSize(max(size.width, 700), max(size.height, 600))
-        self.SetMinSize(size)
+        self.SetMinSize(self.GetSize())
         self.Center()
 
         # Apply theme
@@ -967,19 +971,16 @@ class EffectsDialog(wx.Dialog):
         self.page_container.Layout()
 
     def _fit_to_pages(self):
-        """Set page_container minimum size to the largest page, then Fit().
+        """Fit the dialog to its initial content.
 
-        All pages must be visible when this is called so their best sizes
-        are correctly reported. After measuring, only page 0 is shown.
+        Non-first pages are already hidden at creation time (see _create_ui),
+        so no Show/Hide transitions happen here. ScrolledWindow pages report
+        small minimum heights (content scrolls), so ensure a reasonable default
+        size while respecting GTK minimums.
         """
-        max_w, max_h = 0, 0
-        for page in self.pages:
-            best = page.GetBestSize()
-            max_w = max(max_w, best.width)
-            max_h = max(max_h, best.height)
-        self.page_container.SetMinSize((max_w, max_h))
-        self._show_page(0)
         self.Fit()
+        size = self.GetSize()
+        self.SetSize(max(size.width, 700), max(size.height, 600))
 
     def _create_ui(self):
         """Create the dialog UI with ListBox + page container."""
@@ -1011,11 +1012,13 @@ class EffectsDialog(wx.Dialog):
         self.page_sizer.Add(master_panel, 1, wx.EXPAND)
         self.pages.append(master_panel)
 
-        # Per-deck pages
+        # Per-deck pages (hidden at creation to avoid GTK allocating 0 size)
         for deck in self.mixer.decks:
             if deck.effects:
                 deck_panel = self._create_effect_panel(
                     self.page_container, deck.effects, deck.name)
+                deck_panel.Show(False)
+                deck_panel.Enable(False)
                 self.page_sizer.Add(deck_panel, 1, wx.EXPAND)
                 self.pages.append(deck_panel)
 
