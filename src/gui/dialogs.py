@@ -688,7 +688,18 @@ class OptionsDialog(wx.Dialog):
         self._update_apply_state()
 
     def _show_page(self, idx):
-        """Show page at idx, hide and disable all others."""
+        """Show page at idx, hide and disable all others.
+
+        Pre-sizes the target page to the container bounds before mapping it.
+        Without this, GTK maps the widget with its stale creation-time
+        allocation (0×0), causing 'for_size < min-size' and 'negative content
+        height' warnings from GtkSpinButton on first show.
+        """
+        target = self.pages[idx]
+        if not target.IsShown():
+            sz = self.page_container.GetClientSize()
+            if sz.width > 0 and sz.height > 0:
+                target.SetSize(0, 0, sz.width, sz.height)
         for i, page in enumerate(self.pages):
             active = (i == idx)
             page.Show(active)
@@ -963,7 +974,18 @@ class EffectsDialog(wx.Dialog):
         self._show_page(self.category_list.GetSelection())
 
     def _show_page(self, idx):
-        """Show page at idx, hide and disable all others."""
+        """Show page at idx, hide and disable all others.
+
+        Pre-sizes the target page to the container bounds before mapping it.
+        Without this, GTK maps the widget with its stale creation-time
+        allocation (0×0), causing 'for_size < min-size' and 'negative content
+        height' warnings from GtkSpinButton on first show.
+        """
+        target = self.pages[idx]
+        if not target.IsShown():
+            sz = self.page_container.GetClientSize()
+            if sz.width > 0 and sz.height > 0:
+                target.SetSize(0, 0, sz.width, sz.height)
         for i, page in enumerate(self.pages):
             active = (i == idx)
             page.Show(active)
