@@ -70,12 +70,6 @@ class OptionsDialog(wx.Dialog):
         # Focus category list on dialog open
         self.category_list.SetFocus()
 
-        # Pre-size hidden pages on first show (Linux/GTK only).
-        # GTK measures page_container's preferred size on the first render frame
-        # including hidden children. Hidden pages start with allocation (0,0,0,0)
-        # so GtkSpinButton children get for_size=0 and warn. EVT_SHOW fires after
-        # widget realization but before the first GTK layout frame, making it the
-        # correct place to pre-allocate hidden pages.
         if sys.platform != 'win32':
             self.Bind(wx.EVT_SHOW, self._on_first_show)
 
@@ -83,15 +77,7 @@ class OptionsDialog(wx.Dialog):
     TAB_NAMES = ['general', 'audio', 'automation', 'recorder', 'streaming']
 
     def _on_first_show(self, event):
-        """Pre-size hidden pages on first show to prevent GTK layout warnings.
-
-        GTK's GtkFixed iterates ALL children (including hidden ones) when
-        computing preferred size. Hidden pages start with allocation (0,0,0,0)
-        after realization, so GtkSpinButton children get for_size=0 and log
-        'for_size < min-size' warnings. Calling SetSize()+Layout() here ensures
-        every hidden page and its children have a valid allocation before GTK
-        runs its first layout frame.
-        """
+        """Pre-size hidden pages after realization to avoid layout warnings on Linux."""
         event.Skip()
         if not event.IsShown():
             return
@@ -134,7 +120,7 @@ class OptionsDialog(wx.Dialog):
         self.page_sizer.Add(general_panel, 1, wx.EXPAND)
         self.pages.append(general_panel)
 
-        # Audio page (hidden at creation to avoid GTK allocating 0 size)
+        # Remaining pages hidden at creation; shown on demand via _show_page()
         audio_panel = self._create_audio_tab(self.page_container)
         audio_panel.Show(False)
         audio_panel.Enable(False)
@@ -718,13 +704,7 @@ class OptionsDialog(wx.Dialog):
         self._update_apply_state()
 
     def _show_page(self, idx):
-        """Show page at idx, hide and disable all others.
-
-        Pre-sizes the target page to the container bounds before mapping it.
-        Without this, GTK maps the widget with its stale creation-time
-        allocation (0×0), causing 'for_size < min-size' and 'negative content
-        height' warnings from GtkSpinButton on first show.
-        """
+        """Show page at idx, hide and disable all others."""
         target = self.pages[idx]
         if not target.IsShown():
             sz = self.page_container.GetClientSize()
@@ -738,14 +718,7 @@ class OptionsDialog(wx.Dialog):
         self.page_container.Layout()
 
     def _fit_to_pages(self):
-        """Fit the dialog to its initial content.
-
-        Non-first pages are already hidden at creation time (see _create_ui),
-        so no Show/Hide transitions happen here. This avoids GTK allocating
-        0-size to unrealized SpinCtrls and emitting 'negative content height'
-        or 'for_size < min-size' warnings. The hard-coded minimum is a fallback
-        for Windows where Fit() may return near-zero before window realization.
-        """
+        """Fit the dialog to its initial content with minimum size constraints."""
         self.Fit()
         size = self.GetSize()
         if size.width < 500 or size.height < 380:
@@ -990,15 +963,7 @@ class EffectsDialog(wx.Dialog):
         self.Bind(wx.EVT_CHAR_HOOK, self._on_char_hook)
 
     def _on_first_show(self, event):
-        """Pre-size hidden pages on first show to prevent GTK layout warnings.
-
-        GTK's GtkFixed iterates ALL children (including hidden ones) when
-        computing preferred size. Hidden pages start with allocation (0,0,0,0)
-        after realization, so GtkSpinButton children get for_size=0 and log
-        'for_size < min-size' warnings. Calling SetSize()+Layout() here ensures
-        every hidden page and its children have a valid allocation before GTK
-        runs its first layout frame.
-        """
+        """Pre-size hidden pages after realization to avoid layout warnings on Linux."""
         event.Skip()
         if not event.IsShown():
             return
@@ -1029,13 +994,7 @@ class EffectsDialog(wx.Dialog):
         self._show_page(self.category_list.GetSelection())
 
     def _show_page(self, idx):
-        """Show page at idx, hide and disable all others.
-
-        Pre-sizes the target page to the container bounds before mapping it.
-        Without this, GTK maps the widget with its stale creation-time
-        allocation (0×0), causing 'for_size < min-size' and 'negative content
-        height' warnings from GtkSpinButton on first show.
-        """
+        """Show page at idx, hide and disable all others."""
         target = self.pages[idx]
         if not target.IsShown():
             sz = self.page_container.GetClientSize()
@@ -1049,13 +1008,7 @@ class EffectsDialog(wx.Dialog):
         self.page_container.Layout()
 
     def _fit_to_pages(self):
-        """Fit the dialog to its initial content.
-
-        Non-first pages are already hidden at creation time (see _create_ui),
-        so no Show/Hide transitions happen here. ScrolledWindow pages report
-        small minimum heights (content scrolls), so ensure a reasonable default
-        size while respecting GTK minimums.
-        """
+        """Fit the dialog to its initial content with minimum size constraints."""
         self.Fit()
         size = self.GetSize()
         self.SetSize(max(size.width, 700), max(size.height, 600))
