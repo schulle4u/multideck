@@ -250,16 +250,18 @@ class ProjectManager:
                     project_data['decks'].append({})  # Empty deck
 
             # Load effects settings
+            # raw=True prevents BasicInterpolation from mangling % signs in values
+            # (VST parameter JSON can legitimately contain % characters)
             # Master effects
             if config.has_section('MasterEffects'):
-                project_data['master_effects'] = dict(config.items('MasterEffects'))
+                project_data['master_effects'] = dict(config.items('MasterEffects', raw=True))
 
             # Per-deck effects
             project_data['deck_effects'] = []
             for i in range(1, 11):
                 section = f'Deck{i}Effects'
                 if config.has_section(section):
-                    project_data['deck_effects'].append(dict(config.items(section)))
+                    project_data['deck_effects'].append(dict(config.items(section, raw=True)))
                 else:
                     project_data['deck_effects'].append({})
 

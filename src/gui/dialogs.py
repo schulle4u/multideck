@@ -2,6 +2,7 @@
 Dialogs - Various dialog windows for MultiDeck Audio Player
 """
 
+import os
 import wx
 import sys
 import sounddevice as sd
@@ -1020,11 +1021,15 @@ class EffectsDialog(wx.Dialog):
 
         book_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        # Build page names list
-        page_names = [_("Master Effects")]
+        # Build page names list: interleaved built-in + VST entries per chain
+        page_names = [
+            _("Master: Built-in Effects"),
+            _("Master: VST Plugins"),
+        ]
         for deck in self.mixer.decks:
             if deck.effects:
-                page_names.append(deck.name)
+                page_names.append(f"{deck.name}: {_('Built-in Effects')}")
+                page_names.append(f"{deck.name}: {_('VST Plugins')}")
 
         list_sizer = wx.BoxSizer(wx.VERTICAL)
         list_label = wx.StaticText(panel, label=_("&Effect Chains"))
@@ -1033,18 +1038,26 @@ class EffectsDialog(wx.Dialog):
         self.category_list.SetName(_("Effect Chains"))
         self.category_list.SetLabel(_("Effect Chains"))
         self.category_list.SetSelection(0)
-        list_sizer.Add(self.category_list, 0, wx.EXPAND | wx.ALL, 5)
+        list_sizer.Add(self.category_list, 1, wx.EXPAND | wx.ALL, 5)
         book_sizer.Add(list_sizer, 0, wx.EXPAND)
 
         self.page_container = wx.Panel(panel)
         self.page_sizer = wx.BoxSizer(wx.VERTICAL)
         self.pages = []
 
-        # Master effects page
+        # Master built-in effects page
         master_panel = self._create_effect_panel(
             self.page_container, self.mixer.master_effects, _("Master"))
         self.page_sizer.Add(master_panel, 1, wx.EXPAND)
         self.pages.append(master_panel)
+
+        # Master VST page
+        master_vst = self._create_vst_panel(
+            self.page_container, self.mixer.master_effects, _("Master"))
+        master_vst.Show(False)
+        master_vst.Enable(False)
+        self.page_sizer.Add(master_vst, 1, wx.EXPAND)
+        self.pages.append(master_vst)
 
         # Per-deck pages (hidden at creation to avoid GTK allocating 0 size)
         for deck in self.mixer.decks:
@@ -1055,6 +1068,13 @@ class EffectsDialog(wx.Dialog):
                 deck_panel.Enable(False)
                 self.page_sizer.Add(deck_panel, 1, wx.EXPAND)
                 self.pages.append(deck_panel)
+
+                deck_vst = self._create_vst_panel(
+                    self.page_container, deck.effects, deck.name)
+                deck_vst.Show(False)
+                deck_vst.Enable(False)
+                self.page_sizer.Add(deck_vst, 1, wx.EXPAND)
+                self.pages.append(deck_vst)
 
         self.page_container.SetSizer(self.page_sizer)
 
@@ -1116,6 +1136,321 @@ class EffectsDialog(wx.Dialog):
 
     def _set_chain_enabled(self, effect_chain, enabled):
         effect_chain.enabled = enabled
+
+    # ------------------------------------------------------------------ #
+    #  VST plugin panel                                                    #
+    # ------------------------------------------------------------------ #
+
+    def _create_vst_panel(self, parent, effect_chain, chain_name):
+        """Create a panel that manages VST plugins for one effect chain."""
+        panel = wx.Panel(parent)
+        outer = wx.BoxSizer(wx.VERTICAL)
+
+        # Plugin list
+        list_label = wx.StaticText(panel, label=_("Loaded VST Plugins:"))
+        outer.Add(list_label, 0, wx.LEFT | wx.TOP, 10)
+
+        vst_lb = wx.ListBox(panel, style=wx.LB_SINGLE)
+        vst_lb.SetName(f"{chain_name}: {_('VST Plugins')}")
+        outer.Add(vst_lb, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Enable checkbox for the selected plugin
+        enable_cb = wx.CheckBox(panel, label=_("Enable selected plugin"))
+        enable_cb.SetName(f"{chain_name}: {_('Enable selected VST plugin')}")
+        enable_cb.Enable(False)
+        outer.Add(enable_cb, 0, wx.LEFT | wx.BOTTOM, 10)
+
+        # Button toolbar
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        add_btn = wx.Button(panel, label=_("&Add VST..."))
+        remove_btn = wx.Button(panel, label=_("&Remove"))
+        up_btn = wx.Button(panel, label=_("Move &Up"))
+        down_btn = wx.Button(panel, label=_("Move &Down"))
+        editor_btn = wx.Button(panel, label=_("Open &Editor"))
+        for b in (add_btn, remove_btn, up_btn, down_btn, editor_btn):
+            btn_sizer.Add(b, 0, wx.RIGHT, 5)
+        outer.Add(btn_sizer, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        outer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 5)
+
+        # Parameter panel (scrolled, rebuilt on selection change)
+        param_label = wx.StaticText(panel, label=_("Parameters of selected plugin:"))
+        outer.Add(param_label, 0, wx.LEFT | wx.TOP, 10)
+
+        param_scroll = wx.ScrolledWindow(panel)
+        param_scroll.SetScrollRate(0, 10)
+        param_inner = wx.BoxSizer(wx.VERTICAL)
+        param_scroll.SetSizer(param_inner)
+        outer.Add(param_scroll, 1, wx.EXPAND | wx.ALL, 5)
+
+        panel.SetSizer(outer)
+
+        # Collect mutable state in a dict so closures can mutate it
+        state = {
+            'listbox': vst_lb,
+            'enable_cb': enable_cb,
+            'remove_btn': remove_btn,
+            'up_btn': up_btn,
+            'down_btn': down_btn,
+            'editor_btn': editor_btn,
+            'param_scroll': param_scroll,
+            'param_inner': param_inner,
+        }
+
+        self._refresh_vst_list(state, effect_chain)
+        self._update_vst_buttons(state, effect_chain)
+
+        # ---- Event bindings ----
+
+        def on_select(event):
+            event.Skip()
+            self._on_vst_selected(state, effect_chain, chain_name)
+
+        def on_enable(event):
+            idx = vst_lb.GetSelection()
+            if idx != wx.NOT_FOUND:
+                effect_chain.enable_vst(idx, event.IsChecked())
+                self._refresh_vst_list(state, effect_chain)
+                vst_lb.SetSelection(idx)
+
+        def on_add(event):
+            self._on_vst_add(state, effect_chain, chain_name, panel)
+
+        def on_remove(event):
+            self._on_vst_remove(state, effect_chain, chain_name)
+
+        def on_up(event):
+            idx = vst_lb.GetSelection()
+            if idx != wx.NOT_FOUND and idx > 0:
+                effect_chain.move_vst(idx, -1)
+                self._refresh_vst_list(state, effect_chain)
+                vst_lb.SetSelection(idx - 1)
+                self._on_vst_selected(state, effect_chain, chain_name)
+
+        def on_down(event):
+            idx = vst_lb.GetSelection()
+            if idx != wx.NOT_FOUND and idx < len(effect_chain.vst_slots) - 1:
+                effect_chain.move_vst(idx, 1)
+                self._refresh_vst_list(state, effect_chain)
+                vst_lb.SetSelection(idx + 1)
+                self._on_vst_selected(state, effect_chain, chain_name)
+
+        def on_editor(event):
+            idx = vst_lb.GetSelection()
+            if idx == wx.NOT_FOUND:
+                return
+            slot = effect_chain.vst_slots[idx]
+            plugin = slot['plugin']
+            try:
+                plugin.show_editor()
+            except AttributeError:
+                wx.MessageBox(
+                    _("The pedalboard library does not support opening native plugin "
+                      "editors in this version.\n\nUse the parameter panel below to "
+                      "control the plugin."),
+                    _("Native Editor Not Available"),
+                    wx.OK | wx.ICON_INFORMATION,
+                )
+            except Exception as e:
+                wx.MessageBox(str(e), _("Editor Error"), wx.OK | wx.ICON_ERROR)
+
+        vst_lb.Bind(wx.EVT_LISTBOX, on_select)
+        enable_cb.Bind(wx.EVT_CHECKBOX, on_enable)
+        add_btn.Bind(wx.EVT_BUTTON, on_add)
+        remove_btn.Bind(wx.EVT_BUTTON, on_remove)
+        up_btn.Bind(wx.EVT_BUTTON, on_up)
+        down_btn.Bind(wx.EVT_BUTTON, on_down)
+        editor_btn.Bind(wx.EVT_BUTTON, on_editor)
+
+        return panel
+
+    # ---- VST list helpers ----
+
+    @staticmethod
+    def _refresh_vst_list(state, effect_chain):
+        """Rebuild the VST ListBox from current vst_slots."""
+        lb = state['listbox']
+        sel = lb.GetSelection()
+        lb.Clear()
+        for slot in effect_chain.vst_slots:
+            prefix = "[+] " if slot['enabled'] else "[ ] "
+            lb.Append(prefix + slot['name'])
+        if sel != wx.NOT_FOUND and sel < lb.GetCount():
+            lb.SetSelection(sel)
+
+    @staticmethod
+    def _update_vst_buttons(state, effect_chain):
+        idx = state['listbox'].GetSelection()
+        has_sel = idx != wx.NOT_FOUND
+        count = len(effect_chain.vst_slots)
+        state['remove_btn'].Enable(has_sel)
+        state['up_btn'].Enable(has_sel and idx > 0)
+        state['down_btn'].Enable(has_sel and idx < count - 1)
+        state['editor_btn'].Enable(has_sel)
+        state['enable_cb'].Enable(has_sel)
+        if has_sel:
+            state['enable_cb'].SetValue(effect_chain.vst_slots[idx]['enabled'])
+
+    def _on_vst_selected(self, state, effect_chain, chain_name):
+        self._update_vst_buttons(state, effect_chain)
+        idx = state['listbox'].GetSelection()
+        if idx == wx.NOT_FOUND:
+            return
+        slot = effect_chain.vst_slots[idx]
+        self._rebuild_vst_param_panel(
+            state['param_scroll'], state['param_inner'],
+            effect_chain, idx, chain_name, slot['name'])
+
+    def _on_vst_add(self, state, effect_chain, chain_name, parent):
+        wildcard = (
+            "VST3 Plugins (*.vst3)|*.vst3"
+            "|AU Plugins (*.component)|*.component"
+            "|All Files (*.*)|*.*"
+        )
+        dlg = wx.FileDialog(
+            self, _("Load VST Plugin"),
+            wildcard=wildcard,
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            dlg.Destroy()
+            error = effect_chain.add_vst(path)
+            if error:
+                wx.MessageBox(
+                    _("Failed to load VST plugin:\n{}").format(error),
+                    _("VST Load Error"),
+                    wx.OK | wx.ICON_ERROR,
+                )
+            else:
+                self._refresh_vst_list(state, effect_chain)
+                new_idx = len(effect_chain.vst_slots) - 1
+                state['listbox'].SetSelection(new_idx)
+                self._on_vst_selected(state, effect_chain, chain_name)
+        else:
+            dlg.Destroy()
+
+    def _on_vst_remove(self, state, effect_chain, chain_name):
+        idx = state['listbox'].GetSelection()
+        if idx == wx.NOT_FOUND:
+            return
+        name = effect_chain.vst_slots[idx]['name']
+        dlg = wx.MessageDialog(
+            self,
+            _('Remove "{}"?').format(name),
+            _("Remove VST Plugin"),
+            wx.YES_NO | wx.ICON_QUESTION,
+        )
+        if dlg.ShowModal() == wx.ID_YES:
+            effect_chain.remove_vst(idx)
+            self._refresh_vst_list(state, effect_chain)
+            self._clear_vst_param_panel(state['param_scroll'], state['param_inner'])
+            self._update_vst_buttons(state, effect_chain)
+        dlg.Destroy()
+
+    # ---- Parameter panel ----
+
+    def _clear_vst_param_panel(self, scroll, inner_sizer):
+        scroll.DestroyChildren()
+        inner_sizer.Clear()
+        scroll.FitInside()
+        scroll.Layout()
+
+    def _rebuild_vst_param_panel(self, scroll, inner_sizer,
+                                  effect_chain, vst_index, chain_name, plugin_name):
+        """Destroy and rebuild the parameter panel for the selected VST plugin."""
+        scroll.DestroyChildren()
+        inner_sizer.Clear()
+
+        params = effect_chain.get_vst_parameters(vst_index)
+        if not params:
+            lbl = wx.StaticText(scroll, label=_("No parameters available."))
+            inner_sizer.Add(lbl, 0, wx.ALL, 10)
+        else:
+            for param_name, param in params.items():
+                widget = self._make_vst_param_widget(
+                    scroll, effect_chain, vst_index, chain_name, plugin_name,
+                    param_name, param)
+                if widget is not None:
+                    inner_sizer.Add(widget, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 3)
+
+        scroll.FitInside()
+        scroll.Layout()
+
+    def _make_vst_param_widget(self, parent, effect_chain, vst_index,
+                                chain_name, plugin_name, param_name, param):
+        """Return an accessible sizer for one VST parameter, or None on error."""
+        try:
+            display_name = getattr(param, 'name', None) or param_name
+            label_unit = getattr(param, 'label', '') or ''
+            min_val = float(getattr(param, 'min_value', 0.0))
+            max_val = float(getattr(param, 'max_value', 1.0))
+            is_bool = getattr(param, 'is_boolean', False)
+            is_discrete = getattr(param, 'is_discrete', False)
+            valid_values = list(getattr(param, 'valid_values', None) or [])
+
+            # pedalboard exposes current parameter values as attributes on the
+            # plugin object (plugin.param_name), not on the metadata object.
+            plugin = effect_chain.vst_slots[vst_index]['plugin']
+            raw_current = getattr(plugin, param_name, None)
+
+            full_name = f"{chain_name}: {plugin_name}: {display_name}"
+            slider_range = max_val - min_val if max_val != min_val else 1.0
+
+            if is_bool:
+                cb = wx.CheckBox(parent, label=display_name)
+                cb.SetName(full_name)
+                cb.SetValue(bool(raw_current) if raw_current is not None else False)
+
+                def on_bool(event, pn=param_name):
+                    effect_chain.set_vst_param(
+                        vst_index, pn, 1.0 if event.IsChecked() else 0.0)
+                cb.Bind(wx.EVT_CHECKBOX, on_bool)
+                return cb
+
+            if valid_values and is_discrete:
+                str_vals = [str(v) for v in valid_values]
+                row = wx.BoxSizer(wx.HORIZONTAL)
+                lbl = wx.StaticText(parent, label=display_name + ":", size=(180, -1))
+                row.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
+                choice = wx.Choice(parent, choices=str_vals)
+                choice.SetName(full_name)
+                str_cur = str(raw_current) if raw_current is not None else ''
+                choice.SetSelection(str_vals.index(str_cur) if str_cur in str_vals else 0)
+
+                def on_choice(event, pn=param_name, vals=valid_values):
+                    try:
+                        effect_chain.set_vst_param(vst_index, pn, vals[event.GetSelection()])
+                    except (IndexError, Exception):
+                        pass
+                choice.Bind(wx.EVT_CHOICE, on_choice)
+                row.Add(choice, 1, wx.EXPAND | wx.ALL, 3)
+                return row
+
+            # Float / int → slider mapped to 0-1000
+            try:
+                current_value = float(raw_current) if raw_current is not None else min_val
+            except (TypeError, ValueError):
+                current_value = min_val
+            slider_val = int((current_value - min_val) / slider_range * 1000)
+            slider_val = max(0, min(1000, slider_val))
+
+            def fmt(v, mn=min_val, sr=slider_range, u=label_unit):
+                real = mn + (v / 1000.0) * sr
+                return (f"{real:.3g} {u}" if u else f"{real:.3g}").strip()
+
+            def on_slide(v, pn=param_name, mn=min_val, sr=slider_range):
+                effect_chain.set_vst_param(vst_index, pn, mn + (v / 1000.0) * sr)
+
+            return self._make_slider(
+                parent, display_name, f"{chain_name}: {plugin_name}",
+                slider_val, 0, 1000, on_slide, fmt_func=fmt)
+
+        except Exception as e:
+            from utils.logger import get_logger
+            get_logger('effects_dialog').error(
+                f"Error creating VST param widget for {param_name}: {e}")
+            return None
 
     # --- Reverb ---
 

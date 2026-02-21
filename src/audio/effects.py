@@ -2,6 +2,8 @@
 Audio Effects - Real-time effect chain using pedalboard (Spotify)
 """
 
+import json
+import os
 import numpy as np
 import threading
 from typing import Optional
@@ -49,6 +51,9 @@ class EffectChain:
         self.compressor = None
         self.limiter = None
         self.gain = None
+
+        # VST plugin slots: list of {'path': str, 'plugin': obj, 'enabled': bool, 'name': str}
+        self.vst_slots = []
 
         # Enable flags
         self.reverb_enabled = False
@@ -148,6 +153,9 @@ class EffectChain:
             active.append(self.limiter)
         if self.gain_enabled and self.gain is not None:
             active.append(self.gain)
+        for slot in self.vst_slots:
+            if slot['enabled'] and slot['plugin'] is not None:
+                active.append(slot['plugin'])
 
         self._board = Pedalboard(active)
 
@@ -245,6 +253,82 @@ class EffectChain:
                 if hasattr(self.gain, key):
                     setattr(self.gain, key, val)
 
+    # --- VST plugin management ---
+
+    def add_vst(self, path: str):
+        """Load and append a VST3/AU plugin to the chain.
+
+        Returns an error string on failure, or None on success.
+        """
+        if not _check_pedalboard():
+            return "pedalboard not available"
+        try:
+            from pedalboard import load_plugin
+            plugin = load_plugin(path)
+            name = getattr(plugin, 'name', None) or os.path.splitext(os.path.basename(path))[0]
+            with self._lock:
+                self.vst_slots.append({
+                    'path': path,
+                    'plugin': plugin,
+                    'enabled': True,
+                    'name': name,
+                })
+                self._rebuild_board()
+            return None
+        except Exception as e:
+            logger.error(f"Failed to load VST plugin {path}: {e}")
+            return str(e)
+
+    def remove_vst(self, index: int):
+        """Remove a VST slot by index."""
+        with self._lock:
+            if 0 <= index < len(self.vst_slots):
+                self.vst_slots.pop(index)
+                self._rebuild_board()
+
+    def move_vst(self, index: int, direction: int):
+        """Swap a VST slot with its neighbour. direction: -1 = up, +1 = down."""
+        with self._lock:
+            new_idx = index + direction
+            if 0 <= index < len(self.vst_slots) and 0 <= new_idx < len(self.vst_slots):
+                self.vst_slots[index], self.vst_slots[new_idx] = (
+                    self.vst_slots[new_idx], self.vst_slots[index])
+                self._rebuild_board()
+
+    def enable_vst(self, index: int, enabled: bool):
+        """Enable or disable a VST slot without removing it."""
+        with self._lock:
+            if 0 <= index < len(self.vst_slots):
+                self.vst_slots[index]['enabled'] = enabled
+                self._rebuild_board()
+
+    def set_vst_param(self, index: int, param_name: str, value):
+        """Set a parameter on a VST plugin by its attribute name."""
+        with self._lock:
+            if 0 <= index < len(self.vst_slots):
+                plugin = self.vst_slots[index]['plugin']
+                try:
+                    setattr(plugin, param_name, value)
+                except Exception as e:
+                    logger.error(f"VST param error [{index}].{param_name}={value}: {e}")
+
+    def get_vst_parameters(self, index: int) -> dict:
+        """Return the parameters dict of a loaded VST plugin.
+
+        Keys are Python-identifier-safe parameter names; values are
+        pedalboard ParameterValue objects (read-only attributes:
+        .value, .min_value, .max_value, .name, .label, .is_discrete,
+        .valid_values).
+        Returns an empty dict when the index is invalid or on error.
+        """
+        if 0 <= index < len(self.vst_slots):
+            plugin = self.vst_slots[index]['plugin']
+            try:
+                return dict(plugin.parameters)
+            except Exception as e:
+                logger.error(f"Could not read VST parameters [{index}]: {e}")
+        return {}
+
     # --- Serialization ---
 
     def to_dict(self) -> dict:
@@ -311,6 +395,38 @@ class EffectChain:
                 'gain_gain_db': self.gain.gain_db,
             })
 
+        d['vst_count'] = len(self.vst_slots)
+        for i, slot in enumerate(self.vst_slots):
+            d[f'vst_{i}_path'] = slot['path']
+            d[f'vst_{i}_enabled'] = slot['enabled']
+            d[f'vst_{i}_name'] = slot['name']
+            params = {}
+            try:
+                plugin = slot['plugin']
+                for name, param in plugin.parameters.items():
+                    try:
+                        # pedalboard exposes parameter values as attributes on the
+                        # plugin object itself (plugin.param_name), not on the
+                        # _AudioProcessorParameter metadata object.
+                        raw = getattr(plugin, name)
+                        # Normalize to JSON-serializable Python primitives.
+                        # pedalboard / numpy may return float64, bool_, int32, etc.
+                        if isinstance(raw, bool):
+                            params[name] = bool(raw)
+                        elif isinstance(raw, float) or (
+                                hasattr(raw, '__float__') and not isinstance(raw, str)):
+                            params[name] = float(raw)
+                        elif isinstance(raw, int) or (
+                                hasattr(raw, '__index__') and not isinstance(raw, bool)):
+                            params[name] = int(raw)
+                        else:
+                            params[name] = str(raw)
+                    except Exception as e:
+                        logger.debug(f"Skipping VST param {name!r} in slot {i}: {e}")
+            except Exception as e:
+                logger.warning(f"Could not iterate parameters for VST slot {i}: {e}")
+            d[f'vst_{i}_params'] = json.dumps(params)
+
         return d
 
     def from_dict(self, data: dict):
@@ -364,6 +480,30 @@ class EffectChain:
                 self.gain.gain_db = float(data.get('gain_gain_db', 0.0))
 
             self._rebuild_board()
+
+        vst_count = int(data.get('vst_count', 0))
+        for i in range(vst_count):
+            path = data.get(f'vst_{i}_path', '')
+            if not path or not os.path.exists(path):
+                logger.warning(f"VST plugin file not found, skipping: {path!r}")
+                continue
+            error = self.add_vst(path)
+            if error:
+                logger.error(f"Could not restore VST plugin {path!r}: {error}")
+                continue
+            enabled = _parse_bool(data.get(f'vst_{i}_enabled', True))
+            self.vst_slots[-1]['enabled'] = enabled
+            try:
+                saved_params = json.loads(data.get(f'vst_{i}_params', '{}'))
+                plugin = self.vst_slots[-1]['plugin']
+                for param_name, value in saved_params.items():
+                    try:
+                        setattr(plugin, param_name, value)
+                    except Exception as e:
+                        logger.debug(f"Could not restore VST param {param_name!r}: {e}")
+            except Exception as e:
+                logger.warning(f"Could not restore VST params for slot {i}: {e}")
+        self._rebuild_board()
 
 
 def _parse_bool(value) -> bool:
