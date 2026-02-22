@@ -1146,47 +1146,59 @@ class EffectsDialog(wx.Dialog):
         panel = wx.Panel(parent)
         outer = wx.BoxSizer(wx.VERTICAL)
 
-        # Plugin list
-        list_label = wx.StaticText(panel, label=_("Loaded VST Plugins:"))
-        outer.Add(list_label, 0, wx.LEFT | wx.TOP, 10)
+        # ---- Section 1: plugin management (StaticBoxSizer) ----
+        # All child widgets are parented to mgmt_sb (the StaticBox), not to
+        # mgmt_panel.  This matches the built-in effect sections and ensures
+        # Orca reads them correctly via the AT-SPI accessible name of the box.
+        mgmt_panel = wx.Panel(panel)
+        mgmt_sizer = wx.BoxSizer(wx.VERTICAL)
+        mgmt_box = wx.StaticBoxSizer(wx.VERTICAL, mgmt_panel, _("VST Plugins"))
+        mgmt_sb = mgmt_box.GetStaticBox()
 
-        vst_lb = wx.ListBox(panel, style=wx.LB_SINGLE)
+        vst_lb = wx.ListBox(mgmt_sb, style=wx.LB_SINGLE)
         vst_lb.SetName(f"{chain_name}: {_('VST Plugins')}")
-        outer.Add(vst_lb, 0, wx.EXPAND | wx.ALL, 5)
+        vst_lb.SetMinSize((-1, 80))
+        mgmt_box.Add(vst_lb, 0, wx.EXPAND | wx.ALL, 5)
 
-        # Enable checkbox for the selected plugin
-        enable_cb = wx.CheckBox(panel, label=_("Enable selected plugin"))
+        enable_cb = wx.CheckBox(mgmt_sb, label=_("Enable selected plugin"))
         enable_cb.SetName(f"{chain_name}: {_('Enable selected VST plugin')}")
         enable_cb.Enable(False)
-        outer.Add(enable_cb, 0, wx.LEFT | wx.BOTTOM, 10)
+        mgmt_box.Add(enable_cb, 0, wx.LEFT | wx.BOTTOM, 5)
 
-        # Button toolbar
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        add_btn = wx.Button(panel, label=_("&Add VST..."))
-        remove_btn = wx.Button(panel, label=_("&Remove"))
-        up_btn = wx.Button(panel, label=_("Move &Up"))
-        down_btn = wx.Button(panel, label=_("Move &Down"))
-        editor_btn = wx.Button(panel, label=_("Open &Editor"))
+        add_btn = wx.Button(mgmt_sb, label=_("&Add VST..."))
+        remove_btn = wx.Button(mgmt_sb, label=_("&Remove"))
+        up_btn = wx.Button(mgmt_sb, label=_("Move &Up"))
+        down_btn = wx.Button(mgmt_sb, label=_("Move &Down"))
+        editor_btn = wx.Button(mgmt_sb, label=_("Open &Editor"))
         for b in (add_btn, remove_btn, up_btn, down_btn, editor_btn):
             btn_sizer.Add(b, 0, wx.RIGHT, 5)
-        outer.Add(btn_sizer, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+        mgmt_box.Add(btn_sizer, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
-        # Loading status label (hidden by default, shown while a plugin loads)
-        load_status = wx.StaticText(panel, label="")
+        load_status = wx.StaticText(mgmt_sb, label="")
         load_status.Show(False)
-        outer.Add(load_status, 0, wx.LEFT | wx.BOTTOM, 10)
+        mgmt_box.Add(load_status, 0, wx.LEFT | wx.BOTTOM, 5)
 
-        outer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 5)
+        mgmt_sizer.Add(mgmt_box, 1, wx.EXPAND)
+        mgmt_panel.SetSizer(mgmt_sizer)
+        outer.Add(mgmt_panel, 0, wx.EXPAND | wx.ALL, 5)
 
-        # Parameter panel (scrolled, rebuilt on selection change)
-        param_label = wx.StaticText(panel, label=_("Parameters of selected plugin:"))
-        outer.Add(param_label, 0, wx.LEFT | wx.TOP, 10)
+        # ---- Section 2: parameter panel (StaticBoxSizer) ----
+        param_panel = wx.Panel(panel)
+        param_sizer = wx.BoxSizer(wx.VERTICAL)
+        param_box = wx.StaticBoxSizer(
+            wx.VERTICAL, param_panel, _("Parameters of selected plugin"))
+        param_sb = param_box.GetStaticBox()
 
-        param_scroll = wx.ScrolledWindow(panel)
+        param_scroll = wx.ScrolledWindow(param_sb)
         param_scroll.SetScrollRate(0, 10)
         param_inner = wx.BoxSizer(wx.VERTICAL)
         param_scroll.SetSizer(param_inner)
-        outer.Add(param_scroll, 1, wx.EXPAND | wx.ALL, 5)
+        param_box.Add(param_scroll, 1, wx.EXPAND | wx.ALL, 5)
+
+        param_sizer.Add(param_box, 1, wx.EXPAND)
+        param_panel.SetSizer(param_sizer)
+        outer.Add(param_panel, 1, wx.EXPAND | wx.ALL, 5)
 
         panel.SetSizer(outer)
 
@@ -1200,6 +1212,7 @@ class EffectsDialog(wx.Dialog):
             'down_btn': down_btn,
             'editor_btn': editor_btn,
             'load_status': load_status,
+            'mgmt_panel': mgmt_panel,
             'param_scroll': param_scroll,
             'param_inner': param_inner,
         }
@@ -1335,7 +1348,7 @@ class EffectsDialog(wx.Dialog):
         plugin_filename = os.path.basename(path)
         state['load_status'].SetLabel(_("Loading {}…").format(plugin_filename))
         state['load_status'].Show(True)
-        state['load_status'].GetParent().Layout()
+        state['mgmt_panel'].Layout()
         state['add_btn'].Disable()
         wx.BeginBusyCursor()
         wx.SafeYield(None, True)
@@ -1346,7 +1359,7 @@ class EffectsDialog(wx.Dialog):
             wx.EndBusyCursor()
             state['load_status'].SetLabel("")
             state['load_status'].Show(False)
-            state['load_status'].GetParent().Layout()
+            state['mgmt_panel'].Layout()
             state['add_btn'].Enable()
             self._update_vst_buttons(state, effect_chain)
 
