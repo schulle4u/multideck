@@ -1166,7 +1166,7 @@ class EffectsDialog(wx.Dialog):
         mgmt_box.Add(enable_cb, 0, wx.LEFT | wx.BOTTOM, 5)
 
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        add_btn = wx.Button(mgmt_sb, label=_("&Add VST..."))
+        add_btn = wx.Button(mgmt_sb, label=_("&Add VST") + "...")
         remove_btn = wx.Button(mgmt_sb, label=_("&Remove"))
         up_btn = wx.Button(mgmt_sb, label=_("Move &Up"))
         down_btn = wx.Button(mgmt_sb, label=_("Move &Down"))
