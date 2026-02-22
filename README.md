@@ -24,6 +24,7 @@ An accessible, cross-platform audio player that enables simultaneous playback of
   - Real-time recording with status display and optional pre-roll buffer
 - **Live audio effects powered by Spotify's Pedalboard library**
   - Use standard effects such as delay, chorus, equalizer, compressor and limiter
+  - Load and configure VST3 effect plugins
   - Apply effects per deck or to the master output.
 - **Commandline interface**
   - Load project files and play them in your server environment or on embedded computers.
