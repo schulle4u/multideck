@@ -1169,7 +1169,12 @@ class EffectsDialog(wx.Dialog):
         editor_btn = wx.Button(panel, label=_("Open &Editor"))
         for b in (add_btn, remove_btn, up_btn, down_btn, editor_btn):
             btn_sizer.Add(b, 0, wx.RIGHT, 5)
-        outer.Add(btn_sizer, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        outer.Add(btn_sizer, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+
+        # Loading status label (hidden by default, shown while a plugin loads)
+        load_status = wx.StaticText(panel, label="")
+        load_status.Show(False)
+        outer.Add(load_status, 0, wx.LEFT | wx.BOTTOM, 10)
 
         outer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 5)
 
@@ -1189,10 +1194,12 @@ class EffectsDialog(wx.Dialog):
         state = {
             'listbox': vst_lb,
             'enable_cb': enable_cb,
+            'add_btn': add_btn,
             'remove_btn': remove_btn,
             'up_btn': up_btn,
             'down_btn': down_btn,
             'editor_btn': editor_btn,
+            'load_status': load_status,
             'param_scroll': param_scroll,
             'param_inner': param_inner,
         }
@@ -1312,23 +1319,48 @@ class EffectsDialog(wx.Dialog):
             wildcard=wildcard,
             style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
         )
-        if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
+        if dlg.ShowModal() != wx.ID_OK:
             dlg.Destroy()
+            return
+        path = dlg.GetPath()
+        dlg.Destroy()
+
+        # pedalboard's load_plugin() must run on the main (UI) thread because
+        # JUCE's VST3 host initialisation requires it, especially for reloads.
+        # A background thread cannot be used here.
+        #
+        # wx.SafeYield() processes all pending paint/accessibility events so
+        # that the loading label and busy cursor are rendered before the
+        # blocking call freezes the GUI. This gives the user visible feedback.
+        plugin_filename = os.path.basename(path)
+        state['load_status'].SetLabel(_("Loading {}…").format(plugin_filename))
+        state['load_status'].Show(True)
+        state['load_status'].GetParent().Layout()
+        state['add_btn'].Disable()
+        wx.BeginBusyCursor()
+        wx.SafeYield(None, True)
+
+        try:
             error = effect_chain.add_vst(path)
-            if error:
-                wx.MessageBox(
-                    _("Failed to load VST plugin:\n{}").format(error),
-                    _("VST Load Error"),
-                    wx.OK | wx.ICON_ERROR,
-                )
-            else:
-                self._refresh_vst_list(state, effect_chain)
-                new_idx = len(effect_chain.vst_slots) - 1
-                state['listbox'].SetSelection(new_idx)
-                self._on_vst_selected(state, effect_chain, chain_name)
+        finally:
+            wx.EndBusyCursor()
+            state['load_status'].SetLabel("")
+            state['load_status'].Show(False)
+            state['load_status'].GetParent().Layout()
+            state['add_btn'].Enable()
+            self._update_vst_buttons(state, effect_chain)
+
+        if error:
+            wx.MessageBox(
+                _("Failed to load VST plugin:\n{}").format(error),
+                _("VST Load Error"),
+                wx.OK | wx.ICON_ERROR,
+            )
         else:
-            dlg.Destroy()
+            self._refresh_vst_list(state, effect_chain)
+            new_idx = len(effect_chain.vst_slots) - 1
+            state['listbox'].SetSelection(new_idx)
+            self._on_vst_selected(state, effect_chain, chain_name)
 
     def _on_vst_remove(self, state, effect_chain, chain_name):
         idx = state['listbox'].GetSelection()
@@ -1383,8 +1415,8 @@ class EffectsDialog(wx.Dialog):
         try:
             display_name = getattr(param, 'name', None) or param_name
             label_unit = getattr(param, 'label', '') or ''
-            min_val = float(getattr(param, 'min_value', 0.0))
-            max_val = float(getattr(param, 'max_value', 1.0))
+            _min = getattr(param, 'min_value', None)
+            _max = getattr(param, 'max_value', None)
             is_bool = getattr(param, 'is_boolean', False)
             is_discrete = getattr(param, 'is_discrete', False)
             valid_values = list(getattr(param, 'valid_values', None) or [])
@@ -1393,6 +1425,14 @@ class EffectsDialog(wx.Dialog):
             # plugin object (plugin.param_name), not on the metadata object.
             plugin = effect_chain.vst_slots[vst_index]['plugin']
             raw_current = getattr(plugin, param_name, None)
+
+            # Some internal plugin parameters report None for their range.
+            # Skip them unless they are boolean or discrete (no range needed).
+            if not is_bool and not (valid_values and is_discrete):
+                if _min is None or _max is None:
+                    return None
+            min_val = float(_min) if _min is not None else 0.0
+            max_val = float(_max) if _max is not None else 1.0
 
             full_name = f"{chain_name}: {plugin_name}: {display_name}"
             slider_range = max_val - min_val if max_val != min_val else 1.0
