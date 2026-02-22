@@ -432,6 +432,13 @@ class EffectChain:
     def from_dict(self, data: dict):
         """Load effect chain settings from flat dict."""
         with self._lock:
+            # Drop any VST plugins from the previous project/session so that
+            # they don't accumulate across loads.  Clearing the list and
+            # rebuilding before the new VSTs are appended below is sufficient;
+            # Python will garbage-collect the plugin objects and pedalboard
+            # releases the native VST3 resources in their destructors.
+            self.vst_slots = []
+
             self.enabled = _parse_bool(data.get('enabled', False))
 
             self.reverb_enabled = _parse_bool(data.get('reverb_enabled', False))
