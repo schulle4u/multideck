@@ -124,28 +124,24 @@ class OptionsDialog(wx.Dialog):
         # Remaining pages hidden at creation; shown on demand via _show_page()
         audio_panel = self._create_audio_tab(self.page_container)
         audio_panel.Show(False)
-        audio_panel.Enable(False)
         self.page_sizer.Add(audio_panel, 1, wx.EXPAND)
         self.pages.append(audio_panel)
 
         # Automation page (hidden at creation)
         automation_panel = self._create_automation_tab(self.page_container)
         automation_panel.Show(False)
-        automation_panel.Enable(False)
         self.page_sizer.Add(automation_panel, 1, wx.EXPAND)
         self.pages.append(automation_panel)
 
         # Recorder page (hidden at creation)
         recorder_panel = self._create_recorder_tab(self.page_container)
         recorder_panel.Show(False)
-        recorder_panel.Enable(False)
         self.page_sizer.Add(recorder_panel, 1, wx.EXPAND)
         self.pages.append(recorder_panel)
 
         # Streaming page (hidden at creation)
         streaming_panel = self._create_streaming_tab(self.page_container)
         streaming_panel.Show(False)
-        streaming_panel.Enable(False)
         self.page_sizer.Add(streaming_panel, 1, wx.EXPAND)
         self.pages.append(streaming_panel)
 
@@ -705,18 +701,12 @@ class OptionsDialog(wx.Dialog):
         self._update_apply_state()
 
     def _show_page(self, idx):
-        """Show page at idx, hide and disable all others."""
+        """Show page at idx, hide all others."""
         target = self.pages[idx]
-        if not target.IsShown():
-            sz = self.page_container.GetClientSize()
-            if sz.width > 0 and sz.height > 0:
-                target.SetSize(0, 0, sz.width, sz.height)
-                target.Layout()
         for i, page in enumerate(self.pages):
-            active = (i == idx)
-            page.Show(active)
-            page.Enable(active)
+            page.Show(i == idx)
         self.page_container.Layout()
+        target.Layout()
 
     def _fit_to_pages(self):
         """Fit the dialog to its initial content with minimum size constraints."""
