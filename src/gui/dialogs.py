@@ -995,18 +995,12 @@ class EffectsDialog(wx.Dialog):
         self._show_page(self.category_list.GetSelection())
 
     def _show_page(self, idx):
-        """Show page at idx, hide and disable all others."""
+        """Show page at idx, hide all others."""
         target = self.pages[idx]
-        if not target.IsShown():
-            sz = self.page_container.GetClientSize()
-            if sz.width > 0 and sz.height > 0:
-                target.SetSize(0, 0, sz.width, sz.height)
-                target.Layout()
         for i, page in enumerate(self.pages):
-            active = (i == idx)
-            page.Show(active)
-            page.Enable(active)
+            page.Show(i == idx)
         self.page_container.Layout()
+        target.Layout()
 
     def _fit_to_pages(self):
         """Fit the dialog to its initial content with minimum size constraints."""
@@ -1055,7 +1049,6 @@ class EffectsDialog(wx.Dialog):
         master_vst = self._create_vst_panel(
             self.page_container, self.mixer.master_effects, _("Master"))
         master_vst.Show(False)
-        master_vst.Enable(False)
         self.page_sizer.Add(master_vst, 1, wx.EXPAND)
         self.pages.append(master_vst)
 
@@ -1065,14 +1058,12 @@ class EffectsDialog(wx.Dialog):
                 deck_panel = self._create_effect_panel(
                     self.page_container, deck.effects, deck.name)
                 deck_panel.Show(False)
-                deck_panel.Enable(False)
                 self.page_sizer.Add(deck_panel, 1, wx.EXPAND)
                 self.pages.append(deck_panel)
 
                 deck_vst = self._create_vst_panel(
                     self.page_container, deck.effects, deck.name)
                 deck_vst.Show(False)
-                deck_vst.Enable(False)
                 self.page_sizer.Add(deck_vst, 1, wx.EXPAND)
                 self.pages.append(deck_vst)
 
