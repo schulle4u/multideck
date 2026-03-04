@@ -15,7 +15,7 @@ def read_file(filename):
 
 setup(
     name='multideck-audio-player',
-    version='0.3.1',
+    version='0.4.0',
     description='Accessible cross-platform audio player for simultaneous playback of up to 10 audio sources',
     long_description=read_file('README.md') if os.path.exists('README.md') else '',
     long_description_content_type='text/markdown',
