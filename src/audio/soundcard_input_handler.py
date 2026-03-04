@@ -140,8 +140,12 @@ class SoundCardInputHandler:
         if status:
             logger.debug(f"Soundcard input status: {status}")
 
-        # Convert to stereo float32; PortAudio already delivered at target_sample_rate
-        audio = indata.astype(np.float32, copy=False)
+        # Always copy indata before storing it.  With copy=False, astype() would
+        # return the same internal PortAudio buffer, which is reclaimed/overwritten
+        # as soon as the callback returns – causing corrupted audio on WASAPI and
+        # DirectSound (which reuse buffer memory), while MME happened to allocate
+        # a fresh buffer each time, masking the bug there.
+        audio = indata.copy()
         if audio.ndim == 1 or audio.shape[1] == 1:
             # Mono → duplicate to stereo
             mono = audio.reshape(-1, 1)
