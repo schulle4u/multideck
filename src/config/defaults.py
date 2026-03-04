@@ -59,6 +59,11 @@ MODE_MIXER = 'mixer'
 MODE_SOLO = 'solo'
 MODE_AUTOMATIC = 'automatic'
 
+# Deck source types (used in project file serialisation)
+SOURCE_TYPE_FILE = 'file'
+SOURCE_TYPE_STREAM = 'stream'
+SOURCE_TYPE_SOUNDCARD_INPUT = 'soundcard_input'
+
 # Deck states
 DECK_STATE_EMPTY = 'empty'
 DECK_STATE_LOADED = 'loaded'

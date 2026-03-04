@@ -24,32 +24,46 @@ def _get_stream_handler_class():
         _StreamHandler = StreamHandler
     return _StreamHandler
 
+# Import SoundCardInputHandler with lazy loading to avoid circular imports
+_SoundCardInputHandler = None
+def _get_soundcard_input_handler_class():
+    global _SoundCardInputHandler
+    if _SoundCardInputHandler is None:
+        from audio.soundcard_input_handler import SoundCardInputHandler
+        _SoundCardInputHandler = SoundCardInputHandler
+    return _SoundCardInputHandler
+
 
 class Deck:
     """
     Represents a single audio deck with playback controls.
     """
 
-    def __init__(self, deck_id: int, sample_rate: int = 44100):
+    def __init__(self, deck_id: int, sample_rate: int = 44100, buffer_size: int = 2048):
         """
         Initialize a deck.
 
         Args:
             deck_id: Deck number (1-10)
             sample_rate: Sample rate for audio playback
+            buffer_size: Audio engine block size (passed to SoundCardInputHandler)
         """
         self.deck_id = deck_id
         self.name = f"Deck {deck_id}"
         self.state = DECK_STATE_EMPTY
         self._target_sample_rate = sample_rate  # Target sample rate for deck
+        self._buffer_size = buffer_size
 
         # Audio properties
         self.file_path: Optional[str] = None
         self.is_stream = False
+        self.is_soundcard_input = False
+        self.soundcard_device_id: Optional[int] = None
+        self.soundcard_device_name: Optional[str] = None
         self.audio_data = None
         self.sample_rate = None  # Actual sample rate of loaded audio
         self.channels = None
-        self.stream_handler = None  # For HTTP/HTTPS streaming
+        self.stream_handler = None  # For HTTP/HTTPS streaming or soundcard input
 
         # Playback controls
         self.volume = 1.0  # 0.0 to 1.0
@@ -140,6 +154,56 @@ class Deck:
             self._set_state(DECK_STATE_ERROR)
             return False
 
+    def load_soundcard_input(self, device_id: int, device_name: str) -> bool:
+        """
+        Load a sound card input device as the audio source for this deck.
+
+        Args:
+            device_id: sounddevice device index
+            device_name: Human-readable device name
+
+        Returns:
+            True if successfully opened, False otherwise
+        """
+        try:
+            with self._lock:
+                # Stop any existing stream or soundcard input
+                if self.stream_handler:
+                    self.stream_handler.stop()
+                    self.stream_handler = None
+
+                SoundCardInputHandler = _get_soundcard_input_handler_class()
+                handler = SoundCardInputHandler(
+                    device_id, device_name, self._target_sample_rate, self._buffer_size
+                )
+
+                def on_input_error(error_msg):
+                    logger.error(f"Soundcard input error on Deck {self.deck_id}: {error_msg}")
+                    self._set_state(DECK_STATE_ERROR)
+
+                handler.on_error = on_input_error
+
+                if handler.start():
+                    self.stream_handler = handler
+                    self.is_stream = True
+                    self.is_soundcard_input = True
+                    self.soundcard_device_id = device_id
+                    self.soundcard_device_name = device_name
+                    self.file_path = f"[Input] {device_name}"
+                    self.sample_rate = self._target_sample_rate
+                    self.channels = 2
+                    self._set_state(DECK_STATE_LOADED)
+                    return True
+                else:
+                    logger.error(f"Failed to open soundcard input on Deck {self.deck_id}")
+                    self._set_state(DECK_STATE_ERROR)
+                    return False
+
+        except Exception as e:
+            logger.error(f"Error loading soundcard input in Deck {self.deck_id}: {e}")
+            self._set_state(DECK_STATE_ERROR)
+            return False
+
     def unload(self):
         """Unload audio from deck"""
         with self._lock:
@@ -156,6 +220,9 @@ class Deck:
             self.channels = None
             self.position = 0
             self.is_stream = False
+            self.is_soundcard_input = False
+            self.soundcard_device_id = None
+            self.soundcard_device_name = None
             self._set_state(DECK_STATE_EMPTY)
 
     def play(self) -> bool:
@@ -406,6 +473,18 @@ class Deck:
         if self.state == DECK_STATE_EMPTY:
             return {}
 
+        if self.is_soundcard_input:
+            return {
+                'name': self.name,
+                'source_type': 'soundcard_input',
+                'soundcard_device_id': self.soundcard_device_id,
+                'soundcard_device_name': self.soundcard_device_name or '',
+                'volume': self.volume,
+                'balance': self.balance,
+                'mute': self.mute,
+                'loop': self.loop,
+            }
+
         return {
             'name': self.name,
             'file': self.file_path or '',
@@ -437,7 +516,7 @@ class Deck:
             True if loaded successfully
         """
         try:
-            if not data or 'file' not in data or not data['file']:
+            if not data:
                 return False
 
             self.name = data.get('name', f"Deck {self.deck_id}")
@@ -446,7 +525,28 @@ class Deck:
             self.mute = bool(data.get('mute', False))
             self.loop = bool(data.get('loop', False))
 
+            # Soundcard input source
+            if data.get('source_type') == 'soundcard_input':
+                device_name = data.get('soundcard_device_name', '')
+                # device_id may be stored as string in INI files
+                raw_id = data.get('soundcard_device_id')
+                try:
+                    device_id = int(raw_id) if raw_id is not None else None
+                except (ValueError, TypeError):
+                    device_id = None
+
+                if device_id is None or not device_name:
+                    logger.warning(f"Deck {self.deck_id}: incomplete soundcard config in project file")
+                    return False
+
+                # Try to reconnect; if device_id is no longer valid, the handler will report error
+                return self.load_soundcard_input(device_id, device_name)
+
+            # File or stream source (original behaviour)
+            if 'file' not in data or not data['file']:
+                return False
             return self.load_file(data['file'])
+
         except Exception as e:
             logger.error(f"Error loading deck from dict: {e}")
             return False

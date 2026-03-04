@@ -7,7 +7,7 @@ import wx.adv
 import os
 from pathlib import Path
 
-from gui.dialogs import OptionsDialog, CustomTextEntryDialog
+from gui.dialogs import OptionsDialog, CustomTextEntryDialog, SoundCardInputDialog
 from gui.theme_manager import ThemeManager
 from audio.audio_engine import AudioEngine
 from audio.mixer import Mixer
@@ -590,6 +590,26 @@ class MainFrame(wx.Frame):
 
         dlg.Destroy()
 
+    def _on_deck_load_soundcard_input(self, deck):
+        """Handle loading a sound card input device into a deck"""
+        dlg = SoundCardInputDialog(self)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            device = dlg.GetSelectedDevice()
+            if device:
+                if deck.load_soundcard_input(device['id'], device['name']):
+                    self.SetStatusText(_("Loaded sound card input: {}").format(device['name']), 0)
+                    self._update_deck_panel(deck.deck_id)
+                    self._mark_project_modified()
+                else:
+                    wx.MessageBox(
+                        _("Failed to open sound card input"),
+                        _("Error"),
+                        wx.OK | wx.ICON_ERROR
+                    )
+
+        dlg.Destroy()
+
     def _update_deck_panel(self, deck_id):
         """Update UI for a specific deck"""
         # Update listbox to reflect changes
@@ -607,7 +627,9 @@ class MainFrame(wx.Frame):
             # Build display text: deck name + file info if loaded
             display_text = deck.name
             if deck.file_path:
-                if deck.is_stream:
+                if deck.is_soundcard_input:
+                    file_info = _("[Input] {}").format(deck.soundcard_device_name)
+                elif deck.is_stream:
                     file_info = deck.file_path
                 else:
                     file_info = os.path.basename(deck.file_path)
@@ -745,6 +767,7 @@ class MainFrame(wx.Frame):
         menu = wx.Menu()
         load_file_item = menu.Append(wx.ID_ANY, _("Load File...") + "\tCtrl+F")
         load_url_item = menu.Append(wx.ID_ANY, _("Load URL...") + "\tCtrl+U")
+        load_input_item = menu.Append(wx.ID_ANY, _("Load sound card input...") + "\tCtrl+D")
         menu.AppendSeparator()
 
         rename_item = menu.Append(wx.ID_ANY, _("Rename Deck") + "...\tF2")
@@ -765,6 +788,7 @@ class MainFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_file(deck), load_file_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_url(deck), load_url_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_soundcard_input(deck), load_input_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_rename(), rename_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_toggle_loop(), toggle_loop_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_unload(), unload_item)
@@ -1809,6 +1833,11 @@ class MainFrame(wx.Frame):
         accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('U'), load_url_id))
         self.Bind(wx.EVT_MENU, self._on_shortcut_load_url, id=load_url_id)
 
+        # Ctrl+D for load soundcard input
+        load_input_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('D'), load_input_id))
+        self.Bind(wx.EVT_MENU, self._on_shortcut_load_soundcard_input, id=load_input_id)
+
         # F2 for rename deck
         rename_id = wx.NewIdRef()
         accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F2, rename_id))
@@ -1914,10 +1943,16 @@ class MainFrame(wx.Frame):
             self._on_deck_load_file(deck)
 
     def _on_shortcut_load_url(self, event):
-        """Handle Ctrl+Shift+F for load URL"""
+        """Handle Ctrl+U for load URL"""
         deck = self._get_selected_deck()
         if deck:
             self._on_deck_load_url(deck)
+
+    def _on_shortcut_load_soundcard_input(self, event):
+        """Handle Ctrl+D for load soundcard input"""
+        deck = self._get_selected_deck()
+        if deck:
+            self._on_deck_load_soundcard_input(deck)
 
     def _on_shortcut_rename(self, event):
         """Handle F2 for rename deck"""

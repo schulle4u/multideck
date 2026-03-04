@@ -42,7 +42,7 @@ class Mixer:
         # Create decks with per-deck effect chains
         self.decks: List[Deck] = []
         for i in range(num_decks):
-            deck = Deck(i + 1, audio_engine.sample_rate)
+            deck = Deck(i + 1, audio_engine.sample_rate, audio_engine.buffer_size)
             deck.effects = EffectChain(audio_engine.sample_rate)
             self.decks.append(deck)
 
