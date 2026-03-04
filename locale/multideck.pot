@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-04 14:21+0100\n"
+"POT-Creation-Date: 2026-03-04 15:50+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -467,11 +467,11 @@ msgid "{n} channels"
 msgstr ""
 
 #: gui/main_frame.py:108
-msgid "&New Project..."
+msgid "&New Project"
 msgstr ""
 
 #: gui/main_frame.py:109
-msgid "&Open Project..."
+msgid "&Open Project"
 msgstr ""
 
 #: gui/main_frame.py:110
@@ -479,15 +479,15 @@ msgid "&Save Project"
 msgstr ""
 
 #: gui/main_frame.py:111
-msgid "Save Project &As..."
+msgid "Save Project &As"
 msgstr ""
 
 #: gui/main_frame.py:114
-msgid "&Import M3U Playlist..."
+msgid "&Import M3U Playlist"
 msgstr ""
 
 #: gui/main_frame.py:115
-msgid "&Export M3U Playlist..."
+msgid "&Export M3U Playlist"
 msgstr ""
 
 #: gui/main_frame.py:120
@@ -523,11 +523,11 @@ msgid "Start &Recording"
 msgstr ""
 
 #: gui/main_frame.py:141
-msgid "Audio &Effects..."
+msgid "Audio &Effects"
 msgstr ""
 
 #: gui/main_frame.py:143
-msgid "&Options..."
+msgid "&Options"
 msgstr ""
 
 #: gui/main_frame.py:144
@@ -539,7 +539,7 @@ msgid "&Keyboard Shortcuts"
 msgstr ""
 
 #: gui/main_frame.py:150
-msgid "&About..."
+msgid "&About"
 msgstr ""
 
 #: gui/main_frame.py:151
@@ -609,7 +609,7 @@ msgid "Stop"
 msgstr ""
 
 #: gui/main_frame.py:324 gui/main_frame.py:325
-msgid "Menu..."
+msgid "Menu"
 msgstr ""
 
 #: gui/main_frame.py:333 gui/main_frame.py:340
@@ -752,15 +752,15 @@ msgid "Pause"
 msgstr ""
 
 #: gui/main_frame.py:768
-msgid "Load File..."
+msgid "Load File"
 msgstr ""
 
 #: gui/main_frame.py:769
-msgid "Load URL..."
+msgid "Load URL"
 msgstr ""
 
 #: gui/main_frame.py:770
-msgid "Load sound card input..."
+msgid "Load sound card input"
 msgstr ""
 
 #: gui/main_frame.py:773 gui/main_frame.py:806

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-04 14:21+0100\n"
-"PO-Revision-Date: 2026-03-04 14:25+0100\n"
+"POT-Creation-Date: 2026-03-04 15:50+0100\n"
+"PO-Revision-Date: 2026-03-04 15:53+0100\n"
 "Last-Translator: Steffen Schultz\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -477,28 +477,28 @@ msgid "{n} channels"
 msgstr "{n} Kanäle"
 
 #: gui/main_frame.py:108
-msgid "&New Project..."
-msgstr "&Neues Projekt..."
+msgid "&New Project"
+msgstr "&Neues Projekt"
 
 #: gui/main_frame.py:109
-msgid "&Open Project..."
-msgstr "Projekt ö&ffnen..."
+msgid "&Open Project"
+msgstr "Projekt ö&ffnen"
 
 #: gui/main_frame.py:110
 msgid "&Save Project"
 msgstr "Projekt &speichern"
 
 #: gui/main_frame.py:111
-msgid "Save Project &As..."
-msgstr "Projekt speichern &unter..."
+msgid "Save Project &As"
+msgstr "Projekt speichern &unter"
 
 #: gui/main_frame.py:114
-msgid "&Import M3U Playlist..."
-msgstr "M3U-Playliste &importieren..."
+msgid "&Import M3U Playlist"
+msgstr "M3U-Playliste &importieren"
 
 #: gui/main_frame.py:115
-msgid "&Export M3U Playlist..."
-msgstr "M3U-Playliste &exportieren..."
+msgid "&Export M3U Playlist"
+msgstr "M3U-Playliste &exportieren"
 
 #: gui/main_frame.py:120
 msgid "&Recent Files"
@@ -534,13 +534,13 @@ msgid "Start &Recording"
 msgstr "&Aufnahme starten"
 
 #: gui/main_frame.py:141
-msgid "Audio &Effects..."
-msgstr "Audio&effekte..."
+msgid "Audio &Effects"
+msgstr "Audio&effekte"
 
 # Dialogs
 #: gui/main_frame.py:143
-msgid "&Options..."
-msgstr "&Optionen..."
+msgid "&Options"
+msgstr "&Optionen"
 
 #: gui/main_frame.py:144
 msgid "&Tools"
@@ -551,8 +551,8 @@ msgid "&Keyboard Shortcuts"
 msgstr "&Tastaturkürzel"
 
 #: gui/main_frame.py:150
-msgid "&About..."
-msgstr "Ü&ber..."
+msgid "&About"
+msgstr "Ü&ber"
 
 #: gui/main_frame.py:151
 msgid "&Help"
@@ -624,8 +624,8 @@ msgid "Stop"
 msgstr "Stopp"
 
 #: gui/main_frame.py:324 gui/main_frame.py:325
-msgid "Menu..."
-msgstr "Menü..."
+msgid "Menu"
+msgstr "Menü"
 
 #: gui/main_frame.py:333 gui/main_frame.py:340
 msgid "Volume"
@@ -769,16 +769,16 @@ msgid "Pause"
 msgstr "Pausieren"
 
 #: gui/main_frame.py:768
-msgid "Load File..."
-msgstr "Datei laden..."
+msgid "Load File"
+msgstr "Datei laden"
 
 #: gui/main_frame.py:769
-msgid "Load URL..."
-msgstr "URL laden..."
+msgid "Load URL"
+msgstr "URL laden"
 
 #: gui/main_frame.py:770
-msgid "Load sound card input..."
-msgstr "Soundkarteneingang laden..."
+msgid "Load sound card input"
+msgstr "Soundkarteneingang laden"
 
 #: gui/main_frame.py:773 gui/main_frame.py:806
 msgid "Rename Deck"
@@ -1053,6 +1053,25 @@ msgid ""
 msgstr ""
 "Ungültiges Projektdateiformat: {}\n"
 ".mdap-Datei erwartet."
+
+#~ msgid "&Open Project..."
+#~ msgstr "Projekt ö&ffnen..."
+
+#~ msgid "Save Project &As..."
+#~ msgstr "Projekt speichern &unter..."
+
+#~ msgid "&Import M3U Playlist..."
+#~ msgstr "M3U-Playliste &importieren..."
+
+#~ msgid "&Export M3U Playlist..."
+#~ msgstr "M3U-Playliste &exportieren..."
+
+#~ msgid "Audio &Effects..."
+#~ msgstr "Audio&effekte..."
+
+# Dialogs
+#~ msgid "&Options..."
+#~ msgstr "&Optionen..."
 
 #~ msgid "Number of Decks"
 #~ msgstr "Anzahl der Decks"

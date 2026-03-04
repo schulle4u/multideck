@@ -105,14 +105,14 @@ class MainFrame(wx.Frame):
 
         # File menu
         file_menu = wx.Menu()
-        file_menu.Append(wx.ID_NEW, _("&New Project...") + "\tCtrl+N")
-        file_menu.Append(wx.ID_OPEN, _("&Open Project...") + "\tCtrl+O")
+        file_menu.Append(wx.ID_NEW, _("&New Project") + "...\tCtrl+N")
+        file_menu.Append(wx.ID_OPEN, _("&Open Project") + "...\tCtrl+O")
         file_menu.Append(wx.ID_SAVE, _("&Save Project") + "\tCtrl+S")
-        file_menu.Append(wx.ID_SAVEAS, _("Save Project &As...") + "\tCtrl+Shift+S")
+        file_menu.Append(wx.ID_SAVEAS, _("Save Project &As") + "...\tCtrl+Shift+S")
         file_menu.AppendSeparator()
 
-        self.import_m3u_item = file_menu.Append(wx.ID_ANY, _("&Import M3U Playlist...") + "\tCtrl+I")
-        self.export_m3u_item = file_menu.Append(wx.ID_ANY, _("&Export M3U Playlist...") + "\tCtrl+E")
+        self.import_m3u_item = file_menu.Append(wx.ID_ANY, _("&Import M3U Playlist") + "...\tCtrl+I")
+        self.export_m3u_item = file_menu.Append(wx.ID_ANY, _("&Export M3U Playlist") + "...\tCtrl+E")
 
         file_menu.AppendSeparator()
         # Recent Files submenu
@@ -138,16 +138,16 @@ class MainFrame(wx.Frame):
         tools_menu = wx.Menu()
         self.record_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Recording") + "\tCtrl+R")
         tools_menu.AppendSeparator()
-        self.effects_menu_item = tools_menu.Append(wx.ID_ANY, _("Audio &Effects...") + "\tCtrl+Shift+E")
+        self.effects_menu_item = tools_menu.Append(wx.ID_ANY, _("Audio &Effects") + "...\tCtrl+Shift+E")
         tools_menu.AppendSeparator()
-        tools_menu.Append(wx.ID_PREFERENCES, _("&Options...") + "\tCtrl+P")
+        tools_menu.Append(wx.ID_PREFERENCES, _("&Options") + "...\tCtrl+P")
         menu_bar.Append(tools_menu, _("&Tools"))
 
         # Help menu
         help_menu = wx.Menu()
         help_menu.Append(wx.ID_HELP, _("&Keyboard Shortcuts") + "\tF1")
         help_menu.AppendSeparator()
-        help_menu.Append(wx.ID_ABOUT, _("&About..."))
+        help_menu.Append(wx.ID_ABOUT, _("&About") + "...")
         menu_bar.Append(help_menu, _("&Help"))
 
         self.SetMenuBar(menu_bar)
@@ -321,8 +321,8 @@ class MainFrame(wx.Frame):
         self.active_stop_btn.Bind(wx.EVT_BUTTON, self._on_active_stop)
         button_sizer.Add(self.active_stop_btn, 1, wx.ALL, 5)
 
-        self.active_menu_btn = wx.Button(controls_static_box, label=_("Menu..."))
-        self.active_menu_btn.SetName(_("Menu..."))
+        self.active_menu_btn = wx.Button(controls_static_box, label=_("Menu") + "...")
+        self.active_menu_btn.SetName(_("Menu") + "...")
         self.active_menu_btn.Bind(wx.EVT_BUTTON, self._on_active_menu)
         button_sizer.Add(self.active_menu_btn, 1, wx.ALL, 5)
 
@@ -765,9 +765,9 @@ class MainFrame(wx.Frame):
             return
 
         menu = wx.Menu()
-        load_file_item = menu.Append(wx.ID_ANY, _("Load File...") + "\tCtrl+F")
-        load_url_item = menu.Append(wx.ID_ANY, _("Load URL...") + "\tCtrl+U")
-        load_input_item = menu.Append(wx.ID_ANY, _("Load sound card input...") + "\tCtrl+D")
+        load_file_item = menu.Append(wx.ID_ANY, _("Load File") + "...\tCtrl+F")
+        load_url_item = menu.Append(wx.ID_ANY, _("Load URL") + "...\tCtrl+U")
+        load_input_item = menu.Append(wx.ID_ANY, _("Load sound card input") + "...\tCtrl+D")
         menu.AppendSeparator()
 
         rename_item = menu.Append(wx.ID_ANY, _("Rename Deck") + "...\tF2")
