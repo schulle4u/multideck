@@ -9,6 +9,7 @@ An accessible, cross-platform audio player that enables simultaneous playback of
 - **Up to 10 Independent Audio Decks**
   - Load local audio files (MP3, OGG, WAV, FLAC)
   - Stream from internet sources (Icecast/Shoutcast)
+  - Monitor sound card inputs (microphone, line)
   - Individual play/pause, volume, balance, mute, and loop controls
   - Global play/pause control for all decks
   - Custom deck labels
