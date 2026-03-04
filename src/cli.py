@@ -22,7 +22,8 @@ if str(src_dir) not in sys.path:
 
 from config.config_manager import ConfigManager, ProjectManager
 from config.defaults import (
-    APP_NAME, APP_VERSION, MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC
+    APP_NAME, APP_VERSION, MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC,
+    SOURCE_TYPE_SOUNDCARD_INPUT
 )
 from audio.audio_engine import AudioEngine
 from audio.mixer import Mixer
@@ -123,7 +124,7 @@ class MultiDeckCLI:
 
                 deck = self.mixer.decks[i]
 
-                if deck_data and 'file' in deck_data and deck_data['file']:
+                if deck_data and deck_data.get('source_type') == SOURCE_TYPE_SOUNDCARD_INPUT:
                     # Apply deck settings
                     if 'name' in deck_data:
                         deck.name = deck_data['name']
@@ -136,10 +137,42 @@ class MultiDeckCLI:
                     if 'loop' in deck_data:
                         deck.loop = deck_data['loop'] if isinstance(deck_data['loop'], bool) else deck_data['loop'].lower() == 'true'
 
-                    # Load audio file
+                    # Load soundcard input
+                    device_name = deck_data.get('soundcard_device_name', '')
+                    raw_id = deck_data.get('soundcard_device_id')
+                    try:
+                        device_id = int(raw_id) if raw_id is not None else None
+                    except (ValueError, TypeError):
+                        device_id = None
+
+                    if device_id is not None and device_name:
+                        if deck.load_soundcard_input(device_id, device_name):
+                            if self.mixer.ensure_deck_loaded(deck):
+                                loaded_count += 1
+                                self.log(f"  Deck {i + 1} ({deck.name}): [Input] {device_name}")
+                            else:
+                                self.logger.warning(f"Failed to start soundcard input for Deck {i + 1}: {device_name}")
+                        else:
+                            self.logger.warning(f"Failed to open soundcard input for Deck {i + 1}: {device_name}")
+                    else:
+                        self.logger.warning(f"Deck {i + 1}: incomplete soundcard input config in project file")
+
+                elif deck_data and 'file' in deck_data and deck_data['file']:
+                    # Apply deck settings
+                    if 'name' in deck_data:
+                        deck.name = deck_data['name']
+                    if 'volume' in deck_data:
+                        deck.volume = float(deck_data['volume'])
+                    if 'balance' in deck_data:
+                        deck.balance = float(deck_data['balance'])
+                    if 'mute' in deck_data:
+                        deck.mute = deck_data['mute'] if isinstance(deck_data['mute'], bool) else deck_data['mute'].lower() == 'true'
+                    if 'loop' in deck_data:
+                        deck.loop = deck_data['loop'] if isinstance(deck_data['loop'], bool) else deck_data['loop'].lower() == 'true'
+
+                    # Load audio file or stream
                     file_path = deck_data['file']
                     if deck.load_file(file_path):
-                        # Preload audio data
                         if self.mixer.ensure_deck_loaded(deck):
                             loaded_count += 1
                             self.log(f"  Deck {i + 1} ({deck.name}): {Path(file_path).name if not file_path.startswith('http') else file_path}")
@@ -213,7 +246,9 @@ class MultiDeckCLI:
                 loop_str = " [LOOP]" if deck.loop else ""
                 volume_str = f"{int(deck.volume * 100)}%"
 
-                if deck.is_stream:
+                if deck.is_soundcard_input:
+                    source = f"[Input] {deck.soundcard_device_name}"
+                elif deck.is_stream:
                     source = deck.file_path
                 else:
                     source = Path(deck.file_path).name
