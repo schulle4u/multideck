@@ -146,6 +146,7 @@ class MainFrame(wx.Frame):
         # Help menu
         help_menu = wx.Menu()
         help_menu.Append(wx.ID_HELP, _("&Keyboard Shortcuts") + "\tF1")
+        self.website_item = help_menu.Append(wx.ID_ANY, _("Open &Website") + "\tShift+F1")
         help_menu.AppendSeparator()
         help_menu.Append(wx.ID_ABOUT, _("&About") + "...")
         menu_bar.Append(help_menu, _("&Help"))
@@ -167,6 +168,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._on_show_effects_dialog, self.effects_menu_item)
         self.Bind(wx.EVT_MENU, self._on_options, id=wx.ID_PREFERENCES)
         self.Bind(wx.EVT_MENU, self._on_help, id=wx.ID_HELP)
+        self.Bind(wx.EVT_MENU, self._on_website, self.website_item)
         self.Bind(wx.EVT_MENU, self._on_about, id=wx.ID_ABOUT)
 
     def _create_ui(self):
@@ -1749,6 +1751,16 @@ class MainFrame(wx.Frame):
                 subprocess.call(['xdg-open', str(shortcuts_file)])  # Linux
         else:
             wx.MessageBox(_("Shortcuts file not found"), _("Error"), wx.OK | wx.ICON_ERROR)
+
+    def _on_website(self, event):
+        """Open the developer's website in default browser"""
+        def open_website():
+            try:
+                import webbrowser
+                webbrowser.open(APP_WEBSITE)
+            except webbrowser.Error:
+                wx.CallAfter(wx.MessageBox, _("Error opening website"), _("Error"), wx.OK | wx.ICON_ERROR)
+        wx.CallLater(200, open_website)
 
     def _on_about(self, event):
         """Show about dialog"""
