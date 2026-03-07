@@ -146,7 +146,7 @@ class MainFrame(wx.Frame):
         # Help menu
         help_menu = wx.Menu()
         help_menu.Append(wx.ID_HELP, _("&Keyboard Shortcuts") + "\tF1")
-        self.website_item = help_menu.Append(wx.ID_ANY, _("Open &Website") + "\tShift+F1")
+        self.website_item = help_menu.Append(wx.ID_ANY, _("Open &Website") + "\tCtrl+F1")
         help_menu.AppendSeparator()
         help_menu.Append(wx.ID_ABOUT, _("&About") + "...")
         menu_bar.Append(help_menu, _("&Help"))
