@@ -145,7 +145,7 @@ class MainFrame(wx.Frame):
 
         # Help menu
         help_menu = wx.Menu()
-        help_menu.Append(wx.ID_HELP, _("&Keyboard Shortcuts") + "\tF1")
+        help_menu.Append(wx.ID_HELP, _("&Documentation") + "\tF1")
         self.website_item = help_menu.Append(wx.ID_ANY, _("Open &Website") + "\tCtrl+F1")
         help_menu.AppendSeparator()
         help_menu.Append(wx.ID_ABOUT, _("&About") + "...")
@@ -1742,15 +1742,32 @@ class MainFrame(wx.Frame):
 
     def _on_help(self, event):
         """Show keyboard shortcuts"""
-        shortcuts_file = Path(__file__).parent.parent.parent / 'docs' / 'shortcuts.txt'
-        if shortcuts_file.exists():
+        docs_dir = Path(__file__).parent.parent.parent / 'docs'
+        lang = get_i18n().language
+        documentation_file = docs_dir / f'documentation-{lang}.html'
+        if not documentation_file.exists():
+            documentation_file = docs_dir / 'documentation-en.html'
+        if documentation_file.exists():
             try:
-                os.startfile(str(shortcuts_file))  # Windows
+                os.startfile(str(documentation_file))  # Windows
             except AttributeError:
                 import subprocess
-                subprocess.call(['xdg-open', str(shortcuts_file)])  # Linux
+                subprocess.call(['xdg-open', str(documentation_file)])  # Linux
         else:
-            wx.MessageBox(_("Shortcuts file not found"), _("Error"), wx.OK | wx.ICON_ERROR)
+            dlg = wx.MessageDialog(
+                self,
+                _("Documentation file not found. Open developer's website instead?"),
+                _("Documentation not found"),
+                wx.YES_NO | wx.ICON_QUESTION
+            )
+            dlg.SetYesNoLabels(_("&Yes"), _("&No"))
+            result = dlg.ShowModal()
+            dlg.Destroy()
+
+            if result == wx.ID_YES:
+                self._on_website(self)
+            else:
+                return False
 
     def _on_website(self, event):
         """Open the developer's website in default browser"""
