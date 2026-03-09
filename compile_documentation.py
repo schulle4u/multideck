@@ -45,8 +45,13 @@ def convert_markdown_to_html(input_file, output_file=None, output_language="en")
             'codehilite',      # Syntax Highlighting
             'toc',             # Table of contents
             'tables',          # Table support
-            'attr_list'        # Attributes for html elements
-        ])
+            'attr_list',        # Attributes for html elements
+            'fenced_code'
+        ], extension_configs={
+            'toc': {
+                'toc_depth': '2-6'
+            }
+        })
 
         html_content = md.convert(markdown_content)
 
