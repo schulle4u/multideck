@@ -49,8 +49,9 @@ recordings/
 *.ogg
 *.flac
 
-# Compiled translation files
+# Compiled translation and documentation files
 *.mo
+*.html
 
 # Logs
 *.log
