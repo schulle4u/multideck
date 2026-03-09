@@ -110,7 +110,7 @@ For portable mode, place `config.ini` in the program directory. Otherwise, confi
 
 ### Keyboard Shortcuts
 
-See `docs/shortcuts.txt` for complete keyboard reference.
+See `docs` folder for complete keyboard reference.
 
 ## Project Structure
 
