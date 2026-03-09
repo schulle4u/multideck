@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-07 11:08+0100\n"
-"PO-Revision-Date: 2026-03-07 11:09+0100\n"
+"POT-Creation-Date: 2026-03-09 21:02+0100\n"
+"PO-Revision-Date: 2026-03-09 21:03+0100\n"
 "Last-Translator: Steffen Schultz\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -168,7 +168,7 @@ msgstr "Ausgabeverzeichnis"
 msgid "Browse"
 msgstr "Durchsuchen"
 
-#: gui/dialogs.py:562 gui/main_frame.py:2020 gui/main_frame.py:2062
+#: gui/dialogs.py:562 gui/main_frame.py:2037 gui/main_frame.py:2079
 msgid "Choose recording output directory"
 msgstr "Aufnahme-Ausgabeverzeichnis wählen"
 
@@ -220,7 +220,7 @@ msgid "Effect Chains"
 msgstr "Effektketten"
 
 #: gui/dialogs.py:1034 gui/dialogs.py:1040 gui/main_frame.py:455
-#: gui/main_frame.py:515 gui/main_frame.py:1330 gui/main_frame.py:2010
+#: gui/main_frame.py:515 gui/main_frame.py:1330 gui/main_frame.py:2027
 msgid "Master"
 msgstr "Master"
 
@@ -529,7 +529,7 @@ msgstr "&Theme wechseln"
 msgid "&View"
 msgstr "&Ansicht"
 
-#: gui/main_frame.py:139 gui/main_frame.py:2040
+#: gui/main_frame.py:139 gui/main_frame.py:2057
 msgid "Start &Recording"
 msgstr "&Aufnahme starten"
 
@@ -547,8 +547,8 @@ msgid "&Tools"
 msgstr "&Werkzeuge"
 
 #: gui/main_frame.py:148
-msgid "&Keyboard Shortcuts"
-msgstr "&Tastaturkürzel"
+msgid "&Documentation"
+msgstr "&Dokumentation"
 
 #: gui/main_frame.py:149
 msgid "Open &Website"
@@ -688,8 +688,8 @@ msgstr "Solo"
 msgid "Automatic"
 msgstr "Automatik"
 
-#: gui/main_frame.py:509 gui/main_frame.py:1917 gui/main_frame.py:1927
-#: gui/main_frame.py:1935
+#: gui/main_frame.py:509 gui/main_frame.py:1934 gui/main_frame.py:1944
+#: gui/main_frame.py:1952
 #, python-brace-format
 msgid "Active deck: {}"
 msgstr "Aktives Deck: {}"
@@ -715,8 +715,8 @@ msgstr "Fehler beim Laden der Audiodatei"
 #: gui/main_frame.py:681 gui/main_frame.py:1064 gui/main_frame.py:1237
 #: gui/main_frame.py:1275 gui/main_frame.py:1421 gui/main_frame.py:1434
 #: gui/main_frame.py:1439 gui/main_frame.py:1614 gui/main_frame.py:1739
-#: gui/main_frame.py:1753 gui/main_frame.py:1762 gui/main_frame.py:2074
-#: main.py:61 main.py:69 main.py:82
+#: gui/main_frame.py:1779 gui/main_frame.py:2091 main.py:61 main.py:69
+#: main.py:82
 msgid "Error"
 msgstr "Fehler"
 
@@ -851,11 +851,11 @@ msgstr "Änderungen an {} speichern?"
 msgid "Unsaved Changes"
 msgstr "Ungespeicherte Änderungen"
 
-#: gui/main_frame.py:1147
+#: gui/main_frame.py:1147 gui/main_frame.py:1763
 msgid "&Yes"
 msgstr "&Ja"
 
-#: gui/main_frame.py:1147
+#: gui/main_frame.py:1147 gui/main_frame.py:1763
 msgid "&No"
 msgstr "&Nein"
 
@@ -986,64 +986,70 @@ msgstr "Audiogerätefehler"
 msgid "Error changing audio device: {}"
 msgstr "Fehler beim Wechsel des Audiogeräts: {}"
 
-#: gui/main_frame.py:1753
-msgid "Shortcuts file not found"
-msgstr "Tastaturkürzel-Datei nicht gefunden"
+#: gui/main_frame.py:1759
+msgid "Documentation file not found. Open developer's website instead?"
+msgstr ""
+"Dokumentationsdatei nicht gefunden. Soll stattdessen die Entwickler-Website "
+"geöffnet werden?"
 
-#: gui/main_frame.py:1762
+#: gui/main_frame.py:1760
+msgid "Documentation not found"
+msgstr "Dokumentation nicht gefunden"
+
+#: gui/main_frame.py:1779
 msgid "Error opening website"
 msgstr "Fehler beim Öffnen der Webseite"
 
-#: gui/main_frame.py:1770
+#: gui/main_frame.py:1787
 msgid "Accessible cross-platform audio player for simultaneous playback"
 msgstr ""
 "Barrierefreier plattformübergreifender Audio-Player für gleichzeitiges "
 "Abspielen"
 
-#: gui/main_frame.py:1988
+#: gui/main_frame.py:2005
 #, python-brace-format
 msgid "{}: Volume {}%"
 msgstr "{}: Lautstärke {}%"
 
-#: gui/main_frame.py:1999
+#: gui/main_frame.py:2016
 msgid "Center"
 msgstr "Mitte"
 
-#: gui/main_frame.py:2000
+#: gui/main_frame.py:2017
 #, python-brace-format
 msgid "Left {}%"
 msgstr "Links {}%"
 
-#: gui/main_frame.py:2000
+#: gui/main_frame.py:2017
 #, python-brace-format
 msgid "Right {}%"
 msgstr "Rechts {}%"
 
-#: gui/main_frame.py:2002
+#: gui/main_frame.py:2019
 #, python-brace-format
 msgid "{}: Balance {}"
 msgstr "{}: Balance {}"
 
-#: gui/main_frame.py:2032
+#: gui/main_frame.py:2049
 #, python-brace-format
 msgid "Recording: {}"
 msgstr "Aufnahme: {}"
 
-#: gui/main_frame.py:2034
+#: gui/main_frame.py:2051
 msgid "Stop &Recording"
 msgstr "&Aufnahme beenden"
 
-#: gui/main_frame.py:2038 gui/main_frame.py:2103
+#: gui/main_frame.py:2055 gui/main_frame.py:2120
 #, python-brace-format
 msgid "Recording stopped: {}"
 msgstr "Aufnahme gestoppt: {}"
 
-#: gui/main_frame.py:2073
+#: gui/main_frame.py:2090
 #, python-brace-format
 msgid "Failed to start recording for {}"
 msgstr "Fehler beim Starten der Aufnahme von {}"
 
-#: gui/main_frame.py:2092
+#: gui/main_frame.py:2109
 #, python-brace-format
 msgid "Recording started: {}"
 msgstr "Aufnahme gestartet: {}"
@@ -1061,6 +1067,9 @@ msgid ""
 msgstr ""
 "Ungültiges Projektdateiformat: {}\n"
 ".mdap-Datei erwartet."
+
+#~ msgid "&Keyboard Shortcuts"
+#~ msgstr "&Tastaturkürzel"
 
 #~ msgid "&Open Project..."
 #~ msgstr "Projekt ö&ffnen..."
