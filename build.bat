@@ -72,7 +72,6 @@ if exist "LICENSE" copy /y "LICENSE" "%DIST_DIR%\MultiDeck\" >nul
 if exist "config.ini.example" copy /y "config.ini.example" "%DIST_DIR%\MultiDeck\" >nul
 if exist "locale\" xcopy /E "locale\" "%DIST_DIR%\MultiDeck\locale\" >nul
 if exist "docs\" xcopy /E "docs\" "%DIST_DIR%\MultiDeck\docs\" >nul
-if exist "README.md" copy /y "README.md" "%DIST_DIR%\MultiDeck\docs\" >nul
 
 echo.
 echo %GREEN%============================================%RESET%
