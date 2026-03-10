@@ -42,7 +42,7 @@ MultiDeck Audio Player was built and tested on Windows 11 and Debian Linux 13. F
 
 ### Setup
 
-The player can be started without special installation by launching the MultiDeck executable in the main directory (`MultiDeck.exe` on Windows, `./MultiDeck` on Linux). The program package includes a file called `config.ini.example`, which contains a sample configuration. To make MultiDeck fully portable, this file can be saved as `config.ini` in the program directory. Otherwise, the configuration is stored in the current user's application data folder, e.g. `%APPDATA%\MultiDeckAudioPlayer\` on Windows.
+The player can be started by launching the MultiDeck executable in the root directory (`MultiDeck.exe` on Windows, `./MultiDeck` on Linux). The program package includes a file called `config.ini.example`, which contains a sample configuration. To make MultiDeck fully portable, this file can be saved as `config.ini` in the program directory. Otherwise, the configuration is stored in the current user's application data folder, e.g. `%APPDATA%\MultiDeckAudioPlayer\` on Windows.
 
 ### Installing FFmpeg
 
@@ -50,7 +50,7 @@ To support additional audio formats, FFmpeg must be installed on the system, as 
 
 #### Windows:
 
-If WinGet is available on the system, the following command in the command prompt is sufficient:
+If WinGet is available on the system, the following command should be sufficient:
 
 ```
 winget install Gyan.FFmpeg
@@ -64,7 +64,7 @@ To install FFmpeg manually:
 
 #### Linux and macOS:
 
-FFmpeg is typically available through the system's package repositories.
+FFmpeg is typically available through the system's package manager.
 
 **Debian/Ubuntu**:
 
@@ -85,7 +85,7 @@ sudo dnf install ffmpeg
 brew install ffmpeg
 ```
 
-## Player Layout
+## Program Layout
 
 The program window largely follows a standard layout, consisting of a menu bar, a workspace, and a status bar. The menu bar contains all functions for controlling the program. The workspace holds the deck list, the global player controls for all decks, and the individual controls for the currently active deck. The status bar displays information about the active deck, the mixer mode, and the volume. The individual areas of the program are described in detail below.
 
@@ -156,7 +156,7 @@ The deck list is used to select the active deck. To switch between decks, simply
 * Mute (Ctrl+M): Silences the deck.
 * Loop (Ctrl+L): Enables or disables loop playback for local audio files.
 * Position (Alt+Left/Right): Allows seeking within local audio files.
-* Level: Provides a visual representation of the volume level along with a dB readout.
+* Level: Provides a visual representation of the volume level along with the value in dB.
 
 ### Status Bar:
 
@@ -238,7 +238,7 @@ To avoid having to manually reload all decks every time the player is opened, Mu
 
 Changes in the mixer and the deck list are automatically detected by the player and indicated by an asterisk in the title bar as unsaved project changes. When closing the player, the program will ask whether the changes should be saved. The applied effects currently need to be saved manually, but triggering the save function from the File menu (Ctrl+S) is sufficient for this purpose.
 
-## Further Links
+## Further Reading
 
 * [Source code on GitHub](https://github.com/schulle4u/multideck)
 
