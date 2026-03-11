@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-"""Compile documentation files as HTML"""
+"""Compile all documentation files in the docs folder to HTML"""
 import sys
 import os
+import re
 from pathlib import Path
 import markdown
 
@@ -10,42 +11,25 @@ src_dir = Path(__file__).parent / 'src'
 sys.path.insert(0, str(src_dir))
 
 from config.defaults import (
-    APP_NAME, APP_VERSION, APP_AUTHOR, APP_WEBSITE, APP_LICENSE
+    APP_NAME, APP_VERSION, APP_WEBSITE
 )
 
-
-def convert_markdown_to_html(input_file, output_file=None, output_language="en"):
+def convert_markdown_to_html(input_file, output_file, output_language="en"):
     """
-    Converts markdown file into HTML
-
-    Args:
-        input_file (str): Path to markdown file
-        output_file (str): Path to html output file (optional)
-        output_language (str): Language code for HTML output (optional)
+    Converts a specific markdown file into a HTML file.
     """
-
-    # Check input file
-    if not os.path.exists(input_file):
-        print(f"Error: File '{input_file}' not found.")
-        return False
-
-    # Set output file
-    if output_file is None:
-        input_path = Path(input_file)
-        output_file = input_path.with_suffix('.html')
-
     try:
         # Read markdown file
         with open(input_file, 'r', encoding='utf-8') as f:
             markdown_content = f.read()
 
-        # Setup converter
+        # Setup converter with necessary extensions
         md = markdown.Markdown(extensions=[
-            'extra',           # Additional markdown features
-            'codehilite',      # Syntax Highlighting
-            'toc',             # Table of contents
-            'tables',          # Table support
-            'attr_list',        # Attributes for html elements
+            'extra',        # Additional markdown features
+            'codehilite',   # Syntax Highlighting
+            'toc',          # Table of contents
+            'tables',       # Table support
+            'attr_list',    # Attributes for html elements
             'fenced_code'
         ], extension_configs={
             'toc': {
@@ -61,7 +45,7 @@ def convert_markdown_to_html(input_file, output_file=None, output_language="en")
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{APP_NAME} {APP_VERSION}</title>
+    <title>{APP_NAME} {APP_VERSION} - Documentation ({output_language})</title>
     <link rel="stylesheet" type="text/css" media="all" href="style.css">
 </head>
 <body>
@@ -78,27 +62,41 @@ def convert_markdown_to_html(input_file, output_file=None, output_language="en")
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(html_template)
 
-        print(f"Converted successfully: {input_file} → {output_file}")
+        print(f"Successfully compiled: {input_file.name} -> {output_file.name} (Lang: {output_language})")
         return True
 
     except Exception as e:
-        print(f"Error converting: {e}")
+        print(f"Error converting {input_file.name}: {e}")
         return False
 
-
-def main():
-    """Main function"""
-    if len(sys.argv) < 3:
-        print("Usage: python compile_documentation.py <input.md> [output.html] [lang=code]")
-        print("Example: python compile_documentation.py docs/documentation-en.md")
+def batch_process_docs():
+    """
+    Scans the docs directory for documentation-{lang}.md files and converts them.
+    """
+    docs_dir = Path(__file__).parent / 'docs'
+    
+    if not docs_dir.exists():
+        print(f"Error: Directory '{docs_dir}' not found.")
         return
 
-    input_file = sys.argv[1]
-    output_file = sys.argv[2] if len(sys.argv) > 2 else None
-    output_language = sys.argv[3] if len(sys.argv) > 3 else "en"
+    # Pattern to match documentation-{lang}.md and capture the language code
+    # Example: documentation-en.md -> captures 'en'
+    pattern = re.compile(r"documentation-([a-z]{2})\.md$")
 
-    convert_markdown_to_html(input_file, output_file, output_language)
+    found_files = 0
+    for file_path in docs_dir.glob("documentation-*.md"):
+        match = pattern.match(file_path.name)
+        if match:
+            lang_code = match.group(1)
+            output_path = file_path.with_suffix('.html')
+            
+            if convert_markdown_to_html(file_path, output_path, lang_code):
+                found_files += 1
 
+    if found_files == 0:
+        print("No matching documentation files found (pattern: documentation-{lang}.md).")
+    else:
+        print(f"\nProcessing complete. {found_files} files converted.")
 
 if __name__ == "__main__":
-    main()
+    batch_process_docs()
