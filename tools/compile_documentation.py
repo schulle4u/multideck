@@ -7,7 +7,7 @@ from pathlib import Path
 import markdown
 
 # Add src to path
-src_dir = Path(__file__).parent / 'src'
+src_dir = Path(__file__).parent.parent / 'src'
 sys.path.insert(0, str(src_dir))
 
 from config.defaults import (
@@ -73,7 +73,7 @@ def batch_process_docs():
     """
     Scans the docs directory for documentation-{lang}.md files and converts them.
     """
-    docs_dir = Path(__file__).parent / 'docs'
+    docs_dir = Path(__file__).parent.parent / 'docs'
     
     if not docs_dir.exists():
         print(f"Error: Directory '{docs_dir}' not found.")

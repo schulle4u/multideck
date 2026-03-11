@@ -31,7 +31,7 @@ def compile_po_file(po_file: Path):
 
 def main():
     """Compile all .po files in locale directory"""
-    locale_dir = Path(__file__).parent / 'locale'
+    locale_dir = Path(__file__).parent.parent / 'locale'
 
     if not locale_dir.exists():
         print(f"Error: locale directory not found: {locale_dir}")
