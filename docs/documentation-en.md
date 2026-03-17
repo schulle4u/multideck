@@ -189,8 +189,8 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 * Crossfade Duration: Duration of the crossfade in seconds.
 * Enable Level-Based Switching: When this option is enabled, the automatic mode switches as soon as the volume level on a deck exceeds the threshold set below.
 * Threshold (dB): The threshold value for automatic level-based switching.
-* Hysteresis (dB): This value provides a tolerance margin for switching and is factored into the threshold.
-* Hold Time (seconds): Controls the minimum time spent on a deck before switching.
+* Hysteresis (dB): This value provides a tolerance margin to prevent quickly switching between decks. Calculation: threshold minus Hysteresis.
+* Hold Time (seconds): After the level has decreased, this controls the minimum amount of time that must be spent on a deck before switching.
 
 ### Recording
 

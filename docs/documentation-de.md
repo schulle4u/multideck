@@ -189,8 +189,8 @@ Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+P aufrufbar. Über
 * Überblendungsdauer: Dauer der Überblendung in Sekunden.
 * Pegelbasierte Umschaltung aktivieren: Ist diese Option aktiviert, schaltet der Automatikmodus um, sobald der Lautstärkepegel auf einem Deck die nachfolgend eingestellte Schwelle überschreitet.
 * Schwellenwert (dB): Angabe des Schwellenwertes zur automatischen Pegelumschaltung.
-* Hysterese (dB): Dieser Wert gibt der Umschaltung einen gewissen Spielraum und wird auf den Schwellenwert angerechnet. 
-* Haltezeit (Sekunden): Kontrolliert die Mindestverweildauer auf dem Deck, bevor weitergeschaltet wird.
+* Hysterese (dB): Dieser Wert gibt der Umschaltung einen gewissen Spielraum, um allzu schnelles Umschalten zwischen den Decks zu verhindern. Berechnung: Schwellenwert Minus Hysterese.
+* Haltezeit (Sekunden): Kontrolliert nach erneutem Abfallen des Pegels die Mindestverweildauer auf dem Deck, bevor weitergeschaltet wird.
 
 ### Aufnahme
 
