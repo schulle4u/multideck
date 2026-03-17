@@ -30,7 +30,8 @@ def convert_markdown_to_html(input_file, output_file, output_language="en"):
             'toc',          # Table of contents
             'tables',       # Table support
             'attr_list',    # Attributes for html elements
-            'fenced_code'
+            'fenced_code',
+            'footnotes'
         ], extension_configs={
             'toc': {
                 'toc_depth': '2-6'
