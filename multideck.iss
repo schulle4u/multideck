@@ -16,6 +16,7 @@ AppPublisher={#AppPublisher}
 AppPublisherURL=https://m45.dev
 AppSupportURL=https://github.com/schulle4u/multideck/issues
 AppUpdatesURL=https://github.com/schulle4u/multideck/releases
+LicenseFile={#SourceDir}\LICENSE
 
 ; 64-bit only
 ArchitecturesAllowed=x64compatible
@@ -37,7 +38,7 @@ SolidCompression=yes
 LZMANumBlockThreads=4
 
 ; Visual settings
-WizardStyle=modern
+WizardStyle=modern dynamic
 WizardResizable=yes
 ShowLanguageDialog=auto
 
