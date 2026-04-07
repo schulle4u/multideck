@@ -44,6 +44,13 @@ DEFAULT_CONFIG = {
         'connection_timeout': 10,
         'read_timeout': 30,
     },
+    'TTS': {
+        'tts_enabled': False,
+        'tts_engine': "",
+        'tts_voice': "",
+        'tts_rate': "0",
+        'tts_volume': "-1",
+    },
     'Recent': {
         'max_recent_items': 10,
     },

@@ -75,7 +75,7 @@ class OptionsDialog(wx.Dialog):
             self.Bind(wx.EVT_SHOW, self._on_first_show)
 
     # Tab name constants matching book page order
-    TAB_NAMES = ['general', 'audio', 'automation', 'recorder', 'streaming']
+    TAB_NAMES = ['general', 'audio', 'automation', 'recorder', 'streaming', 'tts']
 
     def _on_first_show(self, event):
         """Pre-size hidden pages after realization to avoid layout warnings on Linux."""
@@ -101,7 +101,7 @@ class OptionsDialog(wx.Dialog):
         book_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         page_names = [_("General"), _("Audio"), _("Automation"),
-                      _("Recorder"), _("Streaming")]
+                      _("Recorder"), _("Streaming"), _("Text-to-Speech")]
         list_sizer = wx.BoxSizer(wx.VERTICAL)
         list_label = wx.StaticText(panel, label=_("Cate&gories"))
         list_sizer.Add(list_label, 0, wx.LEFT | wx.TOP | wx.BOTTOM, 5)
@@ -144,6 +144,12 @@ class OptionsDialog(wx.Dialog):
         streaming_panel.Show(False)
         self.page_sizer.Add(streaming_panel, 1, wx.EXPAND)
         self.pages.append(streaming_panel)
+
+        # Text-to-Speech page (hidden at creation)
+        tts_panel = self._create_tts_tab(self.page_container)
+        tts_panel.Show(False)
+        self.page_sizer.Add(tts_panel, 1, wx.EXPAND)
+        self.pages.append(tts_panel)
 
         self.page_container.SetSizer(self.page_sizer)
 
@@ -197,6 +203,12 @@ class OptionsDialog(wx.Dialog):
         self.level_switch_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
         self.auto_reconnect_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
         self.output_dir_text.Bind(wx.EVT_TEXT, self._on_control_changed)
+
+        self.tts_enabled_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
+        self.tts_engine_choice.Bind(wx.EVT_CHOICE, self._on_tts_engine_changed)
+        self.tts_voice_choice.Bind(wx.EVT_CHOICE, self._on_control_changed)
+        self.tts_rate_spin.Bind(wx.EVT_SPINCTRL, self._on_control_changed)
+        self.tts_volume_spin.Bind(wx.EVT_SPINCTRL, self._on_control_changed)
 
     def _create_general_tab(self, parent):
         """Create general options tab"""
@@ -593,6 +605,127 @@ class OptionsDialog(wx.Dialog):
         panel.SetSizer(sizer)
         return panel
 
+    def _create_tts_tab(self, parent):
+        """Create text-to-speech options tab"""
+        panel = wx.Panel(parent)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        tts_mgr = self.main_frame.tts_manager
+
+        # Enable TTS
+        self.tts_enabled_check = wx.CheckBox(panel, label=_("Enable text-to-speech announcements"))
+        self.tts_enabled_check.SetName(_("Enable text-to-speech announcements"))
+        self.tts_enabled_check.SetValue(
+            self.config_manager.getboolean('TTS', 'tts_enabled', False)
+        )
+        sizer.Add(self.tts_enabled_check, 0, wx.ALL, 10)
+
+        # Engine
+        engine_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        engine_label = wx.StaticText(panel, label=_("Engine") + ":")
+        engine_sizer.Add(engine_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        engine_entries = tts_mgr.get_available_engines()
+        self._tts_engine_values = [e[1] for e in engine_entries]
+        engine_labels = [e[0] for e in engine_entries]
+
+        self.tts_engine_choice = wx.Choice(panel, choices=engine_labels)
+        self.tts_engine_choice.SetName(_("Engine"))
+        current_engine = self.config_manager.get('TTS', 'tts_engine', '')
+        if current_engine in self._tts_engine_values:
+            self.tts_engine_choice.SetSelection(self._tts_engine_values.index(current_engine))
+        else:
+            self.tts_engine_choice.SetSelection(0)
+        engine_sizer.Add(self.tts_engine_choice, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(engine_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Voice
+        voice_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        voice_label = wx.StaticText(panel, label=_("Voice") + ":")
+        voice_sizer.Add(voice_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        selected_engine = self._tts_engine_values[self.tts_engine_choice.GetSelection()]
+        voices = tts_mgr.get_available_voices(selected_engine)
+        self._tts_voice_names = [v[0] for v in voices]
+        if not self._tts_voice_names:
+            self._tts_voice_names = [_("(default)")]
+
+        self.tts_voice_choice = wx.Choice(panel, choices=self._tts_voice_names)
+        self.tts_voice_choice.SetName(_("Voice"))
+        current_voice = self.config_manager.get('TTS', 'tts_voice', '')
+        if current_voice in self._tts_voice_names:
+            self.tts_voice_choice.SetSelection(self._tts_voice_names.index(current_voice))
+        else:
+            self.tts_voice_choice.SetSelection(0)
+        voice_sizer.Add(self.tts_voice_choice, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(voice_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Rate
+        rate_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        rate_label = wx.StaticText(panel, label=_("Rate (WPM, 0=default)") + ":")
+        rate_sizer.Add(rate_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        current_rate = self.config_manager.getint('TTS', 'tts_rate', 0)
+        self.tts_rate_spin = wx.SpinCtrl(panel, value=str(current_rate),
+                                         min=0, max=400, initial=current_rate)
+        self.tts_rate_spin.SetName(_("Rate (WPM, 0=default)"))
+        rate_sizer.Add(self.tts_rate_spin, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(rate_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Volume
+        vol_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        vol_label = wx.StaticText(panel, label=_("Volume (%, -1=default)") + ":")
+        vol_sizer.Add(vol_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        current_vol = self.config_manager.getint('TTS', 'tts_volume', -1)
+        self.tts_volume_spin = wx.SpinCtrl(panel, value=str(current_vol),
+                                           min=-1, max=100, initial=current_vol)
+        self.tts_volume_spin.SetName(_("Volume (%, -1=default)"))
+        vol_sizer.Add(self.tts_volume_spin, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(vol_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Test button
+        test_btn = wx.Button(panel, label=_("Test voice"))
+        test_btn.SetName(_("Test voice"))
+        test_btn.Bind(wx.EVT_BUTTON, self._on_tts_test)
+        sizer.Add(test_btn, 0, wx.ALL, 10)
+
+        panel.SetSizer(sizer)
+        return panel
+
+    def _on_tts_engine_changed(self, event):
+        """Reload voice list when engine selection changes"""
+        engine_idx = self.tts_engine_choice.GetSelection()
+        if 0 <= engine_idx < len(self._tts_engine_values):
+            engine_name = self._tts_engine_values[engine_idx]
+        else:
+            engine_name = ''
+        voices = self.main_frame.tts_manager.get_available_voices(engine_name)
+        self._tts_voice_names = [v[0] for v in voices]
+        if not self._tts_voice_names:
+            self._tts_voice_names = [_("(default)")]
+        self.tts_voice_choice.Set(self._tts_voice_names)
+        self.tts_voice_choice.SetSelection(0)
+        self._on_control_changed(event)
+
+    def _on_tts_test(self, event):
+        """Speak a short test phrase using current settings"""
+        tts_mgr = self.main_frame.tts_manager
+        engine_idx = self.tts_engine_choice.GetSelection()
+        engine_name = self._tts_engine_values[engine_idx] if 0 <= engine_idx < len(self._tts_engine_values) else ''
+        voice_idx = self.tts_voice_choice.GetSelection()
+        voice_name = self._tts_voice_names[voice_idx] if 0 <= voice_idx < len(self._tts_voice_names) else ''
+        if voice_name == _("(default)"):
+            voice_name = ''
+        rate = self.tts_rate_spin.GetValue()
+        volume = self.tts_volume_spin.GetValue()
+
+        tts_mgr.configure(engine_name, voice_name, rate, volume)
+        old_enabled = tts_mgr.tts_enabled
+        tts_mgr.tts_enabled = True
+        tts_mgr.speak(_("Test announcement: Deck 1"))
+        tts_mgr.tts_enabled = old_enabled
+
     def _on_theme_change(self, event):
         """Handle theme selection change - apply immediately"""
         if self.theme_manager:
@@ -637,6 +770,13 @@ class OptionsDialog(wx.Dialog):
                 self.auto_reconnect_check.GetValue(),
                 self.wait_spin.GetValue(),
             ),
+            'tts': (
+                self.tts_enabled_check.GetValue(),
+                self.tts_engine_choice.GetSelection(),
+                self.tts_voice_choice.GetSelection(),
+                self.tts_rate_spin.GetValue(),
+                self.tts_volume_spin.GetValue(),
+            ),
         }
 
     def _get_current_values(self, tab_name):
@@ -675,6 +815,14 @@ class OptionsDialog(wx.Dialog):
             return (
                 self.auto_reconnect_check.GetValue(),
                 self.wait_spin.GetValue(),
+            )
+        elif tab_name == 'tts':
+            return (
+                self.tts_enabled_check.GetValue(),
+                self.tts_engine_choice.GetSelection(),
+                self.tts_voice_choice.GetSelection(),
+                self.tts_rate_spin.GetValue(),
+                self.tts_volume_spin.GetValue(),
             )
         return ()
 
@@ -797,6 +945,20 @@ class OptionsDialog(wx.Dialog):
                                self.auto_reconnect_check.GetValue())
         self.config_manager.set('Streaming', 'reconnect_wait', self.wait_spin.GetValue())
 
+    def _save_tts(self):
+        """Save TTS settings to config"""
+        self.config_manager.set('TTS', 'tts_enabled', self.tts_enabled_check.GetValue())
+        engine_idx = self.tts_engine_choice.GetSelection()
+        engine_name = self._tts_engine_values[engine_idx] if 0 <= engine_idx < len(self._tts_engine_values) else ''
+        self.config_manager.set('TTS', 'tts_engine', engine_name)
+        voice_idx = self.tts_voice_choice.GetSelection()
+        voice_name = self._tts_voice_names[voice_idx] if 0 <= voice_idx < len(self._tts_voice_names) else ''
+        if voice_name == _("(default)"):
+            voice_name = ''
+        self.config_manager.set('TTS', 'tts_voice', voice_name)
+        self.config_manager.set('TTS', 'tts_rate', self.tts_rate_spin.GetValue())
+        self.config_manager.set('TTS', 'tts_volume', self.tts_volume_spin.GetValue())
+
     def _show_restart_message(self, restart_reasons):
         """Show restart message if any settings require it"""
         if restart_reasons:
@@ -832,6 +994,10 @@ class OptionsDialog(wx.Dialog):
             self._save_streaming()
             self.config_manager.save()
             self.main_frame.apply_streaming_settings()
+        elif tab_name == 'tts':
+            self._save_tts()
+            self.config_manager.save()
+            self.main_frame.apply_tts_settings()
 
         self.config_manager.save()
         self._applied_sections.add(tab_name)
@@ -864,6 +1030,8 @@ class OptionsDialog(wx.Dialog):
             self._save_recorder()
         if 'streaming' not in self._applied_sections:
             self._save_streaming()
+        if 'tts' not in self._applied_sections:
+            self._save_tts()
 
         self.config_manager.save()
         self._show_restart_message(restart_reasons)

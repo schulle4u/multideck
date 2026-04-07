@@ -28,6 +28,7 @@ from config.defaults import (
 from audio.audio_engine import AudioEngine
 from audio.mixer import Mixer
 from utils.logger import configure_logging, get_logger
+from utils.tts_manager import TTSManager
 
 
 class MultiDeckCLI:
@@ -48,6 +49,7 @@ class MultiDeckCLI:
         self.running = False
         self.mixer = None
         self.audio_engine = None
+        self.tts_manager = None
         self.logger = get_logger('cli')
 
     def log(self, message: str):
@@ -309,6 +311,17 @@ class MultiDeckCLI:
         self.mixer.level_hysteresis_db = config.getfloat('Automation', 'level_hysteresis_db', 3.0)
         self.mixer.level_hold_time = config.getfloat('Automation', 'level_hold_time', 3.0)
 
+        # Apply TTS settings from config
+        self.tts_manager = TTSManager()
+        self.tts_manager.tts_enabled = config.getboolean('TTS', 'tts_enabled', False)
+        self.tts_manager.configure(
+            engine_name=config.get('TTS', 'tts_engine', ''),
+            voice_name=config.get('TTS', 'tts_voice', ''),
+            rate=config.getint('TTS', 'tts_rate', 0),
+            volume=config.getint('TTS', 'tts_volume', -1),
+        )
+        self.mixer.tts_manager = self.tts_manager
+
         # Set up deck change callback
         self.mixer.on_active_deck_change = self._on_deck_change
 
@@ -374,6 +387,8 @@ class MultiDeckCLI:
 
     def cleanup(self):
         """Clean up resources"""
+        if self.tts_manager:
+            self.tts_manager.shutdown()
         if self.mixer:
             self.mixer.cleanup()
         if self.audio_engine:

@@ -48,3 +48,10 @@ max_recent_items = 10
 # Log levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
 level = INFO
 
+[TTS]
+tts_enabled = False
+tts_engine = 
+tts_voice = 
+tts_rate = 0
+tts_volume = -1
+

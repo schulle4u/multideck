@@ -20,6 +20,7 @@ from config.defaults import (
 )
 from utils.i18n import _, get_i18n
 from utils.helpers import format_time, parse_time
+from utils.tts_manager import TTSManager
 
 
 class MainFrame(wx.Frame):
@@ -64,6 +65,11 @@ class MainFrame(wx.Frame):
         self.mixer.level_threshold_db = self.config_manager.getfloat('Automation', 'level_threshold_db', -30.0)
         self.mixer.level_hysteresis_db = self.config_manager.getfloat('Automation', 'level_hysteresis_db', 3.0)
         self.mixer.level_hold_time = self.config_manager.getfloat('Automation', 'level_hold_time', 3.0)
+
+        # TTS manager
+        self.tts_manager = TTSManager()
+        self.mixer.tts_manager = self.tts_manager
+        self.apply_tts_settings()
 
         # Theme manager
         self.theme_manager = ThemeManager(self.config_manager)
@@ -1696,6 +1702,15 @@ class MainFrame(wx.Frame):
             if deck.stream_handler:
                 deck.stream_handler.set_reconnect_settings(auto_reconnect, reconnect_wait)
 
+    def apply_tts_settings(self):
+        """Apply TTS settings from config to the TTS manager"""
+        self.tts_manager.tts_enabled = self.config_manager.getboolean('TTS', 'tts_enabled', False)
+        engine = self.config_manager.get('TTS', 'tts_engine', '')
+        voice = self.config_manager.get('TTS', 'tts_voice', '')
+        rate = self.config_manager.getint('TTS', 'tts_rate', 0)
+        volume = self.config_manager.getint('TTS', 'tts_volume', -1)
+        self.tts_manager.configure(engine, voice, rate, volume)
+
     def _apply_audio_device_change(self, new_device):
         """Apply audio device change at runtime without restart"""
         import threading
@@ -2138,6 +2153,7 @@ class MainFrame(wx.Frame):
         self.config_manager.save()
 
         # Cleanup
+        self.tts_manager.shutdown()
         self.mixer.cleanup()
 
         event.Skip()

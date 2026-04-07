@@ -96,6 +96,9 @@ class Mixer:
         self.on_deck_recording_started: Optional[Callable] = None
         self.on_deck_recording_stopped: Optional[Callable] = None
 
+        # TTS manager for automatic-mode deck-switch announcements (injected by main_frame)
+        self.tts_manager = None
+
         # Start audio stream
         self._start_playback()
 
@@ -290,6 +293,9 @@ class Mixer:
 
         if self.on_active_deck_change:
             self.on_active_deck_change(self._crossfade_from_deck, self._crossfade_to_deck)
+
+        if self.mode == MODE_AUTOMATIC:
+            self._announce_auto_switch(self._crossfade_to_deck)
 
     def _get_deck_audio(self, deck: Deck, frames: int) -> Optional[np.ndarray]:
         """
@@ -848,6 +854,13 @@ class Mixer:
 
         return best_index
 
+    def _announce_auto_switch(self, to_deck_index: int):
+        """Announce the newly active deck via TTS (automatic mode only)."""
+        if self.tts_manager is None:
+            return
+        if 0 <= to_deck_index < len(self.decks):
+            self.tts_manager.speak(self.decks[to_deck_index].name)
+
     def _start_automatic_switching(self):
         """Start automatic deck switching"""
         if self._auto_thread is None or not self._auto_thread.is_alive():
@@ -891,14 +904,21 @@ class Mixer:
                     if target is not None:
                         if self.crossfade_enabled and not self._crossfade_active:
                             self._start_crossfade(self.active_deck_index, target)
+                            # Announcement will follow in _finish_crossfade
                         else:
                             self.set_active_deck(target)
+                            self._announce_auto_switch(target)
                         self._level_hold_until = time.time() + self.level_hold_time
                         level_triggered = True
                         break
 
             if not self._auto_stop_event.is_set() and not level_triggered:
+                was_crossfading = self._crossfade_active
                 self.next_deck()  # Will use crossfade automatically in automatic mode
+                # Only announce now when no crossfade was started; crossfade path
+                # announces in _finish_crossfade once the transition completes.
+                if not self._crossfade_active and not was_crossfading:
+                    self._announce_auto_switch(self.active_deck_index)
 
     def to_dict(self) -> dict:
         """Export mixer configuration"""
