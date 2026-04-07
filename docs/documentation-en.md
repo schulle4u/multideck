@@ -205,6 +205,14 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 * Automatically Reconnect on Connection Loss: Rebuilds the stream if possible when the connection is interrupted.
 * Reconnect Wait Time (seconds): The time to wait before attempting a new connection.
 
+### Text-to-speech
+
+* Enable text-to-speech announcements: Enables deck announcement in automatic mode.
+* Engine: TTS engine to use.
+* Voice: TTS voice, depends on selected engine.
+* Rate: Words per minute, 0 for default.
+* Volume in percent, -1 for engine default.
+
 ## Audio Effects
 
 Some audio effects are available for the master mix or each deck individually, accessible via the Tools menu or with the keyboard shortcut Ctrl+Shift+E. First, select the desired deck or the master mix from the effect chain list. The effects are organized per deck across two pages: Built-in Effects and VST Plugins.

@@ -205,6 +205,14 @@ Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+P aufrufbar. Über
 * Automatisch neu verbinden bei Verbindungsabbruch: Baut den Stream nach Möglichkeit neu auf, wenn die Verbindung unterbrochen wird.
 * Wartezeit für Neuverbindung (Sekunden): Zeitdauer, bis ein neuer Verbindungsversuch gestartet werden soll.
 
+### Sprachausgabe
+
+* Sprachausgabenansagen einschalten: Aktiviert die Ansage des aktiven Decks im Automatikmodus.
+* Treiber: Die zu verwendende TTS-Engine.
+* Stimme: Stimme der Sprachausgabe, abhängig von der TTS-Engine.
+* Sprechgeschwindigkeit: Wörter pro Minute, 0 für Sprachausgabenstandard.
+* Lautstärke in Prozent, -1 für Sprachausgabenstandard.
+
 ## Audioeffekte
 
 Über das Werkzeuge-Menü oder mit der Tastenkombination Ctrl+Shift+E sind einige Audioeffekte für den Mastermix oder jedes Deck einzeln verfügbar. Zunächst muss hierfür in der Effektkettenliste das gewünschte Deck oder der Mastermix gewählt werden. Die Effekte sind pro Deck in zwei Seiten unterteilt: Integrierte Effekte und VST-Plugins. 
