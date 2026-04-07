@@ -37,6 +37,9 @@ setup(
         'sounddevice>=0.4.6',
         'soundfile>=0.12.1',
         'numpy>=1.24.0',
+        'configparser>=6.0.0',
+        'pedalboard>=0.9.0',
+        'pyttsx3>=2.99',
     ],
 
     python_requires='>=3.10',
