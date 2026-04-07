@@ -23,26 +23,6 @@ def format_time(seconds: float) -> str:
         return f"{minutes}:{secs:02d}"
 
 
-def format_time_old(seconds: float) -> str:
-    """
-    Format time in seconds to HH:MM:SS. (TODO: needs review, probably to be removed)
-
-    Args:
-        seconds: Time in seconds
-
-    Returns:
-        Formatted time string
-    """
-    hours = int(seconds // 3600)
-    minutes = int((seconds % 3600) // 60)
-    secs = int(seconds % 60)
-
-    if hours > 0:
-        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
-    else:
-        return f"{minutes:02d}:{secs:02d}"
-
-
 def parse_time(time_str: str) -> float:
     """
     Parse time string to seconds.
