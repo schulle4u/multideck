@@ -186,7 +186,7 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 
 * Switch Interval (seconds): The time period after which the automation mode should switch to the next deck.
 * Enable Crossfade: Enables a smooth transition between deck switches.
-* Crossfade Duration: Duration of the crossfade in tens[^1] (Example: 2 seconds = 20).
+* Crossfade Duration: Duration of the crossfade in seconds.
 * Enable Level-Based Switching: When this option is enabled, the automatic mode switches as soon as the volume level on a deck exceeds the threshold set below.
 * Threshold (dB): The threshold value for automatic level-based switching.
 * Hysteresis (dB): This value provides a tolerance margin to prevent quickly switching between decks. Calculation: threshold minus Hysteresis.
@@ -249,5 +249,3 @@ Changes in the mixer and the deck list are automatically detected by the player 
 ## Further Reading
 
 * [Source code on GitHub](https://github.com/schulle4u/multideck)
-
-[^1]: Currently has to be entered this way for accessibility reasons. The original control which was intended to display the time in seconds caused problems with some screen readers.

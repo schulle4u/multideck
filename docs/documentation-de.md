@@ -186,7 +186,7 @@ Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+P aufrufbar. Über
 
 * Umschaltintervall (Sekunden): Die Zeitdauer, nach welcher der Automatisierungsmodus zum nächsten Deck umschalten soll.
 * Überblendung aktivieren: Ermöglicht einen sanften Übergang zwischen Deckumschaltungen.
-* Überblendungsdauer: Dauer der Überblendung in Zehntelsekunden[^1] (Beispiel: 2 Sekunden = 20).
+* Überblendungsdauer: Dauer der Überblendung in Sekunden.
 * Pegelbasierte Umschaltung aktivieren: Ist diese Option aktiviert, schaltet der Automatikmodus um, sobald der Lautstärkepegel auf einem Deck die nachfolgend eingestellte Schwelle überschreitet.
 * Schwellenwert (dB): Angabe des Schwellenwertes zur automatischen Pegelumschaltung.
 * Hysterese (dB): Dieser Wert gibt der Umschaltung einen gewissen Spielraum, um allzu schnelles Umschalten zwischen den Decks zu verhindern. Berechnung: Schwellenwert Minus Hysterese.
@@ -249,5 +249,3 @@ Veränderungen im Mixer sowie der Deckliste werden vom Player automatisch erkann
 ## Weiterführende Links
 
 * [Quellcode auf GitHub](https://github.com/schulle4u/multideck)
-
-[^1]: Wird derzeit aus Gründen der Barrierefreiheit so angegeben, da das ursprünglich vorgesehene Steuerelement zur Angabe in Sekunden bei manchen Bildschirmlesern Probleme bereitet. 
