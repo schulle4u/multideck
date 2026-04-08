@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-07 20:00+0200\n"
+"POT-Creation-Date: 2026-04-08 11:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -173,7 +173,7 @@ msgstr ""
 msgid "Browse"
 msgstr ""
 
-#: gui/dialogs.py:574 gui/main_frame.py:2052 gui/main_frame.py:2094
+#: gui/dialogs.py:574 gui/main_frame.py:2060 gui/main_frame.py:2106
 msgid "Choose recording output directory"
 msgstr ""
 
@@ -254,7 +254,7 @@ msgid "Effect Chains"
 msgstr ""
 
 #: gui/dialogs.py:1202 gui/dialogs.py:1208 gui/main_frame.py:461
-#: gui/main_frame.py:521 gui/main_frame.py:1336 gui/main_frame.py:2042
+#: gui/main_frame.py:521 gui/main_frame.py:1336 gui/main_frame.py:2050
 msgid "Master"
 msgstr ""
 
@@ -555,7 +555,7 @@ msgstr ""
 msgid "&View"
 msgstr ""
 
-#: gui/main_frame.py:145 gui/main_frame.py:2072
+#: gui/main_frame.py:145 gui/main_frame.py:2084
 msgid "Start &Recording"
 msgstr ""
 
@@ -709,8 +709,8 @@ msgstr ""
 msgid "Automatic"
 msgstr ""
 
-#: gui/main_frame.py:515 gui/main_frame.py:1949 gui/main_frame.py:1959
-#: gui/main_frame.py:1967
+#: gui/main_frame.py:515 gui/main_frame.py:1949 gui/main_frame.py:1961
+#: gui/main_frame.py:1971
 #, python-brace-format
 msgid "Active deck: {}"
 msgstr ""
@@ -736,7 +736,7 @@ msgstr ""
 #: gui/main_frame.py:687 gui/main_frame.py:1070 gui/main_frame.py:1243
 #: gui/main_frame.py:1281 gui/main_frame.py:1427 gui/main_frame.py:1440
 #: gui/main_frame.py:1445 gui/main_frame.py:1620 gui/main_frame.py:1754
-#: gui/main_frame.py:1794 gui/main_frame.py:2106 main.py:61 main.py:69
+#: gui/main_frame.py:1794 gui/main_frame.py:2118 main.py:61 main.py:69
 #: main.py:82
 msgid "Error"
 msgstr ""
@@ -1015,50 +1015,60 @@ msgstr ""
 msgid "Accessible cross-platform audio player for simultaneous playback"
 msgstr ""
 
-#: gui/main_frame.py:2020
+#: gui/main_frame.py:1980
+#, python-brace-format
+msgid "Toggle Mute {}"
+msgstr ""
+
+#: gui/main_frame.py:1988
+#, python-brace-format
+msgid "Toggle Loop {}"
+msgstr ""
+
+#: gui/main_frame.py:2028
 #, python-brace-format
 msgid "{}: Volume {}%"
 msgstr ""
 
-#: gui/main_frame.py:2031
+#: gui/main_frame.py:2039
 msgid "Center"
 msgstr ""
 
-#: gui/main_frame.py:2032
+#: gui/main_frame.py:2040
 #, python-brace-format
 msgid "Left {}%"
 msgstr ""
 
-#: gui/main_frame.py:2032
+#: gui/main_frame.py:2040
 #, python-brace-format
 msgid "Right {}%"
 msgstr ""
 
-#: gui/main_frame.py:2034
+#: gui/main_frame.py:2042
 #, python-brace-format
 msgid "{}: Balance {}"
 msgstr ""
 
-#: gui/main_frame.py:2064
+#: gui/main_frame.py:2072
 #, python-brace-format
 msgid "Recording: {}"
 msgstr ""
 
-#: gui/main_frame.py:2066
+#: gui/main_frame.py:2076
 msgid "Stop &Recording"
 msgstr ""
 
-#: gui/main_frame.py:2070 gui/main_frame.py:2135
+#: gui/main_frame.py:2080 gui/main_frame.py:2149
 #, python-brace-format
 msgid "Recording stopped: {}"
 msgstr ""
 
-#: gui/main_frame.py:2105
+#: gui/main_frame.py:2117
 #, python-brace-format
 msgid "Failed to start recording for {}"
 msgstr ""
 
-#: gui/main_frame.py:2124
+#: gui/main_frame.py:2136
 #, python-brace-format
 msgid "Recording started: {}"
 msgstr ""
