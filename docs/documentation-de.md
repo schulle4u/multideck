@@ -207,7 +207,7 @@ Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+P aufrufbar. Über
 
 ### Sprachausgabe
 
-* Sprachausgabenansagen einschalten: Aktiviert die Ansage des aktiven Decks im Automatikmodus.
+* Sprachausgabenansagen einschalten: Aktiviert durch Tastenkombinationen ausgelöste Statusereignisse sowie die Ansage des aktiven Decks im Automatikmodus.
 * Treiber: Die zu verwendende TTS-Engine.
 * Stimme: Stimme der Sprachausgabe, abhängig von der TTS-Engine.
 * Sprechgeschwindigkeit: Wörter pro Minute, 0 für Sprachausgabenstandard.
