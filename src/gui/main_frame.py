@@ -1946,7 +1946,9 @@ class MainFrame(wx.Frame):
         if deck_index < len(self.mixer.decks):
             self.mixer.set_active_deck(deck_index)
             deck = self.mixer.decks[deck_index]
-            self.SetStatusText(_("Active deck: {}").format(deck.name), 0)
+            message = _("Active deck: {}").format(deck.name)
+            self.SetStatusText(message, 0)
+            self.tts_manager.speak(message)
             # Update deck listbox selection
             self._sync_listbox_selection(deck_index)
 
@@ -1956,7 +1958,9 @@ class MainFrame(wx.Frame):
         deck_index = self.mixer.active_deck_index
         self._sync_listbox_selection(deck_index)
         deck = self.mixer.decks[deck_index]
-        self.SetStatusText(_("Active deck: {}").format(deck.name), 0)
+        message = _("Active deck: {}").format(deck.name)
+        self.SetStatusText(message, 0)
+        self.tts_manager.speak(message)
 
     def _on_previous_deck(self, event):
         """Handle Ctrl+Shift+Tab for previous deck"""
@@ -1964,13 +1968,16 @@ class MainFrame(wx.Frame):
         deck_index = self.mixer.active_deck_index
         self._sync_listbox_selection(deck_index)
         deck = self.mixer.decks[deck_index]
-        self.SetStatusText(_("Active deck: {}").format(deck.name), 0)
+        message = _("Active deck: {}").format(deck.name)
+        self.SetStatusText(message, 0)
+        self.tts_manager.speak(message)
 
     def _on_mute_active_deck(self, event):
         """Handle Ctrl+M for mute"""
         deck = self.mixer.get_deck(self.mixer.active_deck_index)
         if deck:
             deck.toggle_mute()
+            self.tts_manager.speak(_("Toggle Mute {}").format(deck.name))
             self._update_deck_panel(deck.deck_id)
 
     def _on_loop_active_deck(self, event):
@@ -1978,6 +1985,7 @@ class MainFrame(wx.Frame):
         deck = self.mixer.get_deck(self.mixer.active_deck_index)
         if deck:
             deck.toggle_loop()
+            self.tts_manager.speak(_("Toggle Loop {}").format(deck.name))
             self._update_deck_panel(deck.deck_id)
 
     def _on_shortcut_load_file(self, event):
@@ -2061,13 +2069,17 @@ class MainFrame(wx.Frame):
 
     def _on_recording_started(self, filepath):
         """Callback when recording starts"""
-        self.SetStatusText(_("Recording: {}").format(os.path.basename(filepath)), 0)
+        message = _("Recording: {}").format(os.path.basename(filepath))
+        self.SetStatusText(message, 0)
+        self.tts_manager.speak(message)
         # Update menu item text
         self.record_menu_item.SetItemLabel(_("Stop &Recording") + "\tCtrl+R")
 
     def _on_recording_stopped(self, filepath, frames):
         """Callback when recording stops"""
-        self.SetStatusText(_("Recording stopped: {}").format(os.path.basename(filepath)), 0)
+        message = _("Recording stopped: {}").format(os.path.basename(filepath))
+        self.SetStatusText(message, 0)
+        self.tts_manager.speak(message)
         # Update menu item text
         self.record_menu_item.SetItemLabel(_("Start &Recording") + "\tCtrl+R")
 
@@ -2121,7 +2133,9 @@ class MainFrame(wx.Frame):
         """Handle deck recording started on the GUI thread."""
         deck = self.mixer.get_deck_by_id(deck_id)
         deck_name = deck.name if deck else f"Deck {deck_id}"
-        self.SetStatusText(_("Recording started: {}").format(f"{deck_name} → {os.path.basename(filepath)}"), 0)
+        message = _("Recording started: {}").format(f"{deck_name} → {os.path.basename(filepath)}")
+        self.SetStatusText(message, 0)
+        self.tts_manager.speak(message)
         self._update_deck_listbox()
 
     def _on_deck_recording_stopped(self, deck_id, filepath, frames):
@@ -2132,7 +2146,9 @@ class MainFrame(wx.Frame):
         """Handle deck recording stopped on the GUI thread."""
         deck = self.mixer.get_deck_by_id(deck_id)
         deck_name = deck.name if deck else f"Deck {deck_id}"
-        self.SetStatusText(_("Recording stopped: {}").format(f"{deck_name} → {os.path.basename(filepath)}"), 0)
+        message = _("Recording stopped: {}").format(f"{deck_name} → {os.path.basename(filepath)}")
+        self.SetStatusText(message, 0)
+        self.tts_manager.speak(message)
         self._update_deck_listbox()
 
     def _on_close(self, event):
