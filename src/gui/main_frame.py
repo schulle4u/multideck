@@ -501,6 +501,7 @@ class MainFrame(wx.Frame):
             MODE_AUTOMATIC: _("Automatic"),
         }
         self.SetStatusText(f"{_('Mode')}: {mode_names.get(new_mode, new_mode)}", 1)
+        self.tts_manager.speak(mode_names.get(new_mode, new_mode))
 
     def _on_active_deck_changed(self, old_index, new_index):
         """Handle active deck change (e.g., from automatic mode switching)"""
