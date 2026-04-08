@@ -194,11 +194,12 @@ class OptionsDialog(wx.Dialog):
                      self.format_choice, self.bitrate_choice, self.depth_choice):
             ctrl.Bind(wx.EVT_CHOICE, self._on_control_changed)
 
-        for ctrl in (self.interval_spin, self.crossfade_spin,
+        for ctrl in (self.interval_spin,
                      self.threshold_spin, self.hysteresis_spin, self.hold_time_spin,
                      self.preroll_spin, self.wait_spin):
             ctrl.Bind(wx.EVT_SPINCTRL, self._on_control_changed)
 
+        self.crossfade_spin.Bind(wx.EVT_SPINCTRLDOUBLE, self._on_control_changed)
         self.crossfade_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
         self.level_switch_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
         self.auto_reconnect_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
@@ -386,17 +387,16 @@ class OptionsDialog(wx.Dialog):
         self.crossfade_check.SetValue(crossfade_enabled)
         sizer.Add(self.crossfade_check, 0, wx.ALL, 10)
 
-        # Crossfade duration (in tenths of seconds for accessibility)
+        # Crossfade duration (in seconds)
         duration_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        duration_label = wx.StaticText(panel, label=_("Crossfade Duration (0.1s)") + ":")
+        duration_label = wx.StaticText(panel, label=_("Crossfade Duration (seconds)") + ":")
         duration_sizer.Add(duration_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_duration = self.config_manager.getfloat('Automation', 'crossfade_duration', 2.0)
-        # Convert seconds to tenths (e.g., 2.0s -> 20)
-        current_duration_tenths = int(current_duration * 10)
-        self.crossfade_spin = wx.SpinCtrl(panel, value=str(current_duration_tenths),
-                                          min=5, max=100, initial=current_duration_tenths)
-        self.crossfade_spin.SetName(_("Crossfade Duration (0.1s)"))
+        self.crossfade_spin = wx.SpinCtrlDouble(panel, value=str(current_duration),
+                                          min=0.5, max=10.0, initial=current_duration, inc=0.1)
+        self.crossfade_spin.SetDigits(1)
+        self.crossfade_spin.SetName(_("Crossfade Duration (seconds)"))
         duration_sizer.Add(self.crossfade_spin, 1, wx.EXPAND | wx.ALL, 5)
 
         sizer.Add(duration_sizer, 0, wx.EXPAND | wx.ALL, 5)
@@ -916,8 +916,7 @@ class OptionsDialog(wx.Dialog):
         """Save automation settings to config"""
         self.config_manager.set('Automation', 'switch_interval', self.interval_spin.GetValue())
         self.config_manager.set('Automation', 'crossfade_enabled', self.crossfade_check.GetValue())
-        # Convert tenths back to seconds (e.g., 20 -> 2.0s)
-        self.config_manager.set('Automation', 'crossfade_duration', self.crossfade_spin.GetValue() / 10.0)
+        self.config_manager.set('Automation', 'crossfade_duration', self.crossfade_spin.GetValue())
         self.config_manager.set('Automation', 'level_switch_enabled', self.level_switch_check.GetValue())
         self.config_manager.set('Automation', 'level_threshold_db', self.threshold_spin.GetValue())
         self.config_manager.set('Automation', 'level_hysteresis_db', self.hysteresis_spin.GetValue())
