@@ -110,13 +110,11 @@ class TTSManager:
         engines = [("Platform default", '')]
         if sys.platform == 'win32':
             engines.append(('SAPI5', 'sapi5'))
-            engines.append(('eSpeak', 'espeak'))
         elif sys.platform == 'darwin':
             engines.append(('NSSpeechSynthesizer', 'nsss'))
             engines.append(('eSpeak', 'espeak'))
         else:
             engines.append(('eSpeak', 'espeak'))
-            engines.append(('eSpeak-NG', 'espeak-ng'))
         return engines
 
     def get_available_voices(self, engine_name: str = '') -> list:
@@ -136,6 +134,7 @@ class TTSManager:
             engine = pyttsx3.init(driverName=driver)
             voices = engine.getProperty('voices') or []
             result = [(v.name, v.id) for v in voices]
+            engine.runAndWait()
             engine.stop()
             return result
         except Exception as e:
