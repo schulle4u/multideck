@@ -290,6 +290,7 @@ class MainFrame(wx.Frame):
         self.deck_listbox = wx.ListBox(list_static_box, style=wx.LB_SINGLE)
         self.deck_listbox.SetName(_("Deck Selection"))
         self.deck_listbox.SetLabel(_("Deck Selection"))
+        self.deck_listbox.SetFocus()
         self.deck_listbox.Bind(wx.EVT_LISTBOX, self._on_deck_listbox_select)
         self.deck_listbox.Bind(wx.EVT_CONTEXT_MENU, self._on_deck_context_menu)
         # Use CHAR_HOOK to intercept Enter before native ListBox processing
