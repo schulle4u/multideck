@@ -7,7 +7,7 @@ import wx.adv
 import os
 from pathlib import Path
 
-from gui.dialogs import OptionsDialog, CustomTextEntryDialog, SoundCardInputDialog
+from gui.dialogs.custom import CustomTextEntryDialog
 from gui.theme_manager import ThemeManager
 from audio.audio_engine import AudioEngine
 from audio.mixer import Mixer
@@ -604,6 +604,7 @@ class MainFrame(wx.Frame):
 
     def _on_deck_load_soundcard_input(self, deck):
         """Handle loading a sound card input device into a deck"""
+        from gui.dialogs.sound_card_input import SoundCardInputDialog
         dlg = SoundCardInputDialog(self)
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -1644,16 +1645,16 @@ class MainFrame(wx.Frame):
             self._effects_dialog.Raise()
             self._effects_dialog.SetFocus()
             return
-        from gui.dialogs import EffectsDialog
+        from gui.dialogs.effects import EffectsDialog
         self._effects_dialog = EffectsDialog(self, self.mixer)
         self._effects_dialog.Show()
 
     def _on_options(self, event):
         """Show options dialog"""
+        from gui.dialogs.options import OptionsDialog
         dlg = OptionsDialog(self, self.config_manager, self.theme_manager)
         # Remember current device setting before dialog opens
         old_device = self.config_manager.get('Audio', 'output_device', 'default')
-
         if dlg.ShowModal() == wx.ID_OK:
             applied = dlg._applied_sections
 
