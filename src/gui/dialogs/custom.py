@@ -2,7 +2,7 @@
 Various Custom dialogs to workaround some wx limitations
 """
 import wx
-from utils.i18n import _
+
 
 class AccessibleSpinCtrl(wx.BoxSizer):
     def __init__(self, parent, label_text, initial_val, min_val, max_val, inc):
@@ -97,7 +97,7 @@ class AccessibleSpinCtrl(wx.BoxSizer):
 class CustomTextEntryDialog(wx.Dialog):
     """Custom text entry dialog with translatable button labels"""
 
-    def __init__(self, parent, message, caption, default_value=""):
+    def __init__(self, parent, message, caption, default_value="", ok_label="&OK", cancel_label="&Cancel"):
         """
         Initialize custom text entry dialog.
 
@@ -106,6 +106,8 @@ class CustomTextEntryDialog(wx.Dialog):
             message: text input message
             caption: text input caption
             default_value: optional default value
+            ok_label: optional OK button label
+            cancel_label: optional cancel button label
         """
         super().__init__(parent, title=caption)
 
@@ -121,8 +123,8 @@ class CustomTextEntryDialog(wx.Dialog):
 
         # Buttons
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        ok_button = wx.Button(self, wx.ID_OK, _("&OK"))
-        cancel_button = wx.Button(self, wx.ID_CANCEL, _("&Cancel"))
+        ok_button = wx.Button(self, wx.ID_OK, ok_label)
+        cancel_button = wx.Button(self, wx.ID_CANCEL, cancel_label)
 
         ok_button.SetDefault()  # OK as default button
 

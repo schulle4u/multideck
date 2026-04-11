@@ -584,7 +584,8 @@ class MainFrame(wx.Frame):
             self,
             _("Enter stream URL:"),
             _("Load Stream"),
-            default_value = "http://"
+            default_value = "http://",
+            ok_label=_("&OK"), cancel_label=_("&Cancel")
         )
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -816,7 +817,7 @@ class MainFrame(wx.Frame):
         if not deck:
             return
 
-        dlg = CustomTextEntryDialog(self, _("Enter new deck name:"), _("Rename Deck"), default_value = deck.name)
+        dlg = CustomTextEntryDialog(self, _("Enter new deck name:"), _("Rename Deck"), default_value = deck.name, ok_label=_("&OK"), cancel_label=_("&Cancel"))
         if dlg.ShowModal() == wx.ID_OK:
             new_name = dlg.GetValue().strip()
             if new_name:
@@ -1052,7 +1053,8 @@ class MainFrame(wx.Frame):
             self,
             _("Enter time (M:SS or H:MM:SS):") + f"\n{_('Duration')}: {duration_str}",
             _("Jump to Time"),
-            default_value = current_pos
+            default_value = current_pos,
+            ok_label=_("&OK"), cancel_label=_("&Cancel")
         )
 
         if dlg.ShowModal() == wx.ID_OK:
