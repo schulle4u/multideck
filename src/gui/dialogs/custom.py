@@ -25,6 +25,7 @@ class AccessibleSpinCtrl(wx.BoxSizer):
         self.spin_btn = wx.SpinButton(parent, style=wx.SP_VERTICAL)
         self.spin_btn.SetRange(int(min_val / inc), int(max_val / inc))
         self.spin_btn.SetValue(int(initial_val / inc))
+        self.spin_btn.SetCanFocus(False)
         self.Add(self.spin_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
         
         # Bindings
