@@ -236,7 +236,7 @@ Auf dieser Seite können VST-Plug-ins geladen werden. Sie sind in einer Liste au
 
 ## Projektdateien
 
-Um nicht bei jedem Öffnen des Players alle Decks manuell neu laden zu müssen, kann MultiDeck Audio Player die Deck- und Mixerkonfiguration in Projektdateien („*.mdap“) hinterlegen. Auch einige Programmeinstellungen lassen sich projektspezifisch abspeichern und werden unabhängig von den in den Optionen festgelegten Einstellungen beim Öffnen der Projektdatei angewendet. Folgende Einstellungen werden übernommen: 
+Um nicht bei jedem Öffnen des Players alle Decks manuell neu laden zu müssen, kann MultiDeck Audio Player die Deck- und Mixerkonfiguration in Projektdateien („*.mdap“) hinterlegen, und diese über den Dateimanager oder aus dem Programm heraus öffnen. Auch einige Programmeinstellungen lassen sich projektspezifisch abspeichern und werden unabhängig von den in den Optionen festgelegten Einstellungen beim Öffnen der Projektdatei angewendet. Folgende Einstellungen werden übernommen: 
 
 * Betriebsmodus: Mixer, Solo oder Automatik
 * Masterlautstärke

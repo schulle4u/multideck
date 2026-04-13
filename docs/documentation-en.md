@@ -236,7 +236,7 @@ VST plugins can be loaded on this page. They are listed and can be freely rearra
 
 ## Project Files
 
-To avoid having to manually reload all decks every time the player is opened, MultiDeck Audio Player can save the deck and mixer configuration in project files ("*.mdap"). Some program settings can also be saved on a per-project basis and will be applied independently of the settings defined in the options when the project file is opened. The following settings are saved:
+To avoid having to manually reload all decks every time the player is opened, MultiDeck Audio Player can save the deck and mixer configuration in project files ("*.mdap"). You can open these project files either in your preferred file manager or via the program's file menu. Some program settings can also be saved on a per-project basis and will be applied independently of the settings defined in the options when the project file is opened. The following settings are saved:
 
 * Operating mode: Mixer, Solo, or Automatic
 * Master volume
