@@ -108,11 +108,63 @@ exe = EXE(
     version='version_info.txt' if IS_WINDOWS and os.path.exists(os.path.join(PROJECT_ROOT, 'version_info.txt')) else None,
 )
 
+a_cli = Analysis(
+    [os.path.join(PROJECT_ROOT, 'src', 'cli.py')],
+    pathex=[os.path.join(PROJECT_ROOT, 'src')],
+    binaries=binaries,
+    datas=datas,
+    hiddenimports=hiddenimports,
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[
+        'tkinter',
+        'unittest',
+        'html',
+        'http',
+        'xml',
+        'pydoc',
+        'doctest',
+        'difflib',
+        'calendar',
+    ],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
+    noarchive=False,
+)
+
+pyz_cli = PYZ(
+    a_cli.pure, 
+    a_cli.zipped_data,
+    cipher=block_cipher
+)
+
+exe_cli = EXE(
+    pyz_cli,
+    a_cli.scripts,
+    [],
+    exclude_binaries=True,
+    name='multideck-cli', # The name of your CLI executable
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    console=True,  # Crucial for CLI visibility
+    disable_windowed_traceback=False,
+    argv_emulation=IS_MACOS,
+    icon=APP_ICON,
+)
+
 coll = COLLECT(
     exe,
     a.binaries,
     a.zipfiles,
     a.datas,
+    exe_cli,
+    a_cli.binaries,
+    a_cli.zipfiles,
+    a_cli.datas,
     strip=False,
     upx=True,
     upx_exclude=[],
