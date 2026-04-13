@@ -5,6 +5,7 @@
 #define AppVersion "0.5.0"
 #define AppPublisher "Steffen Schultz"
 #define AppExeName "MultiDeck.exe"
+#define AppCliName "multideck-cli.exe"
 #define SourceDir "dist\MultiDeck"
 
 [Setup]
@@ -64,6 +65,9 @@ Name: "startmenuicon"; Description: "Eintrag im Startmenü erstellen"; GroupDesc
 [Files]
 ; Main executable
 Source: "{#SourceDir}\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+
+; Commandline interface
+Source: "{#SourceDir}\{#AppCliName}"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Runtime files
 Source: "{#SourceDir}\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
