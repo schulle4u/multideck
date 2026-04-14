@@ -9,7 +9,7 @@ import configparser
 from pathlib import Path
 from typing import Any, Dict
 
-from config.defaults import DEFAULT_CONFIG, VALID_DECK_COUNTS
+from config.defaults import DEFAULT_CONFIG, VALID_DECK_RANGE
 
 
 class ConfigManager:
@@ -102,15 +102,15 @@ class ConfigManager:
         """
         Get the configured deck count with validation.
 
-        Ensures the value is within VALID_DECK_COUNTS range.
+        Ensures the value is within allowed range.
         Values below minimum are set to 1, values above maximum are capped.
 
         Returns:
-            Validated deck count between 1 and max(VALID_DECK_COUNTS)
+            Validated deck count between 1 and max(VALID_DECK_RANGE)
         """
         count = self.getint('General', 'deck_count', 10)
-        min_count = min(VALID_DECK_COUNTS)
-        max_count = max(VALID_DECK_COUNTS)
+        min_count = min(VALID_DECK_RANGE)
+        max_count = max(VALID_DECK_RANGE)
 
         if count < min_count:
             return min_count

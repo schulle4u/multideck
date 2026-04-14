@@ -96,8 +96,8 @@ RECORDING_FORMATS = {
     'flac': {'extension': '.flac', 'name': 'FLAC'},
 }
 
-# Valid deck counts
-VALID_DECK_COUNTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+# Valid deck range
+VALID_DECK_RANGE = [1, 10]
 
 # Application info
 APP_NAME = 'MultiDeck Audio Player'

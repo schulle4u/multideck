@@ -5,8 +5,8 @@ Options dialog for MultiDeck Audio Player
 import wx
 import sys
 import sounddevice as sd
-from config.defaults import VALID_DECK_COUNTS
 from utils.i18n import _, LANGUAGE_NAMES
+from config.defaults import VALID_DECK_RANGE
 from audio.recorder import FFMPEG_AVAILABLE
 from gui.dialogs.custom import AccessibleSpinCtrl
 
@@ -159,12 +159,12 @@ class OptionsDialog(wx.Dialog):
         # Bind change events on all controls to update Apply button state
         # Note: theme_choice is excluded here because it already has a dedicated
         # handler (_on_theme_change) for live preview, which also updates Apply state.
-        for ctrl in (self.language_choice, self.deck_count_choice,
+        for ctrl in (self.language_choice,
                      self.device_choice, self.buffer_choice, self.rate_choice,
                      self.format_choice, self.bitrate_choice, self.depth_choice):
             ctrl.Bind(wx.EVT_CHOICE, self._on_control_changed)
 
-        for ctrl in (self.interval_spin,
+        for ctrl in (self.deck_count_spin, self.interval_spin,
                      self.threshold_spin, self.hysteresis_spin, self.hold_time_spin,
                      self.preroll_spin, self.wait_spin):
             ctrl.Bind(wx.EVT_SPINCTRL, self._on_control_changed)
@@ -207,13 +207,12 @@ class OptionsDialog(wx.Dialog):
         deck_label = wx.StaticText(panel, label=_("Number of decks") + ":")
         deck_sizer.Add(deck_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        current_deck_count = self.config_manager.get_deck_count()
-        deck_choices = [str(n) for n in VALID_DECK_COUNTS]
+        current_deck_count = self.config_manager.getint('General', 'deck_count', 10)
 
-        self.deck_count_choice = wx.Choice(panel, choices=deck_choices)
-        self.deck_count_choice.SetName(_("Number of decks"))
-        self.deck_count_choice.SetSelection(VALID_DECK_COUNTS.index(current_deck_count))
-        deck_sizer.Add(self.deck_count_choice, 1, wx.EXPAND | wx.ALL, 5)
+        self.deck_count_spin = wx.SpinCtrl(panel, value=str(current_deck_count),
+                                         min=min(VALID_DECK_RANGE), max=max(VALID_DECK_RANGE), initial=current_deck_count)
+        self.deck_count_spin.SetName(_("Number of decks"))
+        deck_sizer.Add(self.deck_count_spin, 1, wx.EXPAND | wx.ALL, 5)
 
         sizer.Add(deck_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
@@ -714,7 +713,7 @@ class OptionsDialog(wx.Dialog):
         self._initial_values = {
             'general': (
                 self.language_choice.GetSelection(),
-                self.deck_count_choice.GetSelection(),
+                self.deck_count_spin.GetValue(),
                 self.theme_choice.GetSelection(),
             ),
             'audio': (
@@ -756,7 +755,7 @@ class OptionsDialog(wx.Dialog):
         if tab_name == 'general':
             return (
                 self.language_choice.GetSelection(),
-                self.deck_count_choice.GetSelection(),
+                self.deck_count_spin.GetValue(),
                 self.theme_choice.GetSelection(),
             )
         elif tab_name == 'audio':
@@ -849,8 +848,7 @@ class OptionsDialog(wx.Dialog):
 
         languages = ['en', 'de']
         self.config_manager.set('General', 'language', languages[self.language_choice.GetSelection()])
-        self.config_manager.set('General', 'deck_count',
-                               VALID_DECK_COUNTS[self.deck_count_choice.GetSelection()])
+        self.config_manager.set('General', 'deck_count', self.deck_count_spin.GetValue())
         self.config_manager.set('General', 'theme',
                                self.theme_values[self.theme_choice.GetSelection()])
 
