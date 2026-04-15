@@ -8,7 +8,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Optional
 
-def check_ffmpeg():
+def check_ffmpeg() -> bool:
     """Check if FFmpeg is available"""
     try:
         result = subprocess.run(
