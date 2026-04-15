@@ -1,6 +1,6 @@
 # MultiDeck Audio Player
 
-MultiDeck Audio Player is an app that allows you to play up to 10 audio files or internet streams simultaneously. The player can be used to monitor multiple audio sources at the same time or to create complex soundscapes.
+MultiDeck Audio Player is an app that allows you to play multiple audio files or internet streams simultaneously. The player can be used to monitor multiple audio sources at the same time or to create complex soundscapes.
 
 [![Main application window](./multideck-screenshot.png)](./multideck-screenshot.png)
 
@@ -10,7 +10,7 @@ MultiDeck Audio Player is an app that allows you to play up to 10 audio files or
 
 ## Feature Overview
 
-* **Up to 10 independent audio decks**
+* **Independent audio decks**
     * Load local audio files (MP3, OGG, WAV, FLAC)
     * Stream from internet sources (Icecast/Shoutcast)
     * Monitor all sound card inputs (microphone, line-in)
@@ -18,17 +18,19 @@ MultiDeck Audio Player is an app that allows you to play up to 10 audio files or
     * **Individual controls for play/pause, volume, balance, mute, and loop**
     * Global play/pause control for all decks
     * Custom deck labels
-* **Three operating modes**
+    * Separate output device for each deck (multiroom mode only)
+* **Four operating modes**
     * **Mixer mode**: All decks play simultaneously and overlap
     * **Solo mode**: Only one deck is audible at a time
     * **Automatic mode**: Automatically switches between decks, supports crossfade
+    * **Multiroom mode**: Mixer mode with separate output devices for each deck
 * **Project management**
     * Save and load complete deck configurations (.mdap files)
     * Import and export M3U playlists
 * **Master output recorder**
     * Record audio output as WAV, MP3, OGG, or FLAC files
     * Real-time recording with status indicator and optional pre-roll buffer
-* **Command-line interface (source code only)**
+* **Command-line interface**
     * Loads project files and plays them in server environments or on embedded systems
     * Optional silent mode for use in scripts
 
@@ -142,6 +144,7 @@ The deck list is used to select the active deck. To switch between decks, simply
 * Load File (Ctrl+F): Loads an audio file into the selected deck.
 * Load URL (Ctrl+U): Opens an internet stream in the selected deck.
 * Load Sound Card Input (Ctrl+D): Enables playback of an audio source connected to the computer (microphone, line-in).
+* Output device: Select a different audio device for each deck (multiroom mode only). 
 * Rename Deck (F2): Allows you to assign a custom name to the deck.
 * Toggle Loop (Ctrl+L): Enables or disables loop playback for local audio files.
 * Unload Deck (Del): Removes the file loaded on the selected deck.
@@ -173,7 +176,7 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 ### General
 
 * Language: Sets the program language.
-* Number of Decks: Any number of decks between 1 and 10 can be selected here.
+* Number of Decks: The number of decks shown in the main window.
 * Theme: Sets the default appearance of the program.
 
 ### Audio

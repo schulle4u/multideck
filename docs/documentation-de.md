@@ -1,6 +1,6 @@
 # MultiDeck Audio Player
 
-MultiDeck Audio Player ist eine App, mit der sich bis zu 10 Audiodateien oder Internet-Streams gleichzeitig abspielen lassen. Der Player kann verwendet werden, um mehrere Audioquellen gleichzeitig zu überwachen oder komplexe Klanglandschaften zu erstellen. 
+MultiDeck Audio Player ist eine App, mit der sich mehrere Audiodateien oder Internet-Streams gleichzeitig abspielen lassen. Der Player kann verwendet werden, um mehrere Audioquellen gleichzeitig zu überwachen oder komplexe Klanglandschaften zu erstellen. 
 
 [![Hauptfenster des Programms](./multideck-screenshot.png)](./multideck-screenshot.png)
 
@@ -10,7 +10,7 @@ MultiDeck Audio Player ist eine App, mit der sich bis zu 10 Audiodateien oder In
 
 ## Funktionen im Überblick
 
-* **Bis zu 10 unabhängige Audio-Decks**
+* **Unabhängige Audio-Decks**
     * Lokale Audiodateien laden (MP3, OGG, WAV, FLAC)
     * Streamen von Internetquellen (Icecast/Shoutcast)
     * Abhören aller Soundkarteneingänge (Mikrofon, Line-in).
@@ -18,17 +18,19 @@ MultiDeck Audio Player ist eine App, mit der sich bis zu 10 Audiodateien oder In
     * **Individuelle Steuerung für Wiedergabe/Pause, Lautstärke, Balance, Stummschaltung und Loop**
     * Globale Steuerung für Wiedergabe/Pause für alle Decks
     * Benutzerdefinierte Deck-Bezeichnungen
-* **Drei Betriebsmodi**
+    * Decks auf separaten Soundkarten wiedergeben (nur Multiroom-Modus)
+* **Vier Betriebsmodi**
     * **Mixer-Modus**: Alle Decks werden gleichzeitig überlappend abgespielt
     * **Solo-Modus**: Es ist jeweils nur ein Deck zu hören.
     * **Automatikmodus**: Automatisches Umschalten zwischen Decks, unterstützt Crossfade
+    * **Multiroom-Modus**: Wiedergabe jedes Decks auf einer eigenen Soundkarte
 * **Projektverwaltung**
     * Speichern und Laden kompletter Deck-Konfigurationen (.mdap-Dateien)
     * M3U-Dateien importieren und exportieren
 * **Master-Ausgangsrekorder**
     * Aufzeichnen der Audioausgabe als WAV-, MP3-, OGG- oder FLAC-Dateien
     * Echtzeitaufzeichnung mit Statusanzeige und optionalem Pre-Roll-Puffer
-* **Kommandozeileninterface (nur Quellcode)**
+* **Kommandozeileninterface**
     * Lädt Projektdateien und spielt sie in Serverumgebungen oder auf eingebetteten Systemen ab.
     * Optionaler Silent-Modus für die Verwendung in Skripten.
 
@@ -142,6 +144,7 @@ Die Deckliste dient zur Auswahl des aktiven Decks. Um das Deck zu wechseln, muss
 * Datei laden (Ctrl+F): Lädt eine Audiodatei in das gewählte Deck. 
 * URL laden (Ctrl+U): Öffnet einen Internetstream im gewählten Deck.
 * Soundkarteneingang laden (Ctrl+D): Ermöglicht die Wiedergabe einer an den Computer angeschlossenen Audioquelle (Mikrofon, Line). 
+* Ausgabegerät: Konfiguriert ein separates Audiogerät für das Deck (nur Multiroom-Modus). 
 * Deck umbenennen (F2): Erlaubt das Hinterlegen eines benutzerdefinierten Decknamens. 
 * Wiederholung umschalten (Ctrl+L): Schaltet die Loopwiedergabe für lokale Audiodateien ein oder aus.
 * Deck entladen (Del/Entf): Entfernt die auf dem gewählten Deck geladene Datei.
@@ -173,7 +176,7 @@ Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+P aufrufbar. Über
 ### Allgemein
 
 * Sprache: Legt die Programmsprache fest.
-* Anzahl der Decks: Eine beliebige Deckanzahl zwischen 1 und 10 kann hier gewählt werden.
+* Anzahl der Decks: Die Anzahl sichtbarer Decks im Hauptfenster.
 * Theme: Legt das Standard-Aussehen des Programms fest.
 
 ### Audio
