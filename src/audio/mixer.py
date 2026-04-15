@@ -12,7 +12,7 @@ from audio.deck import Deck
 from audio.audio_engine import AudioEngine
 from audio.recorder import Recorder
 from audio.effects import EffectChain
-from config.defaults import MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC, DECK_STATE_PLAYING
+from config.defaults import MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC, MODE_MULTIROOM, DECK_STATE_PLAYING
 from utils.logger import get_logger
 from utils.helpers import generate_recording_filename, sanitize_filename
 
@@ -59,6 +59,12 @@ class Mixer:
         self.auto_switch_enabled = False
         self._auto_thread: Optional[threading.Thread] = None
         self._auto_stop_event = threading.Event()
+        self._multiroom_thread: Optional[threading.Thread] = None
+        self._multiroom_stop_event = threading.Event()
+        self._multiroom_workers: dict = {}
+        self._multiroom_worker_devices: set = set()
+        self._multiroom_target_blocks = 6
+        self._multiroom_refill_threshold = 3
 
         # Crossfade settings
         self.crossfade_enabled = True
@@ -95,16 +101,211 @@ class Mixer:
         self.on_active_deck_change: Optional[Callable] = None
         self.on_deck_recording_started: Optional[Callable] = None
         self.on_deck_recording_stopped: Optional[Callable] = None
+        self.on_routing_error: Optional[Callable] = None
 
         # TTS manager for automatic-mode deck-switch announcements (injected by main_frame)
         self.tts_manager = None
 
         # Start audio stream
-        self._start_playback()
+        self._apply_output_mode()
 
     def _start_playback(self):
         """Start audio output stream with callback"""
         self.audio_engine.start_stream(self._audio_callback)
+
+    def _stop_global_playback(self):
+        """Stop the shared master output stream."""
+        self.audio_engine.stop_stream()
+
+    def _apply_output_mode(self):
+        """Start/stop physical outputs according to the active mode."""
+        if self.mode == MODE_MULTIROOM:
+            self._stop_global_playback()
+            self._start_multiroom_playback()
+        else:
+            self._stop_multiroom_playback()
+            if not self.audio_engine.is_running():
+                self._start_playback()
+
+    def _emit_routing_warning(self, message: str):
+        logger.warning(message)
+        if self.on_routing_error:
+            try:
+                self.on_routing_error(message)
+            except Exception as exc:
+                logger.error(f"Error in routing warning callback: {exc}")
+
+    def _normalize_device_key(self, device) -> str:
+        return 'default' if device is None else str(device)
+
+    def _resolve_output_device_for_deck(self, deck: Deck, warn: bool = True):
+        """
+        Resolve the actual output device for a deck, falling back to the global
+        device if the stored per-deck device is invalid.
+        """
+        if deck.output_device_id is None:
+            return self.audio_engine.device
+
+        validated = self.audio_engine._validate_device(deck.output_device_id)
+        if validated is None and self.audio_engine.device != deck.output_device_id:
+            if warn:
+                self._emit_routing_warning(
+                    f"Deck {deck.deck_id} output device '{deck.output_device_name}' unavailable; falling back to global output"
+                )
+            return self.audio_engine.device
+
+        return validated
+
+    def _ensure_multiroom_workers(self):
+        """Create workers for all devices currently needed in multiroom mode."""
+        required_devices = set()
+        for deck in self.decks:
+            if deck.file_path:
+                required_devices.add(self._normalize_device_key(self._resolve_output_device_for_deck(deck)))
+
+        # Remove workers no longer needed
+        for key in list(self._multiroom_workers.keys()):
+            if key not in required_devices:
+                self._multiroom_workers[key].stop()
+                del self._multiroom_workers[key]
+
+        # Create missing workers
+        for deck in self.decks:
+            if not deck.file_path:
+                continue
+            resolved_device = self._resolve_output_device_for_deck(deck)
+            key = self._normalize_device_key(resolved_device)
+            if key in self._multiroom_workers:
+                continue
+            try:
+                worker = self.audio_engine.create_output_worker(resolved_device)
+                worker.start()
+                self._multiroom_workers[key] = worker
+            except Exception as exc:
+                self._emit_routing_warning(
+                    f"Failed to open output device for Deck {deck.deck_id} ({deck.name}): {exc}"
+                )
+                fallback_key = self._normalize_device_key(self.audio_engine.device)
+                if key != fallback_key and fallback_key not in self._multiroom_workers:
+                    fallback_worker = self.audio_engine.create_output_worker(self.audio_engine.device)
+                    fallback_worker.start()
+                    self._multiroom_workers[fallback_key] = fallback_worker
+
+    def _start_multiroom_playback(self):
+        """Start per-device output workers and the shared multiroom render loop."""
+        if self._multiroom_thread is not None and self._multiroom_thread.is_alive():
+            return
+        self._ensure_multiroom_workers()
+        self._multiroom_stop_event.clear()
+        self._multiroom_thread = threading.Thread(target=self._multiroom_loop, daemon=True)
+        self._multiroom_thread.start()
+
+    def _stop_multiroom_playback(self):
+        """Stop multiroom render loop and all per-device workers."""
+        if self._multiroom_thread is not None:
+            self._multiroom_stop_event.set()
+            self._multiroom_thread.join(timeout=1.0)
+            self._multiroom_thread = None
+        for worker in self._multiroom_workers.values():
+            worker.stop()
+        self._multiroom_workers.clear()
+
+    def restart_multiroom_routing(self):
+        """Rebuild multiroom workers after routing/device changes."""
+        if self.mode != MODE_MULTIROOM:
+            return
+        self._stop_multiroom_playback()
+        self._start_multiroom_playback()
+
+    def set_deck_output_device(self, deck_id: int, device_id=None, device_name: Optional[str] = None) -> bool:
+        """Update a deck's preferred output device and hot-apply it if needed."""
+        deck = self.get_deck_by_id(deck_id)
+        if not deck:
+            return False
+        deck.set_output_device(device_id, device_name)
+        if self.mode == MODE_MULTIROOM:
+            self.restart_multiroom_routing()
+        return True
+
+    def _handle_virtual_master_output(self, audio_data: np.ndarray):
+        """
+        Feed the virtual sum bus used in multiroom mode for master effects and recording.
+        """
+        audio_data = audio_data * self.master_volume
+        audio_data = self.master_effects.process(audio_data)
+
+        if self.recorder:
+            try:
+                if self.recorder.is_recording:
+                    self.recorder.write_frames(audio_data)
+                else:
+                    self.recorder.buffer_frames(audio_data)
+            except Exception as rec_error:
+                logger.error(f"Error with recorder: {rec_error}")
+
+    def _render_multiroom_block(self, frames: int) -> tuple[dict, np.ndarray]:
+        """
+        Render one shared multiroom block for all deck routes plus the virtual master sum.
+        """
+        route_streams = {}
+        virtual_streams = []
+
+        for deck in self.decks:
+            if deck.is_playing:
+                audio = self._get_deck_audio(deck, frames)
+                if audio is None:
+                    audio = self.audio_engine.create_silence(frames)
+                self._feed_deck_recorder(deck.deck_id, audio)
+                virtual_streams.append(audio)
+
+                resolved_device = self._resolve_output_device_for_deck(deck, warn=False)
+                key = self._normalize_device_key(resolved_device)
+                route_streams.setdefault(key, []).append(audio)
+            else:
+                self._decay_deck_rms(deck)
+
+        virtual_sum = (
+            self.audio_engine.mix_audio(virtual_streams)
+            if virtual_streams else
+            self.audio_engine.create_silence(frames)
+        )
+        return route_streams, virtual_sum
+
+    def _multiroom_loop(self):
+        """
+        Render deck audio centrally and distribute it to per-device workers.
+        """
+        frames = self.audio_engine.buffer_size
+
+        while not self._multiroom_stop_event.is_set():
+            self._ensure_multiroom_workers()
+
+            if not self._multiroom_workers:
+                if self._multiroom_stop_event.wait(0.05):
+                    break
+                continue
+
+            min_queued_blocks = min(
+                worker.get_queued_blocks() for worker in self._multiroom_workers.values()
+            )
+
+            if min_queued_blocks <= self._multiroom_refill_threshold:
+                while min_queued_blocks < self._multiroom_target_blocks and not self._multiroom_stop_event.is_set():
+                    route_streams, virtual_sum = self._render_multiroom_block(frames)
+
+                    for key, worker in self._multiroom_workers.items():
+                        streams = route_streams.get(key)
+                        if streams:
+                            worker.submit(self.audio_engine.mix_audio(streams))
+                        else:
+                            worker.submit(self.audio_engine.create_silence(frames))
+
+                    self._handle_virtual_master_output(virtual_sum)
+                    min_queued_blocks = min(
+                        worker.get_queued_blocks() for worker in self._multiroom_workers.values()
+                    )
+            if self._multiroom_stop_event.wait(0.005):
+                break
 
     def _audio_callback(self, outdata, frames, time_info, status):
         """
@@ -169,6 +370,8 @@ class Mixer:
             return self._generate_solo_mode(frames)
         elif self.mode == MODE_AUTOMATIC:
             return self._generate_automatic_mode(frames)
+        elif self.mode == MODE_MULTIROOM:
+            return self.audio_engine.create_silence(frames)
         else:
             return self.audio_engine.create_silence(frames)
 
@@ -571,6 +774,8 @@ class Mixer:
         else:
             self._stop_automatic_switching()
 
+        self._apply_output_mode()
+
         if self.on_mode_change:
             self.on_mode_change(old_mode, mode)
 
@@ -955,11 +1160,13 @@ class Mixer:
         self.level_threshold_db = float(data.get('level_threshold_db', -30.0))
         self.level_hysteresis_db = float(data.get('level_hysteresis_db', 3.0))
         self.level_hold_time = float(data.get('level_hold_time', 3.0))
+        self._apply_output_mode()
 
     def cleanup(self):
         """Cleanup resources"""
         self.stop_all_deck_recordings()
         self._stop_automatic_switching()
+        self._stop_multiroom_playback()
         self.audio_engine.stop_stream()
         self._loaded_audio_cache.clear()
 

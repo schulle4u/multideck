@@ -60,6 +60,8 @@ class Deck:
         self.is_soundcard_input = False
         self.soundcard_device_id: Optional[int] = None
         self.soundcard_device_name: Optional[str] = None
+        self.output_device_id: Optional[int] = None
+        self.output_device_name: str = 'default'
         self.audio_data = None
         self.sample_rate = None  # Actual sample rate of loaded audio
         self.channels = None
@@ -224,6 +226,17 @@ class Deck:
             self.soundcard_device_id = None
             self.soundcard_device_name = None
             self._set_state(DECK_STATE_EMPTY)
+
+    def set_output_device(self, device_id: Optional[int], device_name: Optional[str] = None):
+        """
+        Set the preferred output device for this deck.
+
+        Args:
+            device_id: Output device index, or None for global/default routing
+            device_name: Human-readable device name for persistence/UI
+        """
+        self.output_device_id = device_id
+        self.output_device_name = device_name or 'default'
 
     def play(self) -> bool:
         """
@@ -454,6 +467,8 @@ class Deck:
             'state': self.state,
             'file_path': self.file_path,
             'is_stream': self.is_stream,
+            'output_device_id': self.output_device_id,
+            'output_device_name': self.output_device_name,
             'volume': self.volume,
             'balance': self.balance,
             'mute': self.mute,
@@ -479,6 +494,8 @@ class Deck:
                 'source_type': 'soundcard_input',
                 'soundcard_device_id': self.soundcard_device_id,
                 'soundcard_device_name': self.soundcard_device_name or '',
+                'output_device_id': self.output_device_id,
+                'output_device_name': self.output_device_name,
                 'volume': self.volume,
                 'balance': self.balance,
                 'mute': self.mute,
@@ -488,6 +505,8 @@ class Deck:
         return {
             'name': self.name,
             'file': self.file_path or '',
+            'output_device_id': self.output_device_id,
+            'output_device_name': self.output_device_name,
             'volume': self.volume,
             'balance': self.balance,
             'mute': self.mute,
@@ -524,6 +543,13 @@ class Deck:
             self.balance = float(data.get('balance', 0.0))
             self.mute = bool(data.get('mute', False))
             self.loop = bool(data.get('loop', False))
+            raw_output_id = data.get('output_device_id')
+            try:
+                output_device_id = int(raw_output_id) if raw_output_id not in (None, '', 'default') else None
+            except (ValueError, TypeError):
+                output_device_id = None
+            output_device_name = data.get('output_device_name', 'default')
+            self.set_output_device(output_device_id, output_device_name)
 
             # Soundcard input source
             if data.get('source_type') == 'soundcard_input':

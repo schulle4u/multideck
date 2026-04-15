@@ -22,7 +22,7 @@ if str(src_dir) not in sys.path:
 
 from config.config_manager import ConfigManager, ProjectManager
 from config.defaults import (
-    APP_NAME, APP_VERSION, MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC,
+    APP_NAME, APP_VERSION, MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC, MODE_MULTIROOM,
     SOURCE_TYPE_SOUNDCARD_INPUT
 )
 from audio.audio_engine import AudioEngine
@@ -138,6 +138,12 @@ class MultiDeckCLI:
                         deck.mute = deck_data['mute'] if isinstance(deck_data['mute'], bool) else deck_data['mute'].lower() == 'true'
                     if 'loop' in deck_data:
                         deck.loop = deck_data['loop'] if isinstance(deck_data['loop'], bool) else deck_data['loop'].lower() == 'true'
+                    raw_output_id = deck_data.get('output_device_id')
+                    try:
+                        output_device_id = int(raw_output_id) if raw_output_id not in (None, '', 'default') else None
+                    except (ValueError, TypeError):
+                        output_device_id = None
+                    deck.set_output_device(output_device_id, deck_data.get('output_device_name', 'default'))
 
                     # Load soundcard input
                     device_name = deck_data.get('soundcard_device_name', '')
@@ -171,6 +177,12 @@ class MultiDeckCLI:
                         deck.mute = deck_data['mute'] if isinstance(deck_data['mute'], bool) else deck_data['mute'].lower() == 'true'
                     if 'loop' in deck_data:
                         deck.loop = deck_data['loop'] if isinstance(deck_data['loop'], bool) else deck_data['loop'].lower() == 'true'
+                    raw_output_id = deck_data.get('output_device_id')
+                    try:
+                        output_device_id = int(raw_output_id) if raw_output_id not in (None, '', 'default') else None
+                    except (ValueError, TypeError):
+                        output_device_id = None
+                    deck.set_output_device(output_device_id, deck_data.get('output_device_name', 'default'))
 
                     # Load audio file or stream
                     file_path = deck_data['file']
@@ -219,7 +231,8 @@ class MultiDeckCLI:
         mode_names = {
             MODE_MIXER: "Mixer",
             MODE_SOLO: "Solo",
-            MODE_AUTOMATIC: "Automatic"
+            MODE_AUTOMATIC: "Automatic",
+            MODE_MULTIROOM: "Multiroom",
         }
 
         print("\n" + "=" * 50)

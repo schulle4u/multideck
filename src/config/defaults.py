@@ -65,6 +65,7 @@ DEFAULT_CONFIG = {
 MODE_MIXER = 'mixer'
 MODE_SOLO = 'solo'
 MODE_AUTOMATIC = 'automatic'
+MODE_MULTIROOM = 'multiroom'
 
 # Deck source types (used in project file serialisation)
 SOURCE_TYPE_FILE = 'file'

@@ -15,7 +15,7 @@ from audio.recorder import Recorder
 from config.config_manager import ConfigManager, ProjectManager
 from config.defaults import (
     APP_NAME, APP_VERSION, APP_AUTHOR, APP_WEBSITE, APP_LICENSE,
-    SUPPORTED_FILE_FORMATS, PROJECT_FILE_FILTER, MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC,
+    SUPPORTED_FILE_FORMATS, PROJECT_FILE_FILTER, MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC, MODE_MULTIROOM,
     DECK_STATE_EMPTY, DECK_STATE_PLAYING, DECK_STATE_PAUSED
 )
 from utils.i18n import _, get_i18n
@@ -54,6 +54,7 @@ class MainFrame(wx.Frame):
         self.mixer = Mixer(self.audio_engine, num_decks, self.recorder)
         self.mixer.on_deck_recording_started = self._on_deck_recording_started
         self.mixer.on_deck_recording_stopped = self._on_deck_recording_stopped
+        self.mixer.on_routing_error = self._on_routing_error
 
         # Load automation/crossfade settings
         self.mixer.auto_switch_interval = self.config_manager.getint('Automation', 'switch_interval', 10)
@@ -217,16 +218,19 @@ class MainFrame(wx.Frame):
         self.mixer_mode_radio = wx.RadioButton(mode_static_box, label=_("Mixer Mode") + "\tF3", style=wx.RB_GROUP)
         self.solo_mode_radio = wx.RadioButton(mode_static_box, label=_("Solo Mode") + "\tF4")
         self.auto_mode_radio = wx.RadioButton(mode_static_box, label=_("Automatic Mode") + "\tF5")
+        self.multiroom_mode_radio = wx.RadioButton(mode_static_box, label=_("Multiroom Mode") + "\tF7")
 
         self.mixer_mode_radio.SetValue(True)
 
         self.mixer_mode_radio.Bind(wx.EVT_RADIOBUTTON, lambda e: self._set_mode(MODE_MIXER))
         self.solo_mode_radio.Bind(wx.EVT_RADIOBUTTON, lambda e: self._set_mode(MODE_SOLO))
         self.auto_mode_radio.Bind(wx.EVT_RADIOBUTTON, lambda e: self._set_mode(MODE_AUTOMATIC))
+        self.multiroom_mode_radio.Bind(wx.EVT_RADIOBUTTON, lambda e: self._set_mode(MODE_MULTIROOM))
 
         mode_box.Add(self.mixer_mode_radio, 0, wx.ALL, 5)
         mode_box.Add(self.solo_mode_radio, 0, wx.ALL, 5)
         mode_box.Add(self.auto_mode_radio, 0, wx.ALL, 5)
+        mode_box.Add(self.multiroom_mode_radio, 0, wx.ALL, 5)
 
         mode_panel_sizer.Add(mode_box, 1, wx.EXPAND)
         mode_panel.SetSizer(mode_panel_sizer)
@@ -477,6 +481,16 @@ class MainFrame(wx.Frame):
         self.mixer.on_mode_change = self._on_mixer_mode_changed
         self.mixer.on_active_deck_change = self._on_active_deck_changed
 
+    def _get_output_device_choices(self):
+        """Get output-device labels/values for the active deck UI."""
+        devices = self.audio_engine.get_available_devices()
+        labels = [_("Use Global Default")]
+        values = [None]
+        for device in devices:
+            labels.append(device.get('display_name', device['name']))
+            values.append(device['index'])
+        return labels, values, devices
+
     def _set_mode(self, mode):
         """Set mixer operating mode"""
         self.mixer.set_mode(mode)
@@ -489,6 +503,7 @@ class MainFrame(wx.Frame):
             MODE_MIXER: self.mixer_mode_radio,
             MODE_SOLO: self.solo_mode_radio,
             MODE_AUTOMATIC: self.auto_mode_radio,
+            MODE_MULTIROOM: self.multiroom_mode_radio,
         }
         if mode in mode_radios:
             mode_radios[mode].SetValue(True)
@@ -502,6 +517,7 @@ class MainFrame(wx.Frame):
             MODE_MIXER: _("Mixer"),
             MODE_SOLO: _("Solo"),
             MODE_AUTOMATIC: _("Automatic"),
+            MODE_MULTIROOM: _("Multiroom"),
         }
         self.SetStatusText(f"{_('Mode')}: {mode_names.get(new_mode, new_mode)}", 1)
         self.tts_manager.speak(mode_names.get(new_mode, new_mode))
@@ -569,6 +585,7 @@ class MainFrame(wx.Frame):
                 self._preload_deck_audio(deck)
                 self.SetStatusText(_("Loaded: {}").format(os.path.basename(filepath)), 0)
                 self._update_deck_panel(deck.deck_id)
+                self.mixer.restart_multiroom_routing()
                 # Add to recent files
                 self.config_manager.add_recent_file(filepath)
                 self._update_recent_files_menu()
@@ -594,6 +611,7 @@ class MainFrame(wx.Frame):
                 if deck.load_file(url):
                     self.SetStatusText(_("Loaded stream: {}").format(url), 0)
                     self._update_deck_panel(deck.deck_id)
+                    self.mixer.restart_multiroom_routing()
                     # Add to recent files
                     self.config_manager.add_recent_file(url)
                     self._update_recent_files_menu()
@@ -614,6 +632,7 @@ class MainFrame(wx.Frame):
                 if deck.load_soundcard_input(device['id'], device['name']):
                     self.SetStatusText(_("Loaded sound card input: {}").format(device['name']), 0)
                     self._update_deck_panel(deck.deck_id)
+                    self.mixer.restart_multiroom_routing()
                     self._mark_project_modified()
                 else:
                     wx.MessageBox(
@@ -650,6 +669,8 @@ class MainFrame(wx.Frame):
                 display_text = f"{deck.name}: {file_info}"
             if self.mixer.is_deck_recording(deck.deck_id):
                 display_text = f"[REC] {display_text}"
+            output_label = deck.output_device_name if deck.output_device_id is not None else _("Global Output")
+            display_text = f"{display_text} -> {output_label}"
             self.deck_listbox.Append(display_text)
         # Restore selection
         if current_selection != wx.NOT_FOUND and current_selection < self.deck_listbox.GetCount():
@@ -678,7 +699,6 @@ class MainFrame(wx.Frame):
             self.active_position_label.SetLabel("--:--")
             self.active_duration_label.SetLabel("--:--")
             return
-
         deck = self.mixer.decks[deck_index]
 
         # Update labels
@@ -757,6 +777,16 @@ class MainFrame(wx.Frame):
         """Show menu for active deck (from button)"""
         self._show_deck_context_menu(self.active_menu_btn)
 
+    def _apply_deck_output_device(self, deck, device_id, device_name=None):
+        """Apply output-device changes for a deck."""
+        if device_id is None:
+            device_name = 'default'
+
+        self.mixer.set_deck_output_device(deck.deck_id, device_id, device_name)
+        self.SetStatusText(_("Output device updated for {}").format(deck.name), 0)
+        self._update_deck_panel(deck.deck_id)
+        self._mark_project_modified()
+
     def _on_deck_listbox_key(self, event):
         """Handle key events in deck listbox for accessibility"""
         key = event.GetKeyCode()
@@ -782,6 +812,8 @@ class MainFrame(wx.Frame):
         load_file_item = menu.Append(wx.ID_ANY, _("Load File") + "...\tCtrl+F")
         load_url_item = menu.Append(wx.ID_ANY, _("Load URL") + "...\tCtrl+U")
         load_input_item = menu.Append(wx.ID_ANY, _("Load sound card input") + "...\tCtrl+D")
+        output_menu = wx.Menu()
+        menu.AppendSubMenu(output_menu, _("Output Device"))
         menu.AppendSeparator()
 
         rename_item = menu.Append(wx.ID_ANY, _("Rename Deck") + "...\tF2")
@@ -799,6 +831,24 @@ class MainFrame(wx.Frame):
         else:
             record_deck_item = menu.Append(wx.ID_ANY, _("Start Recording Deck") + "\tCtrl+Shift+R")
         record_deck_item.Enable(deck.state != DECK_STATE_EMPTY)
+
+        output_labels, output_values, output_devices = self._get_output_device_choices()
+        current_device_id = deck.output_device_id
+        for idx, label in enumerate(output_labels):
+            output_device_item = output_menu.AppendRadioItem(wx.ID_ANY, label)
+            selected_device_id = output_values[idx]
+            if selected_device_id == current_device_id or (selected_device_id is None and current_device_id is None):
+                output_device_item.Check(True)
+
+            def handle_output_change(event, device_id=selected_device_id):
+                if device_id is None:
+                    device_name = 'default'
+                else:
+                    matching = next((item for item in output_devices if item['index'] == device_id), None)
+                    device_name = matching['name'] if matching else str(device_id)
+                self._apply_deck_output_device(deck, device_id, device_name)
+
+            self.Bind(wx.EVT_MENU, handle_output_change, output_device_item)
 
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_file(deck), load_file_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_url(deck), load_url_item)
@@ -843,6 +893,7 @@ class MainFrame(wx.Frame):
             if self.mixer.is_deck_recording(deck.deck_id):
                 self.mixer.stop_deck_recording(deck.deck_id)
             deck.unload()
+            self.mixer.restart_multiroom_routing()
             self._update_active_deck_controls()
             self._update_deck_panel(deck.deck_id)
             self._mark_project_modified()
@@ -1327,6 +1378,7 @@ class MainFrame(wx.Frame):
             MODE_MIXER: self.mixer_mode_radio,
             MODE_SOLO: self.solo_mode_radio,
             MODE_AUTOMATIC: self.auto_mode_radio,
+            MODE_MULTIROOM: self.multiroom_mode_radio,
         }
         if self.mixer.mode in mode_radios:
             mode_radios[self.mixer.mode].SetValue(True)
@@ -1339,6 +1391,7 @@ class MainFrame(wx.Frame):
             MODE_MIXER: _("Mixer"),
             MODE_SOLO: _("Solo"),
             MODE_AUTOMATIC: _("Automatic"),
+            MODE_MULTIROOM: _("Multiroom"),
         }
         self.SetStatusText(f"{_('Mode')}: {mode_names.get(self.mixer.mode, self.mixer.mode)}", 1)
         self.SetStatusText(f"{_('Master')}: {int(self.mixer.master_volume * 100)}%", 2)
@@ -1348,7 +1401,7 @@ class MainFrame(wx.Frame):
         self.mixer.mode = MODE_MIXER  # Reset to trigger proper mode change
         self.mixer.set_mode(loaded_mode)
 
-        if loaded_mode in [MODE_SOLO, MODE_AUTOMATIC]:
+        if loaded_mode in [MODE_SOLO, MODE_AUTOMATIC, MODE_MULTIROOM]:
             self._sync_listbox_selection(self.mixer.active_deck_index)
 
     def _on_toggle_statusbar(self, event):
@@ -1681,6 +1734,8 @@ class MainFrame(wx.Frame):
         new_device = self.config_manager.get('Audio', 'output_device', 'default')
         if new_device != old_device:
             self._apply_audio_device_change(new_device)
+        elif self.mixer.mode == MODE_MULTIROOM:
+            self.mixer.restart_multiroom_routing()
 
     def apply_automation_settings(self):
         """Apply automation settings from config to current mixer"""
@@ -1746,6 +1801,7 @@ class MainFrame(wx.Frame):
         """Called when device change completes"""
         if success:
             self.SetStatusText(_("Audio device changed successfully"), 0)
+            self.mixer.restart_multiroom_routing()
         else:
             self.SetStatusText(_("Audio device change failed"), 0)
             wx.MessageBox(
@@ -1762,6 +1818,10 @@ class MainFrame(wx.Frame):
             _("Error"),
             wx.OK | wx.ICON_ERROR
         )
+
+    def _on_routing_error(self, message):
+        """Display mixer routing warnings on the GUI thread."""
+        wx.CallAfter(self.SetStatusText, message, 0)
 
     def _on_help(self, event):
         """Show keyboard shortcuts"""
@@ -1843,12 +1903,15 @@ class MainFrame(wx.Frame):
         mode_mixer_id = wx.NewIdRef()
         mode_solo_id = wx.NewIdRef()
         mode_auto_id = wx.NewIdRef()
+        mode_multiroom_id = wx.NewIdRef()
         accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F3, mode_mixer_id))
         accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F4, mode_solo_id))
         accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F5, mode_auto_id))
+        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F7, mode_multiroom_id))
         self.Bind(wx.EVT_MENU, lambda e: self._set_mode_with_ui(MODE_MIXER), id=mode_mixer_id)
         self.Bind(wx.EVT_MENU, lambda e: self._set_mode_with_ui(MODE_SOLO), id=mode_solo_id)
         self.Bind(wx.EVT_MENU, lambda e: self._set_mode_with_ui(MODE_AUTOMATIC), id=mode_auto_id)
+        self.Bind(wx.EVT_MENU, lambda e: self._set_mode_with_ui(MODE_MULTIROOM), id=mode_multiroom_id)
 
         # Ctrl+M for mute active deck
         mute_id = wx.NewIdRef()

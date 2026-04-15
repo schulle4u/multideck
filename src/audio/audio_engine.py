@@ -9,6 +9,7 @@ import sounddevice as sd
 import soundfile as sf
 import subprocess
 import threading
+import queue
 from pathlib import Path
 from typing import Optional, List
 
@@ -32,6 +33,116 @@ def _check_ffmpeg():
 
 
 FFMPEG_AVAILABLE = _check_ffmpeg()
+
+
+class OutputDeviceWorker:
+    """
+    Dedicated audio output stream for a single target device.
+
+    The worker consumes already-rendered stereo float32 blocks via submit()
+    and plays them through its own sounddevice output stream.
+    """
+
+    def __init__(self, sample_rate: int, buffer_size: int, device: Optional[int] = None):
+        self.sample_rate = sample_rate
+        self.buffer_size = buffer_size
+        self.device = device
+        self._stream: Optional[sd.OutputStream] = None
+        self._queue: "queue.Queue[np.ndarray]" = queue.Queue(maxsize=32)
+        self._lock = threading.RLock()
+        self._running = False
+        self._queued_blocks = 0
+
+    def _callback(self, outdata, frames, time_info, status):
+        if status:
+            logger.warning(f"Output worker status on device {self.device}: {status}")
+
+        try:
+            chunk = self._queue.get_nowait()
+            with self._lock:
+                self._queued_blocks = max(0, self._queued_blocks - 1)
+        except queue.Empty:
+            outdata.fill(0)
+            return
+
+        if chunk.shape[0] != frames:
+            output = np.zeros((frames, 2), dtype=np.float32)
+            copy_frames = min(frames, chunk.shape[0])
+            output[:copy_frames] = chunk[:copy_frames]
+            outdata[:] = output
+            return
+
+        outdata[:] = chunk
+
+    def start(self):
+        """Start the output stream for this worker."""
+        with self._lock:
+            if self._stream is not None:
+                return
+
+            self._stream = sd.OutputStream(
+                samplerate=self.sample_rate,
+                channels=2,
+                blocksize=self.buffer_size,
+                device=self.device,
+                callback=self._callback,
+                dtype='float32'
+            )
+            self._stream.start()
+            self._running = True
+
+    def stop(self):
+        """Stop the worker and clear queued audio."""
+        with self._lock:
+            if self._stream is not None:
+                self._stream.stop()
+                self._stream.close()
+                self._stream = None
+            self._running = False
+            self.clear_queue()
+
+    def clear_queue(self):
+        """Drop all buffered audio for this worker."""
+        while True:
+            try:
+                self._queue.get_nowait()
+            except queue.Empty:
+                break
+        with self._lock:
+            self._queued_blocks = 0
+
+    def submit(self, audio_data: np.ndarray):
+        """
+        Queue audio for playback, dropping the oldest block if necessary.
+        """
+        if not self._running:
+            return
+
+        try:
+            self._queue.put_nowait(audio_data.astype(np.float32, copy=False))
+            with self._lock:
+                self._queued_blocks += 1
+        except queue.Full:
+            try:
+                self._queue.get_nowait()
+                with self._lock:
+                    self._queued_blocks = max(0, self._queued_blocks - 1)
+            except queue.Empty:
+                pass
+            try:
+                self._queue.put_nowait(audio_data.astype(np.float32, copy=False))
+                with self._lock:
+                    self._queued_blocks += 1
+            except queue.Full:
+                logger.debug(f"Dropping audio block for device {self.device}")
+
+    def get_queued_blocks(self) -> int:
+        """Return the approximate number of queued audio blocks."""
+        with self._lock:
+            return self._queued_blocks
+
+    def __del__(self):
+        self.stop()
 
 
 class AudioEngine:
@@ -114,13 +225,18 @@ class AudioEngine:
         with self._lock:
             try:
                 devices = sd.query_devices()
+                hostapis = sd.query_hostapis()
                 output_devices = []
 
                 for idx, device in enumerate(devices):
                     if device['max_output_channels'] > 0:
+                        hostapi_idx = device.get('hostapi', 0)
+                        hostapi_name = hostapis[hostapi_idx]['name'] if hostapi_idx < len(hostapis) else ''
+                        display_name = f"{device['name']} ({hostapi_name})" if hostapi_name else device['name']
                         output_devices.append({
                             'index': idx,
                             'name': device['name'],
+                            'display_name': display_name,
                             'channels': device['max_output_channels'],
                             'sample_rate': device['default_samplerate'],
                         })
@@ -492,6 +608,17 @@ class AudioEngine:
                     return False
 
             return True
+
+    def create_output_worker(self, device) -> OutputDeviceWorker:
+        """
+        Create a dedicated output worker for a validated device.
+        """
+        validated_device = self._validate_device(device)
+        return OutputDeviceWorker(
+            sample_rate=self.sample_rate,
+            buffer_size=self.buffer_size,
+            device=validated_device
+        )
 
     def __enter__(self):
         """Context manager entry"""
