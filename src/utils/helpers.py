@@ -3,9 +3,22 @@ Helper functions and utilities
 """
 
 import os
+import subprocess
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
+
+def check_ffmpeg():
+    """Check if FFmpeg is available"""
+    try:
+        result = subprocess.run(
+            ['ffmpeg', '-version'],
+            capture_output=True,
+            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
+        )
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
 
 
 def format_time(seconds: float) -> str:

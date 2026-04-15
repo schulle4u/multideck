@@ -13,23 +13,10 @@ from pathlib import Path
 from datetime import datetime
 from typing import Optional, Callable
 
-from utils.helpers import generate_recording_filename
+from utils.helpers import check_ffmpeg, generate_recording_filename
 
 
-def _check_ffmpeg() -> bool:
-    """Check if FFmpeg is available"""
-    try:
-        result = subprocess.run(
-            ['ffmpeg', '-version'],
-            capture_output=True,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
-        )
-        return result.returncode == 0
-    except FileNotFoundError:
-        return False
-
-
-FFMPEG_AVAILABLE = _check_ffmpeg()
+FFMPEG_AVAILABLE = check_ffmpeg()
 
 
 class Recorder:

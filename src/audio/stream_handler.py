@@ -11,25 +11,13 @@ import numpy as np
 from typing import Optional, Callable
 
 from utils.logger import get_logger
+from utils.helpers import check_ffmpeg
 
 # Module logger
 logger = get_logger('stream_handler')
 
 
-# Check if FFmpeg is available
-def _check_ffmpeg():
-    try:
-        result = subprocess.run(
-            ['ffmpeg', '-version'],
-            capture_output=True,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
-        )
-        return result.returncode == 0
-    except FileNotFoundError:
-        return False
-
-
-FFMPEG_AVAILABLE = _check_ffmpeg()
+FFMPEG_AVAILABLE = check_ffmpeg()
 
 
 class StreamHandler:

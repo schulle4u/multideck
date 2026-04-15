@@ -7,8 +7,12 @@ import sys
 import sounddevice as sd
 from utils.i18n import _, LANGUAGE_NAMES
 from config.defaults import VALID_DECK_RANGE
-from audio.recorder import FFMPEG_AVAILABLE
+from utils.helpers import check_ffmpeg
 from gui.dialogs.custom import AccessibleSpinCtrl
+
+
+FFMPEG_AVAILABLE = check_ffmpeg()
+
 
 class OptionsDialog(wx.Dialog):
     """Options/Preferences dialog"""
