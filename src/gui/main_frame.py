@@ -161,7 +161,7 @@ class MainFrame(wx.Frame):
         tools_menu.AppendSeparator()
         self.effects_menu_item = tools_menu.Append(wx.ID_ANY, _("Audio &Effects") + "...\tCtrl+Shift+E")
         tools_menu.AppendSeparator()
-        tools_menu.Append(wx.ID_PREFERENCES, _("&Options") + "...\tCtrl+P")
+        tools_menu.Append(wx.ID_PREFERENCES, _("&Options") + "...\tCtrl+Shift+O")
         menu_bar.Append(tools_menu, _("&Tools"))
 
         # Help menu
@@ -1914,9 +1914,6 @@ class MainFrame(wx.Frame):
         accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL | wx.ACCEL_SHIFT, wx.WXK_TAB, prev_id))
         self.Bind(wx.EVT_MENU, self._on_next_deck, id=next_id)
         self.Bind(wx.EVT_MENU, self._on_previous_deck, id=prev_id)
-
-        # Note: Space key removed from global shortcuts to avoid interfering with UI controls
-        # Space will work naturally when Play/Pause buttons have focus
 
         # F3/F4/F5 for mode selection
         mode_mixer_id = wx.NewIdRef()
