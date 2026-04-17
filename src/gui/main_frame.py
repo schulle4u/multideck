@@ -134,6 +134,17 @@ class MainFrame(wx.Frame):
         file_menu.Append(wx.ID_EXIT, _("E&xit") + "\tAlt+F4")
         menu_bar.Append(file_menu, _("&File"))
 
+        # Playback menu
+        playback_menu = wx.Menu()
+        self.play_all_item = playback_menu.Append(wx.ID_ANY, _("Play/Pause all decks"))
+        self.stop_all_item = playback_menu.Append(wx.ID_ANY, _("Stop all decks"))
+        playback_menu.AppendSeparator()
+        self.play_active_item = playback_menu.Append(wx.ID_ANY, _("Play active deck"))
+        self.stop_active_item = playback_menu.Append(wx.ID_ANY, _("Stop active deck"))
+        self.toggle_loop_item = playback_menu.Append(wx.ID_ANY, _("Toggle Loop") + "\tCtrl+L")
+        self.toggle_mute_item = playback_menu.Append(wx.ID_ANY, _("Toggle Mute") + "\tCtrl+M")
+        menu_bar.Append(playback_menu, _("&Playback"))
+
         # View menu
         view_menu = wx.Menu()
         self.statusbar_item = view_menu.AppendCheckItem(wx.ID_ANY, _("&Status Bar") + "\tCtrl+T")
@@ -171,6 +182,12 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._on_import_m3u, self.import_m3u_item)
         self.Bind(wx.EVT_MENU, self._on_export_m3u, self.export_m3u_item)
         self.Bind(wx.EVT_MENU, self._on_exit, id=wx.ID_EXIT)
+        self.Bind(wx.EVT_MENU, self._on_global_play_pause, self.play_all_item)
+        self.Bind(wx.EVT_MENU, self._on_global_stop, self.stop_all_item)
+        self.Bind(wx.EVT_MENU, self._on_active_play_pause, self.play_active_item)
+        self.Bind(wx.EVT_MENU, self._on_active_stop, self.stop_active_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_active_toggle_loop(), self.toggle_loop_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_active_toggle_mute(), self.toggle_mute_item)
         self.Bind(wx.EVT_MENU, self._on_toggle_statusbar, self.statusbar_item)
         self.Bind(wx.EVT_MENU, self._on_toggle_level_meter, self.level_meter_item)
         self.Bind(wx.EVT_MENU, self._on_toggle_theme, self.theme_item)
@@ -817,11 +834,6 @@ class MainFrame(wx.Frame):
         menu.AppendSeparator()
 
         rename_item = menu.Append(wx.ID_ANY, _("Rename Deck") + "...\tF2")
-        menu.AppendSeparator()
-
-        toggle_loop_item = menu.Append(wx.ID_ANY, _("Toggle Loop") + "\tCtrl+L")
-        menu.AppendSeparator()
-
         unload_item = menu.Append(wx.ID_ANY, _("Unload Deck") + "\tDel")
         unload_item.Enable(deck.state != DECK_STATE_EMPTY)
 
@@ -854,7 +866,6 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_url(deck), load_url_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_soundcard_input(deck), load_input_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_rename(), rename_item)
-        self.Bind(wx.EVT_MENU, lambda e: self._on_active_toggle_loop(), toggle_loop_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_unload(), unload_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_toggle_deck_recording(deck), record_deck_item)
 
@@ -883,6 +894,14 @@ class MainFrame(wx.Frame):
         deck = self._get_selected_deck()
         if deck:
             deck.toggle_loop()
+            self._update_active_deck_controls()
+            self._update_deck_panel(deck.deck_id)
+
+    def _on_active_toggle_mute(self):
+        """Toggle mute for active deck"""
+        deck = self._get_selected_deck()
+        if deck:
+            deck.toggle_mute()
             self._update_active_deck_controls()
             self._update_deck_panel(deck.deck_id)
 
