@@ -149,11 +149,11 @@ class MainFrame(wx.Frame):
 
         # Playback menu
         playback_menu = wx.Menu()
-        self.play_all_item = playback_menu.Append(wx.ID_ANY, _("Play/Pause all decks"))
-        self.stop_all_item = playback_menu.Append(wx.ID_ANY, _("Stop all decks"))
+        self.play_all_item = playback_menu.Append(wx.ID_ANY, _("Play/Pause all decks") + "\tCtrl+P")
+        self.stop_all_item = playback_menu.Append(wx.ID_ANY, _("Stop all decks") + "\tCtrl+.")
         playback_menu.AppendSeparator()
-        self.play_active_item = playback_menu.Append(wx.ID_ANY, _("Play active deck"))
-        self.stop_active_item = playback_menu.Append(wx.ID_ANY, _("Stop active deck"))
+        self.play_active_item = playback_menu.Append(wx.ID_ANY, _("Play active deck") + "\tCtrl+Shift+P")
+        self.stop_active_item = playback_menu.Append(wx.ID_ANY, _("Stop active deck") + "\tCtrl+Shift+.")
         self.toggle_loop_item = playback_menu.Append(wx.ID_ANY, _("Toggle Loop") + "\tCtrl+L")
         self.toggle_mute_item = playback_menu.Append(wx.ID_ANY, _("Toggle Mute") + "\tCtrl+M")
         menu_bar.Append(playback_menu, _("&Playback"))
