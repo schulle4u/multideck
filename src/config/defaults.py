@@ -98,7 +98,7 @@ RECORDING_FORMATS = {
 }
 
 # Valid deck range
-VALID_DECK_RANGE = [1, 10]
+VALID_DECK_RANGE = [1, 128]
 
 # Application info
 APP_NAME = 'MultiDeck Audio Player'

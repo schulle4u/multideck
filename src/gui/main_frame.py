@@ -1978,10 +1978,16 @@ class MainFrame(wx.Frame):
         accel_entries = []
 
         # Ctrl+1 to Ctrl+0 for deck selection
-        for i in range(1, 11):
-            key = ord('0') if i == 10 else ord(str(i))
+        num_decks = self.config_manager.get_deck_count()
+        for i in range(1, num_decks + 1):
+            digit = i % 10
+            key = ord(str(digit)) if digit != 0 else ord('0')
             accel_id = wx.NewIdRef()
-            accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, key, accel_id))
+            if i <= 10:
+                modifiers = wx.ACCEL_CTRL
+            else:
+                modifiers = wx.ACCEL_CTRL | wx.ACCEL_ALT
+            accel_entries.append(wx.AcceleratorEntry(modifiers, key, accel_id))
             self.Bind(wx.EVT_MENU, lambda e, deck_idx=i-1: self._on_deck_shortcut(deck_idx), id=accel_id)
 
         # Ctrl+Tab / Ctrl+Shift+Tab for next/previous deck
