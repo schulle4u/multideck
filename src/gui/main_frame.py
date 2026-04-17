@@ -134,6 +134,19 @@ class MainFrame(wx.Frame):
         file_menu.Append(wx.ID_EXIT, _("E&xit") + "\tAlt+F4")
         menu_bar.Append(file_menu, _("&File"))
 
+        # Deck menu
+        self.deck_menu = wx.Menu()
+        self.load_file_item = self.deck_menu.Append(wx.ID_ANY, _("Load File") + "...\tCtrl+F")
+        self.load_url_item = self.deck_menu.Append(wx.ID_ANY, _("Load URL") + "...\tCtrl+U")
+        self.load_input_item = self.deck_menu.Append(wx.ID_ANY, _("Load sound card input") + "...\tCtrl+D")
+        self.deck_menu.AppendSeparator()
+        self.rename_item = self.deck_menu.Append(wx.ID_ANY, _("Rename Deck") + "...\tF2")
+        self.unload_item = self.deck_menu.Append(wx.ID_ANY, _("Unload Deck") + "\tDel")
+        self.record_deck_menu_item = self.deck_menu.Append(wx.ID_ANY, _("Start Recording Deck") + "\tCtrl+Shift+R")
+        self.unload_item.Enable(False)
+        self.record_deck_menu_item.Enable(False)
+        menu_bar.Append(self.deck_menu, _("&Deck"))
+
         # Playback menu
         playback_menu = wx.Menu()
         self.play_all_item = playback_menu.Append(wx.ID_ANY, _("Play/Pause all decks"))
@@ -182,6 +195,12 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._on_import_m3u, self.import_m3u_item)
         self.Bind(wx.EVT_MENU, self._on_export_m3u, self.export_m3u_item)
         self.Bind(wx.EVT_MENU, self._on_exit, id=wx.ID_EXIT)
+        self.Bind(wx.EVT_MENU, self._on_selected_deck_load_file, self.load_file_item)
+        self.Bind(wx.EVT_MENU, self._on_selected_deck_load_url, self.load_url_item)
+        self.Bind(wx.EVT_MENU, self._on_selected_deck_load_soundcard_input, self.load_input_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_active_rename(), self.rename_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_active_unload(), self.unload_item)
+        self.Bind(wx.EVT_MENU, self._on_selected_deck_toggle_recording, self.record_deck_menu_item)
         self.Bind(wx.EVT_MENU, self._on_global_play_pause, self.play_all_item)
         self.Bind(wx.EVT_MENU, self._on_global_stop, self.stop_all_item)
         self.Bind(wx.EVT_MENU, self._on_active_play_pause, self.play_active_item)
@@ -197,6 +216,9 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._on_help, id=wx.ID_HELP)
         self.Bind(wx.EVT_MENU, self._on_website, self.website_item)
         self.Bind(wx.EVT_MENU, self._on_about, id=wx.ID_ABOUT)
+        self.Bind(wx.EVT_MENU_OPEN, self._on_menu_open)
+
+        self._update_deck_menu_items()
 
     def _create_ui(self):
         """Create main UI"""
@@ -715,6 +737,7 @@ class MainFrame(wx.Frame):
             self.active_position_slider.Enable(False)
             self.active_position_label.SetLabel("--:--")
             self.active_duration_label.SetLabel("--:--")
+            self._update_deck_menu_items()
             return
         deck = self.mixer.decks[deck_index]
 
@@ -763,13 +786,67 @@ class MainFrame(wx.Frame):
 
         # Update position slider and time display
         self._update_position_display(deck)
+        self._update_deck_menu_items()
 
     def _get_selected_deck(self):
         """Get the currently selected deck from listbox"""
+        if not hasattr(self, 'deck_listbox'):
+            return None
         deck_index = self.deck_listbox.GetSelection()
         if deck_index != wx.NOT_FOUND and deck_index < len(self.mixer.decks):
             return self.mixer.decks[deck_index]
         return None
+
+    def _update_deck_menu_items(self):
+        """Update main-menu deck items to reflect current selection/state."""
+        if not hasattr(self, 'unload_item'):
+            return
+
+        deck = self._get_selected_deck()
+        has_deck = deck is not None
+        is_loaded = has_deck and deck.state != DECK_STATE_EMPTY
+        is_recording = has_deck and self.mixer.is_deck_recording(deck.deck_id)
+
+        self.load_file_item.Enable(has_deck)
+        self.load_url_item.Enable(has_deck)
+        self.load_input_item.Enable(has_deck)
+        self.rename_item.Enable(has_deck)
+        self.unload_item.Enable(is_loaded)
+        self.record_deck_menu_item.Enable(is_loaded)
+        if is_recording:
+            self.record_deck_menu_item.SetItemLabel(_("Stop Recording Deck") + "\tCtrl+Shift+R")
+        else:
+            self.record_deck_menu_item.SetItemLabel(_("Start Recording Deck") + "\tCtrl+Shift+R")
+
+    def _on_menu_open(self, event):
+        """Refresh menu state just before a menu is shown."""
+        if hasattr(self, 'deck_menu') and event.GetMenu() is self.deck_menu:
+            self._update_deck_menu_items()
+        event.Skip()
+
+    def _on_selected_deck_load_file(self, event):
+        """Load a file into the currently selected deck from the main menu."""
+        deck = self._get_selected_deck()
+        if deck:
+            self._on_deck_load_file(deck)
+
+    def _on_selected_deck_load_url(self, event):
+        """Load a stream URL into the currently selected deck from the main menu."""
+        deck = self._get_selected_deck()
+        if deck:
+            self._on_deck_load_url(deck)
+
+    def _on_selected_deck_load_soundcard_input(self, event):
+        """Load a sound card input into the currently selected deck from the main menu."""
+        deck = self._get_selected_deck()
+        if deck:
+            self._on_deck_load_soundcard_input(deck)
+
+    def _on_selected_deck_toggle_recording(self, event):
+        """Toggle recording for the currently selected deck from the main menu."""
+        deck = self._get_selected_deck()
+        if deck and deck.state != DECK_STATE_EMPTY:
+            self._on_toggle_deck_recording(deck)
 
     def _on_active_play_pause(self, event):
         """Handle play/pause for active deck"""
@@ -2224,6 +2301,9 @@ class MainFrame(wx.Frame):
         self.SetStatusText(message, 0)
         self.tts_manager.speak(message)
         self._update_deck_listbox()
+        selection = self.deck_listbox.GetSelection()
+        if selection != wx.NOT_FOUND and selection == deck_id - 1:
+            self._update_active_deck_controls()
 
     def _on_deck_recording_stopped(self, deck_id, filepath, frames):
         """Callback when a deck recording stops (called from audio thread)."""
@@ -2237,6 +2317,9 @@ class MainFrame(wx.Frame):
         self.SetStatusText(message, 0)
         self.tts_manager.speak(message)
         self._update_deck_listbox()
+        selection = self.deck_listbox.GetSelection()
+        if selection != wx.NOT_FOUND and selection == deck_id - 1:
+            self._update_active_deck_controls()
 
     def _on_close(self, event):
         """Handle window close"""
