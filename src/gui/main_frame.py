@@ -1977,7 +1977,7 @@ class MainFrame(wx.Frame):
         """Setup keyboard accelerators"""
         accel_entries = []
 
-        # Ctrl+1 to Ctrl+0 for deck selection
+        # Ctrl+1 to Ctrl+0 for deck selection, Ctrl + Alt if more than 10 decks
         num_decks = self.config_manager.get_deck_count()
         for i in range(1, num_decks + 1):
             digit = i % 10
@@ -1998,7 +1998,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._on_next_deck, id=next_id)
         self.Bind(wx.EVT_MENU, self._on_previous_deck, id=prev_id)
 
-        # F3/F4/F5 for mode selection
+        # F3-F7 for mode selection
         mode_mixer_id = wx.NewIdRef()
         mode_solo_id = wx.NewIdRef()
         mode_auto_id = wx.NewIdRef()
