@@ -4,7 +4,6 @@ Main Frame - Main application window
 
 import wx
 import wx.adv
-import sys
 import os
 from pathlib import Path
 
@@ -56,6 +55,9 @@ class MainFrame(wx.Frame):
         self.mixer.on_deck_recording_started = self._on_deck_recording_started
         self.mixer.on_deck_recording_stopped = self._on_deck_recording_stopped
         self.mixer.on_routing_error = self._on_routing_error
+
+        # Deck list style
+        self.deck_list_style = self.config_manager.get('General', 'deck_list_style', 'compact')
 
         # Load automation/crossfade settings
         self.mixer.auto_switch_interval = self.config_manager.getint('Automation', 'switch_interval', 10)
@@ -240,7 +242,7 @@ class MainFrame(wx.Frame):
 
         # Initialize deck list and select first deck
         self._update_deck_listbox()
-        if sys.platform == "win32":
+        if self.deck_list_style == "detailed":
             if self.deck_listbox.GetItemCount() > 0:
                 self.deck_listbox.Select(0)
                 self.deck_listbox.Focus(0)
@@ -340,7 +342,7 @@ class MainFrame(wx.Frame):
         list_box = wx.StaticBoxSizer(wx.VERTICAL, list_panel, label=_("Deck Selection") + " (F6)")
         list_static_box = list_box.GetStaticBox()
 
-        if sys.platform == 'win32':
+        if self.deck_list_style == "detailed":
             self.deck_listbox = wx.ListCtrl(
                 list_static_box,
                 style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_SUNKEN
@@ -705,14 +707,14 @@ class MainFrame(wx.Frame):
         # Update listbox to reflect changes
         self._update_deck_listbox()
         # Update active deck controls if this is the selected deck
-        selection = self.deck_listbox.GetFirstSelected() if sys.platform == "win32" else self.deck_listbox.GetSelection()
+        selection = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
         if selection != wx.NOT_FOUND and selection == deck_id - 1:
             self._update_active_deck_controls()
 
     def _update_deck_listbox(self):
-        current_selection = self.deck_listbox.GetFirstSelected() if sys.platform == "win32" else self.deck_listbox.GetSelection()
-        self.deck_listbox.DeleteAllItems() if sys.platform == "win32" else self.deck_listbox.Clear()
-        if sys.platform == "win32":
+        current_selection = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
+        self.deck_listbox.DeleteAllItems() if self.deck_list_style == "detailed" else self.deck_listbox.Clear()
+        if self.deck_list_style == "detailed":
             for i, deck in enumerate(self.mixer.decks):
                 deck_name = deck.name
                 if deck.file_path:
@@ -772,7 +774,7 @@ class MainFrame(wx.Frame):
 
     def _on_deck_listbox_select(self, event):
         """Handle deck listbox selection"""
-        deck_index = self.deck_listbox.GetFirstSelected() if sys.platform == "win32" else self.deck_listbox.GetSelection()
+        deck_index = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
         if deck_index != wx.NOT_FOUND:
             # Update mixer's active deck for Solo/Automatic mode
             self.mixer.set_active_deck(deck_index)
@@ -781,7 +783,7 @@ class MainFrame(wx.Frame):
 
     def _update_active_deck_controls(self):
         """Update the active deck control panel to reflect selected deck"""
-        deck_index = self.deck_listbox.GetFirstSelected() if sys.platform == "win32" else self.deck_listbox.GetSelection()
+        deck_index = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
         if deck_index == wx.NOT_FOUND or deck_index >= len(self.mixer.decks):
             self.active_deck_label.SetLabel(_("No deck selected"))
             self.active_deck_status.SetLabel("")
@@ -847,7 +849,7 @@ class MainFrame(wx.Frame):
         """Get the currently selected deck from listbox"""
         if not hasattr(self, 'deck_listbox'):
             return None
-        deck_index = self.deck_listbox.GetFirstSelected() if sys.platform == "win32" else self.deck_listbox.GetSelection()
+        deck_index = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
         if deck_index != wx.NOT_FOUND and deck_index < len(self.mixer.decks):
             return self.mixer.decks[deck_index]
         return None
@@ -1288,7 +1290,7 @@ class MainFrame(wx.Frame):
 
     def _sync_listbox_selection(self, deck_index):
         """Sync listbox selection with mixer's active deck"""
-        if sys.platform == "win32":
+        if self.deck_list_style == "detailed":
             if deck_index < self.deck_listbox.GetItemCount():
                 if self.deck_listbox.GetFirstSelected() != deck_index:
                     self.deck_listbox.Select(deck_index)
@@ -1304,7 +1306,7 @@ class MainFrame(wx.Frame):
         """Handle deck info changes (name, loaded file, etc.)"""
         self._update_deck_listbox()
         # Update active controls if this deck is selected
-        selection = self.deck_listbox.GetFirstSelected() if sys.platform == "win32" else self.deck_listbox.GetSelection()
+        selection = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
         if selection != wx.NOT_FOUND and selection == deck.deck_id - 1:
             self._update_active_deck_controls()
 
@@ -2369,7 +2371,7 @@ class MainFrame(wx.Frame):
         self.SetStatusText(message, 0)
         self.tts_manager.speak(message)
         self._update_deck_listbox()
-        selection = self.deck_listbox.GetFirstSelected() if sys.platform == "win32" else self.deck_listbox.GetSelection()
+        selection = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
         if selection != wx.NOT_FOUND and selection == deck_id - 1:
             self._update_active_deck_controls()
 
@@ -2385,7 +2387,7 @@ class MainFrame(wx.Frame):
         self.SetStatusText(message, 0)
         self.tts_manager.speak(message)
         self._update_deck_listbox()
-        selection = self.deck_listbox.GetFirstSelected() if sys.platform == "win32" else self.deck_listbox.GetSelection()
+        selection = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
         if selection != wx.NOT_FOUND and selection == deck_id - 1:
             self._update_active_deck_controls()
 
