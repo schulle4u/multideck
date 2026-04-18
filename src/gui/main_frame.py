@@ -338,10 +338,10 @@ class MainFrame(wx.Frame):
             list_static_box,
             style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_SUNKEN
         )
-        self.deck_listbox.InsertColumn(0, _("Deck"), width=wx.LIST_AUTOSIZE)
-        self.deck_listbox.InsertColumn(1, _("File"), width=wx.LIST_AUTOSIZE)
-        self.deck_listbox.InsertColumn(2, _("Output"), width=wx.LIST_AUTOSIZE)
-        self.deck_listbox.InsertColumn(3, _("Status"), width=80)
+        self.deck_listbox.InsertColumn(0, _("Status"), width=80)
+        self.deck_listbox.InsertColumn(1, _("Deck"), width=wx.LIST_AUTOSIZE)
+        self.deck_listbox.InsertColumn(2, _("File"), width=wx.LIST_AUTOSIZE)
+        self.deck_listbox.InsertColumn(3, _("Output"), width=wx.LIST_AUTOSIZE)
         self.deck_listbox.SetName(_("Deck Selection"))
         self.deck_listbox.SetLabel(_("Deck Selection"))
         self.deck_listbox.Bind(wx.EVT_LIST_ITEM_SELECTED, self._on_deck_listbox_select)
@@ -721,13 +721,19 @@ class MainFrame(wx.Frame):
             )
 
             status = ""
-            if self.mixer.is_deck_recording(deck.deck_id):
-                status = "REC"
+            if deck.is_playing:
+                status = "▶️"
+                if self.mixer.is_deck_recording(deck.deck_id):
+                    status = f"{status} ⏺️"
+            elif deck.is_paused:
+                status = "⏸️"
+            elif deck.state != DECK_STATE_EMPTY:
+                status = "⏹️"
 
-            index = self.deck_listbox.InsertItem(i, deck_name)
-            self.deck_listbox.SetItem(index, 1, file_info)
-            self.deck_listbox.SetItem(index, 2, output_label)
-            self.deck_listbox.SetItem(index, 3, status)
+            index = self.deck_listbox.InsertItem(i, status)
+            self.deck_listbox.SetItem(index, 1, deck_name)
+            self.deck_listbox.SetItem(index, 2, file_info)
+            self.deck_listbox.SetItem(index, 3, output_label)
 
         if current_selection != -1 and current_selection < self.deck_listbox.GetItemCount():
             self.deck_listbox.Select(current_selection)
