@@ -754,7 +754,7 @@ class MainFrame(wx.Frame):
         else:
             for i, deck in enumerate(self.mixer.decks):
                 # Build display text: deck name + file info if loaded
-                display_text = deck.name
+                display_text = f"{deck.name}: "
                 if deck.file_path:
                     if deck.is_soundcard_input:
                         file_info = _("[Input] {}").format(deck.soundcard_device_name)
@@ -762,11 +762,11 @@ class MainFrame(wx.Frame):
                         file_info = deck.file_path
                     else:
                         file_info = os.path.basename(deck.file_path)
-                    display_text = f"{deck.name}: {file_info}"
+                    display_text += f"{_('Loaded')} {file_info}, "
                 if self.mixer.is_deck_recording(deck.deck_id):
-                    display_text = f"[REC] {display_text}"
+                    display_text += f"{_('Recording')}, "
                 output_label = deck.output_device_name if deck.output_device_id is not None else _("Global Output")
-                display_text = f"{display_text} -> {output_label}"
+                display_text += f"{_('Output')} {output_label}"
                 self.deck_listbox.Append(display_text)
             # Restore selection
             if current_selection != wx.NOT_FOUND and current_selection < self.deck_listbox.GetCount():
