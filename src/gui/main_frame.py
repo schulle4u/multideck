@@ -737,6 +737,7 @@ class MainFrame(wx.Frame):
 
         if current_selection != -1 and current_selection < self.deck_listbox.GetItemCount():
             self.deck_listbox.Select(current_selection)
+            self.deck_listbox.Focus(current_selection)
 
     def _on_deck_listbox_select(self, event):
         """Handle deck listbox selection"""
@@ -1259,6 +1260,7 @@ class MainFrame(wx.Frame):
         if deck_index < self.deck_listbox.GetItemCount():
             if self.deck_listbox.GetFirstSelected() != deck_index:
                 self.deck_listbox.Select(deck_index)
+                self.deck_listbox.Focus(deck_index)
             self._update_active_deck_controls()
 
     def _on_deck_info_changed(self, deck):
