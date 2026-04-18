@@ -239,8 +239,9 @@ class MainFrame(wx.Frame):
 
         # Initialize deck list and select first deck
         self._update_deck_listbox()
-        if self.deck_listbox.GetCount() > 0:
-            self.deck_listbox.SetSelection(0)
+        if self.deck_listbox.GetItemCount() > 0:
+            self.deck_listbox.Select(0)
+            self.deck_listbox.Focus(0)
             self._update_active_deck_controls()
 
     def _create_mixer_panel(self, parent):
@@ -333,10 +334,17 @@ class MainFrame(wx.Frame):
         list_box = wx.StaticBoxSizer(wx.VERTICAL, list_panel, label=_("Deck Selection") + " (F6)")
         list_static_box = list_box.GetStaticBox()
 
-        self.deck_listbox = wx.ListBox(list_static_box, style=wx.LB_SINGLE)
+        self.deck_listbox = wx.ListCtrl(
+            list_static_box,
+            style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_SUNKEN
+        )
+        self.deck_listbox.InsertColumn(0, _("Deck"), width=wx.LIST_AUTOSIZE)
+        self.deck_listbox.InsertColumn(1, _("File"), width=wx.LIST_AUTOSIZE)
+        self.deck_listbox.InsertColumn(2, _("Output"), width=wx.LIST_AUTOSIZE)
+        self.deck_listbox.InsertColumn(3, _("Status"), width=80)
         self.deck_listbox.SetName(_("Deck Selection"))
         self.deck_listbox.SetLabel(_("Deck Selection"))
-        self.deck_listbox.Bind(wx.EVT_LISTBOX, self._on_deck_listbox_select)
+        self.deck_listbox.Bind(wx.EVT_LIST_ITEM_SELECTED, self._on_deck_listbox_select)
         self.deck_listbox.Bind(wx.EVT_CONTEXT_MENU, self._on_deck_context_menu)
         # Use CHAR_HOOK to intercept Enter before native ListBox processing
         self.deck_listbox.Bind(wx.EVT_CHAR_HOOK, self._on_deck_listbox_key)
@@ -687,17 +695,15 @@ class MainFrame(wx.Frame):
         # Update listbox to reflect changes
         self._update_deck_listbox()
         # Update active deck controls if this is the selected deck
-        selection = self.deck_listbox.GetSelection()
+        selection = self.deck_listbox.GetFirstSelected()
         if selection != wx.NOT_FOUND and selection == deck_id - 1:
             self._update_active_deck_controls()
 
     def _update_deck_listbox(self):
-        """Update deck listbox with current deck names and status"""
-        current_selection = self.deck_listbox.GetSelection()
-        self.deck_listbox.Clear()
+        current_selection = self.deck_listbox.GetFirstSelected()
+        self.deck_listbox.DeleteAllItems()
         for i, deck in enumerate(self.mixer.decks):
-            # Build display text: deck name + file info if loaded
-            display_text = deck.name
+            deck_name = deck.name
             if deck.file_path:
                 if deck.is_soundcard_input:
                     file_info = _("[Input] {}").format(deck.soundcard_device_name)
@@ -705,19 +711,30 @@ class MainFrame(wx.Frame):
                     file_info = deck.file_path
                 else:
                     file_info = os.path.basename(deck.file_path)
-                display_text = f"{deck.name}: {file_info}"
+            else:
+                file_info = ""
+
+            output_label = (
+                deck.output_device_name
+                if deck.output_device_id is not None
+                else _("Global Output")
+            )
+
+            status = ""
             if self.mixer.is_deck_recording(deck.deck_id):
-                display_text = f"[REC] {display_text}"
-            output_label = deck.output_device_name if deck.output_device_id is not None else _("Global Output")
-            display_text = f"{display_text} -> {output_label}"
-            self.deck_listbox.Append(display_text)
-        # Restore selection
-        if current_selection != wx.NOT_FOUND and current_selection < self.deck_listbox.GetCount():
-            self.deck_listbox.SetSelection(current_selection)
+                status = "REC"
+
+            index = self.deck_listbox.InsertItem(i, deck_name)
+            self.deck_listbox.SetItem(index, 1, file_info)
+            self.deck_listbox.SetItem(index, 2, output_label)
+            self.deck_listbox.SetItem(index, 3, status)
+
+        if current_selection != -1 and current_selection < self.deck_listbox.GetItemCount():
+            self.deck_listbox.Select(current_selection)
 
     def _on_deck_listbox_select(self, event):
         """Handle deck listbox selection"""
-        deck_index = self.deck_listbox.GetSelection()
+        deck_index = self.deck_listbox.GetFirstSelected()
         if deck_index != wx.NOT_FOUND:
             # Update mixer's active deck for Solo/Automatic mode
             self.mixer.set_active_deck(deck_index)
@@ -726,7 +743,7 @@ class MainFrame(wx.Frame):
 
     def _update_active_deck_controls(self):
         """Update the active deck control panel to reflect selected deck"""
-        deck_index = self.deck_listbox.GetSelection()
+        deck_index = self.deck_listbox.GetFirstSelected()
         if deck_index == wx.NOT_FOUND or deck_index >= len(self.mixer.decks):
             self.active_deck_label.SetLabel(_("No deck selected"))
             self.active_deck_status.SetLabel("")
@@ -792,7 +809,7 @@ class MainFrame(wx.Frame):
         """Get the currently selected deck from listbox"""
         if not hasattr(self, 'deck_listbox'):
             return None
-        deck_index = self.deck_listbox.GetSelection()
+        deck_index = self.deck_listbox.GetFirstSelected()
         if deck_index != wx.NOT_FOUND and deck_index < len(self.mixer.decks):
             return self.mixer.decks[deck_index]
         return None
@@ -1233,16 +1250,16 @@ class MainFrame(wx.Frame):
 
     def _sync_listbox_selection(self, deck_index):
         """Sync listbox selection with mixer's active deck"""
-        if deck_index < self.deck_listbox.GetCount():
-            if self.deck_listbox.GetSelection() != deck_index:
-                self.deck_listbox.SetSelection(deck_index)
+        if deck_index < self.deck_listbox.GetItemCount():
+            if self.deck_listbox.GetFirstSelected() != deck_index:
+                self.deck_listbox.Select(deck_index)
             self._update_active_deck_controls()
 
     def _on_deck_info_changed(self, deck):
         """Handle deck info changes (name, loaded file, etc.)"""
         self._update_deck_listbox()
         # Update active controls if this deck is selected
-        selection = self.deck_listbox.GetSelection()
+        selection = self.deck_listbox.GetFirstSelected()
         if selection != wx.NOT_FOUND and selection == deck.deck_id - 1:
             self._update_active_deck_controls()
 
@@ -2307,7 +2324,7 @@ class MainFrame(wx.Frame):
         self.SetStatusText(message, 0)
         self.tts_manager.speak(message)
         self._update_deck_listbox()
-        selection = self.deck_listbox.GetSelection()
+        selection = self.deck_listbox.GetFirstSelected()
         if selection != wx.NOT_FOUND and selection == deck_id - 1:
             self._update_active_deck_controls()
 
@@ -2323,7 +2340,7 @@ class MainFrame(wx.Frame):
         self.SetStatusText(message, 0)
         self.tts_manager.speak(message)
         self._update_deck_listbox()
-        selection = self.deck_listbox.GetSelection()
+        selection = self.deck_listbox.GetFirstSelected()
         if selection != wx.NOT_FOUND and selection == deck_id - 1:
             self._update_active_deck_controls()
 
