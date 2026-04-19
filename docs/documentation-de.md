@@ -121,6 +121,7 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 * Aktives Deck stoppen (CTRL+Shift+Punkt): Beendet nur die Wiedergabe auf dem in der Deckliste ausgewählten Deck.
 * Stummschaltung umschalten (Ctrl+M): Schaltet das aktive Deck lautlos.
 * Wiederholung umschalten (Ctrl+L): Schaltet die Loopwiedergabe für lokale Audiodateien ein oder aus.
+* Zu Zeitmarke springen (Ctrl+J): Erlaubt das Ansteuern einer bestimmten Zeitmarke im Format `HH:MM:SS`.
 
 #### Ansicht
 
@@ -163,7 +164,7 @@ Die Deckliste dient zur Auswahl des aktiven Decks. Um das Deck zu wechseln, muss
 * Balance (Ctrl+Links/Rechts): Regelt die Balance des aktiven Decks.
 * Stumm (Ctrl+M): Schaltet das Deck lautlos.
 * Wiederholen (Ctrl+L): Schaltet die Loopwiedergabe für lokale Audiodateien ein oder aus.
-* Position (Alt+Links/Rechts): Ermöglicht das Spulen in lokalen Audiodateien. Mittels Alt+Shift+Links/Rechts kann in 30-Sekunden-Sprüngen navigiert werden, Ctrl+J erlaubt das gezielte Springen an eine Position.
+* Position (Alt+Links/Rechts): Ermöglicht das Spulen in lokalen Audiodateien. Mittels Alt+Shift+Links/Rechts kann in 30-Sekunden-Sprüngen navigiert werden.
 * Pegel: Enthält eine visuelle Darstellung des Lautstärkepegels sowie die Angabe in dB. 
 
 ### Statusleiste

@@ -159,6 +159,7 @@ class MainFrame(wx.Frame):
         self.stop_active_item = playback_menu.Append(wx.ID_ANY, _("Stop active deck") + "\tCtrl+Shift+.")
         self.toggle_loop_item = playback_menu.Append(wx.ID_ANY, _("Toggle Loop") + "\tCtrl+L")
         self.toggle_mute_item = playback_menu.Append(wx.ID_ANY, _("Toggle Mute") + "\tCtrl+M")
+        self.jump_to_item = playback_menu.Append(wx.ID_ANY, _("Jump to time") + "\tCtrl+J")
         menu_bar.Append(playback_menu, _("&Playback"))
 
         # View menu
@@ -210,6 +211,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._on_active_stop, self.stop_active_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_toggle_loop(), self.toggle_loop_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_toggle_mute(), self.toggle_mute_item)
+        self.Bind(wx.EVT_MENU, self._on_jump_to_time, self.jump_to_item)
         self.Bind(wx.EVT_MENU, self._on_toggle_statusbar, self.statusbar_item)
         self.Bind(wx.EVT_MENU, self._on_toggle_level_meter, self.level_meter_item)
         self.Bind(wx.EVT_MENU, self._on_toggle_theme, self.theme_item)
@@ -1250,7 +1252,7 @@ class MainFrame(wx.Frame):
         if not deck or not deck.can_seek():
             wx.MessageBox(
                 _("No seekable audio loaded in the selected deck."),
-                _("Jump to Time"),
+                _("Jump to time"),
                 wx.OK | wx.ICON_INFORMATION
             )
             return
@@ -1262,7 +1264,7 @@ class MainFrame(wx.Frame):
         dlg = CustomTextEntryDialog(
             self,
             _("Enter time (M:SS or H:MM:SS):") + f"\n{_('Duration')}: {duration_str}",
-            _("Jump to Time"),
+            _("Jump to time"),
             default_value = current_pos,
             ok_label=_("&OK"), cancel_label=_("&Cancel")
         )

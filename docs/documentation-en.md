@@ -121,6 +121,7 @@ The program window largely follows a standard layout, consisting of a menu bar, 
 * Stop active deck (CTRL+Shift+Dot): Stops playback on the selected deck.
 * Toggle mute (Ctrl+M): Mute/unmute the active deck.
 * Toggle loop (Ctrl+L): Loop playback for selected deck.
+* Jump to time (Ctrl+J): Jump to a given time (Format: `HH:MM:SS`). 
 
 #### View
 
