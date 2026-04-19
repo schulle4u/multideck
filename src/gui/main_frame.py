@@ -736,7 +736,7 @@ class MainFrame(wx.Frame):
                 output_label = (
                     deck.output_device_name
                     if deck.output_device_id is not None
-                    else _("Global Output")
+                    else _("Main device")
                 )
 
                 status = ""
@@ -768,10 +768,10 @@ class MainFrame(wx.Frame):
                         file_info = deck.file_path
                     else:
                         file_info = os.path.basename(deck.file_path)
-                    display_text += f"{_('Loaded')} {file_info}, "
+                    display_text += f"{file_info}, "
                 if self.mixer.is_deck_recording(deck.deck_id):
                     display_text += f"{_('Recording')}, "
-                output_label = deck.output_device_name if deck.output_device_id is not None else _("Global Output")
+                output_label = deck.output_device_name if deck.output_device_id is not None else _("Main device")
                 display_text += f"{_('Output')} {output_label}"
                 self.deck_listbox.Append(display_text)
             # Restore selection

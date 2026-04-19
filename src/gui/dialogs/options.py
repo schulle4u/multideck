@@ -37,6 +37,7 @@ class OptionsDialog(wx.Dialog):
         self._create_ui()
         self._fit_to_pages()
         self.SetMinSize(self.GetSize())
+        self.Center()
 
         # Apply theme to dialog if theme manager is available
         if self.theme_manager:
@@ -855,8 +856,8 @@ class OptionsDialog(wx.Dialog):
         """Fit the dialog to its initial content with minimum size constraints."""
         self.Fit()
         size = self.GetSize()
-        if size.width < 500 or size.height < 380:
-            self.SetSize(max(size.width, 500), max(size.height, 380))
+        if size.width < 700 or size.height < 600:
+            self.SetSize(max(size.width, 700), max(size.height, 600))
 
     def _on_control_changed(self, event):
         """Handle any control value change - update Apply button state"""
