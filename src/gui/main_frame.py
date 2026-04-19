@@ -702,17 +702,23 @@ class MainFrame(wx.Frame):
 
         dlg.Destroy()
 
+    def _get_selected_index(self):
+        """ListBox/ListCtrl wrapper to get selected index"""
+        if self.deck_list_style == "detailed":
+            return self.deck_listbox.GetFirstSelected()
+        return self.deck_listbox.GetSelection()
+
     def _update_deck_panel(self, deck_id):
         """Update UI for a specific deck"""
         # Update listbox to reflect changes
         self._update_deck_listbox()
         # Update active deck controls if this is the selected deck
-        selection = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
+        selection = self._get_selected_index()
         if selection != wx.NOT_FOUND and selection == deck_id - 1:
             self._update_active_deck_controls()
 
     def _update_deck_listbox(self):
-        current_selection = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
+        current_selection = self._get_selected_index()
         self.deck_listbox.DeleteAllItems() if self.deck_list_style == "detailed" else self.deck_listbox.Clear()
         if self.deck_list_style == "detailed":
             for i, deck in enumerate(self.mixer.decks):
@@ -774,7 +780,7 @@ class MainFrame(wx.Frame):
 
     def _on_deck_listbox_select(self, event):
         """Handle deck listbox selection"""
-        deck_index = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
+        deck_index = self._get_selected_index()
         if deck_index != wx.NOT_FOUND:
             # Update mixer's active deck for Solo/Automatic mode
             self.mixer.set_active_deck(deck_index)
@@ -783,7 +789,7 @@ class MainFrame(wx.Frame):
 
     def _update_active_deck_controls(self):
         """Update the active deck control panel to reflect selected deck"""
-        deck_index = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
+        deck_index = self._get_selected_index()
         if deck_index == wx.NOT_FOUND or deck_index >= len(self.mixer.decks):
             self.active_deck_label.SetLabel(_("No deck selected"))
             self.active_deck_status.SetLabel("")
@@ -849,7 +855,7 @@ class MainFrame(wx.Frame):
         """Get the currently selected deck from listbox"""
         if not hasattr(self, 'deck_listbox'):
             return None
-        deck_index = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
+        deck_index = self._get_selected_index()
         if deck_index != wx.NOT_FOUND and deck_index < len(self.mixer.decks):
             return self.mixer.decks[deck_index]
         return None
@@ -1306,7 +1312,7 @@ class MainFrame(wx.Frame):
         """Handle deck info changes (name, loaded file, etc.)"""
         self._update_deck_listbox()
         # Update active controls if this deck is selected
-        selection = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
+        selection = self._get_selected_index()
         if selection != wx.NOT_FOUND and selection == deck.deck_id - 1:
             self._update_active_deck_controls()
 
@@ -2371,7 +2377,7 @@ class MainFrame(wx.Frame):
         self.SetStatusText(message, 0)
         self.tts_manager.speak(message)
         self._update_deck_listbox()
-        selection = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
+        selection = self._get_selected_index()
         if selection != wx.NOT_FOUND and selection == deck_id - 1:
             self._update_active_deck_controls()
 
@@ -2387,7 +2393,7 @@ class MainFrame(wx.Frame):
         self.SetStatusText(message, 0)
         self.tts_manager.speak(message)
         self._update_deck_listbox()
-        selection = self.deck_listbox.GetFirstSelected() if self.deck_list_style == "detailed" else self.deck_listbox.GetSelection()
+        selection = self._get_selected_index()
         if selection != wx.NOT_FOUND and selection == deck_id - 1:
             self._update_active_deck_controls()
 
