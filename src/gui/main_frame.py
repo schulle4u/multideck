@@ -735,13 +735,13 @@ class MainFrame(wx.Frame):
 
                 status = ""
                 if deck.is_playing:
-                    status = "▶️"
+                    status = "▶"
                     if self.mixer.is_deck_recording(deck.deck_id):
-                        status = f"{status} ⏺️"
+                        status = f"{status} ⏺"
                 elif deck.is_paused:
-                    status = "⏸️"
+                    status = "⏸"
                 elif deck.state != DECK_STATE_EMPTY:
-                    status = "⏹️"
+                    status = "⏹"
 
                 index = self.deck_listbox.InsertItem(i, status)
                 self.deck_listbox.SetItem(index, 1, deck_name)
