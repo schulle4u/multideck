@@ -93,7 +93,7 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 
 ### Menüleiste
 
-#### Datei:
+#### Datei
 
 * Neues Projekt (Ctrl+N): Erstellt ein leeres Projekt.
 * Projekt öffnen (Ctrl+O): Lädt eine bestehende Projektdatei (`*.mdap`) in den Player.
@@ -104,19 +104,37 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 * Letzte Dateien: Enthält eine Liste der zuletzt geöffneten Dateien. Hierbei handelt es sich jedoch um die geladenen Audiodateien, nicht um die Projektdateien. Die Liste kann bei Bedarf auch gelöscht werden.
 * Beenden (Alt+F4): Beendet das Programm.
 
-#### Ansicht:
+#### Deck
+
+* Datei laden (Ctrl+F): Lädt eine Audiodatei in das gewählte Deck. 
+* URL laden (Ctrl+U): Öffnet einen Internetstream im gewählten Deck.
+* Soundkarteneingang laden (Ctrl+D): Ermöglicht die Wiedergabe einer an den Computer angeschlossenen Audioquelle (Mikrofon, Line). 
+* Deck umbenennen (F2): Erlaubt das Hinterlegen eines benutzerdefinierten Decknamens. 
+* Deck entladen (Del/Entf): Entfernt die auf dem gewählten Deck geladene Datei.
+* Deckaufnahme starten (Ctrl+Shift+R): Ermöglicht eine individuelle Deckaufnahme, unabhängig vom gewählten Betriebsmodus. 
+
+#### Wiedergabe
+
+* Wiedergabe/Pause aller Decks (Ctrl+P): Schaltet die Wiedergabe auf allen geladenen Decks um.
+* Alle Decks stoppen (CTRL+Punkt): Beendet die Wiedergabe auf allen geladenen Decks, und setzt die Zeitanzeige zurück.
+* Aktives Deck abspielen (CTRL+Shift+P): Spielt nur das in der Deckliste ausgewählte Deck ab. 
+* Aktives Deck stoppen (CTRL+Shift+Punkt): Beendet nur die Wiedergabe auf dem in der Deckliste ausgewählten Deck.
+* Stummschaltung umschalten (Ctrl+M): Schaltet das aktive Deck lautlos.
+* Wiederholung umschalten (Ctrl+L): Schaltet die Loopwiedergabe für lokale Audiodateien ein oder aus.
+
+#### Ansicht
 
 * Statusleiste (Ctrl+T): Schaltet die Anzeige der Statusleiste um.
 * Pegelanzeige: Aktiviert oder deaktiviert die Anzeige des Lautstärkepegels im aktuellen Deck.
 * Theme wechseln (Ctrl+Shift+T): Schaltet die Programmoberfläche zwischen hellem und dunklem Theme um.
 
-#### Werkzeuge:
+#### Werkzeuge
 
 * Aufnahme starten/beenden (Ctrl+R): Startet die Live-Aufnahme des Ausgabemixers. Wenn in den Programmoptionen kein Ausgabeverzeichnis festgelegt wurde, fragt das Programm vor dem Starten der Aufnahme nach dem Verzeichnis zum Speichern der Datei. 
 * Audioeffekte (Ctrl+Shift+E): Öffnet ein Fenster zum Konfigurieren von Audioeffekten und VST-Plugins. 
-* Optionen (Ctrl+P): Öffnet die Programmeinstellungen.
+* Optionen (Ctrl+Shift+O): Öffnet die Programmeinstellungen.
 
-#### Hilfe: 
+#### Hilfe
 
 * Dokumentation (F1): Öffnet diese Hilfedatei. Ist keine Hilfe vorhanden, wird stattdessen die Webseite des Programms geladen.
 * Webseite öffnen (Ctrl+F1): Öffnet die Webseite des Programms.
@@ -131,24 +149,11 @@ Im linken Bereich des Fensters befinden sich die Auswahl des Betriebsmodus, die 
 * Mixermodus (F3): Alle geladenen Decks werden gleichzeitig hörbar abgespielt. 
 * Solomodus (F4): Es wird nur das gerade aktive Deck wiedergegeben.
 * Automatikmodus (F5): Wie im Solomodus wird nur das aktive Deck abgespielt, jedoch schaltet der Player in Zeitintervallen zwischen den geladenen Decks um.
+* Multiroom-Modus (F7): Dies ist ein spezieller Mixermodus, der jedem Deck erlaubt seine Ausgabe an eine andere Soundkarte zu senden. Die Ausgabe kann über das Kontextmenü des Decks konfiguriert werden und ist sofort nach dem Umschalten wirksam.
 
-#### Globale Wiedergabe:
+#### Deckliste (F6)
 
-* Alle abspielen/Alle stoppen: Startet bzw. beendet die Wiedergabe auf allen geladenen Decks.
-* Masterlautstärke (Ctrl+Shift+Hoch/Runter): Ändert die Lautstärke des gesamten Mixes. 
-
-#### Deckliste (F6):
-
-Die Deckliste dient zur Auswahl des aktiven Decks. Um das Deck zu wechseln, muss es lediglich mit den Pfeiltasten oder der Maus ausgewählt werden. Neben dem Decknamen wird der geladene Inhalt angezeigt. Über das Kontextmenü stehen folgende Funktionen zur Verfügung: 
-
-* Datei laden (Ctrl+F): Lädt eine Audiodatei in das gewählte Deck. 
-* URL laden (Ctrl+U): Öffnet einen Internetstream im gewählten Deck.
-* Soundkarteneingang laden (Ctrl+D): Ermöglicht die Wiedergabe einer an den Computer angeschlossenen Audioquelle (Mikrofon, Line). 
-* Ausgabegerät: Konfiguriert ein separates Audiogerät für das Deck (nur Multiroom-Modus). 
-* Deck umbenennen (F2): Erlaubt das Hinterlegen eines benutzerdefinierten Decknamens. 
-* Wiederholung umschalten (Ctrl+L): Schaltet die Loopwiedergabe für lokale Audiodateien ein oder aus.
-* Deck entladen (Del/Entf): Entfernt die auf dem gewählten Deck geladene Datei.
-* Deckaufnahme starten (Ctrl+Shift+R): Ermöglicht eine individuelle Deckaufnahme, unabhängig vom gewählten Betriebsmodus. 
+Die Deckliste dient zur Auswahl des aktiven Decks. Um das Deck zu wechseln, muss es lediglich mit den Pfeiltasten oder der Maus ausgewählt werden. Neben dem Decknamen wird der geladene Inhalt angezeigt sowie der Aufnahmestatus und das gewählte Ausgabegerät. Über das Kontextmenü stehen  die Funktionen aus dem Deckmenü sowie zum Ändern des Ausgabegeräts zur Verfügung: 
 
 #### Steuerung für aktives Deck
 
@@ -158,10 +163,10 @@ Die Deckliste dient zur Auswahl des aktiven Decks. Um das Deck zu wechseln, muss
 * Balance (Ctrl+Links/Rechts): Regelt die Balance des aktiven Decks.
 * Stumm (Ctrl+M): Schaltet das Deck lautlos.
 * Wiederholen (Ctrl+L): Schaltet die Loopwiedergabe für lokale Audiodateien ein oder aus.
-* Position (Alt+Links/Rechts): Ermöglicht das Spulen in lokalen Audiodateien.
+* Position (Alt+Links/Rechts): Ermöglicht das Spulen in lokalen Audiodateien. Mittels Alt+Shift+Links/Rechts kann in 30-Sekunden-Sprüngen navigiert werden, Ctrl+J erlaubt das gezielte Springen an eine Position.
 * Pegel: Enthält eine visuelle Darstellung des Lautstärkepegels sowie die Angabe in dB. 
 
-### Statusleiste:
+### Statusleiste
 
 Die Statusleiste ist in 3 Bereiche aufgeteilt: 
 
@@ -171,12 +176,13 @@ Die Statusleiste ist in 3 Bereiche aufgeteilt:
 
 ## Programmoptionen
 
-Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+P aufrufbar. Über die Kategorieliste können die einzelnen Einstellungsseiten angewählt werden. Die Schaltfläche „OK” speichert sämtliche Einstellungen und schließt den Dialog, während die Übernehmen-Schaltfläche nur die Einstellungen der aktuellen Kategorie speichert und den Dialog geöffnet lässt. Einige Optionen erfordern möglicherweise einen Neustart des Programms, worauf beim Speichern hingewiesen wird. 
+Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+Shift+O aufrufbar. Über die Kategorieliste können die einzelnen Einstellungsseiten angewählt werden. Die Schaltfläche „OK” speichert sämtliche Einstellungen und schließt den Dialog, während die Übernehmen-Schaltfläche nur die Einstellungen der aktuellen Kategorie speichert und den Dialog geöffnet lässt. Einige Optionen erfordern möglicherweise einen Neustart des Programms, worauf beim Speichern hingewiesen wird. 
 
 ### Allgemein
 
 * Sprache: Legt die Programmsprache fest.
 * Anzahl der Decks: Die Anzahl sichtbarer Decks im Hauptfenster.
+* Stil der Deckliste: Erlaubt das Umschalten zwischen einer kompakten oder detailierten Deckliste. **Hinweis**: Für Screenreadernutzer unter Linux muss die kompakte Deckliste gewählt werden, da die detailierte Ansicht derzeit nicht barrierefrei nutzbar ist.
 * Theme: Legt das Standard-Aussehen des Programms fest.
 
 ### Audio

@@ -93,7 +93,7 @@ The program window largely follows a standard layout, consisting of a menu bar, 
 
 ### Menu Bar
 
-#### File:
+#### File
 
 * New Project (Ctrl+N): Creates an empty project.
 * Open Project (Ctrl+O): Loads an existing project file (`*.mdap`) into the player.
@@ -104,19 +104,37 @@ The program window largely follows a standard layout, consisting of a menu bar, 
 * Recent Files: Contains a list of recently opened files. Note that these are the loaded audio files, not the project files. The list can be cleared if needed.
 * Exit (Alt+F4): Exits the program.
 
-#### View:
+#### Deck
+
+* Load File (Ctrl+F): Loads an audio file into the selected deck.
+* Load URL (Ctrl+U): Opens an internet stream in the selected deck.
+* Load Sound Card Input (Ctrl+D): Enables playback of an audio source connected to the computer (microphone, line-in).
+* Rename Deck (F2): Allows you to assign a custom name to the deck.
+* Unload Deck (Del): Removes the file loaded on the selected deck.
+* Start Deck Recording (Ctrl+Shift+R): Enables individual deck recording, independent of the selected operating mode.
+
+#### Playback
+
+* Play/Pause all Decks (Ctrl+P): Toggles playback on all loaded decks.
+* Stop all decks (CTRL+Dot): Stops playback on all decks and resets time display.
+* Play active deck (CTRL+Shift+P): Only starts the currently selected deck. 
+* Stop active deck (CTRL+Shift+Dot): Stops playback on the selected deck.
+* Toggle mute (Ctrl+M): Mute/unmute the active deck.
+* Toggle loop (Ctrl+L): Loop playback for selected deck.
+
+#### View
 
 * Status Bar (Ctrl+T): Toggles the display of the status bar.
 * Level Meter: Enables or disables the display of the volume level in the current deck.
 * Switch Theme (Ctrl+Shift+T): Switches the program interface between light and dark themes.
 
-#### Tools:
+#### Tools
 
 * Start/Stop Recording (Ctrl+R): Starts live recording of the output mixer. If no output directory has been set in the program options, the program will ask for a directory before starting the recording.
 * Audio Effects (Ctrl+Shift+E): Opens a window for configuring audio effects and VST plugins.
-* Options (Ctrl+P): Opens the program settings.
+* Options (Ctrl+Shift+O): Opens the program settings.
 
-#### Help:
+#### Help
 
 * Documentation (F1): Opens this help file. If no help file is available, the program's website will be loaded instead.
 * Open Website (Ctrl+F1): Opens the program's website.
@@ -131,24 +149,11 @@ The left area of the window contains the operating mode selector, the global pla
 * Mixer mode (F3): All loaded decks play simultaneously and are audible at the same time.
 * Solo mode (F4): Only the currently active deck is played back.
 * Automatic mode (F5): Like solo mode, only the active deck is played, but the player switches between loaded decks at set time intervals.
+* Multiroom mode: A special mixer mode which gives every deck the possibility to route its output to a different sound device, configurable in deck context menu.
 
-#### Global Playback:
+#### Deck List (F6)
 
-* Play All / Stop All: Starts or stops playback on all loaded decks.
-* Master Volume (Ctrl+Shift+Up/Down): Changes the volume of the entire mix.
-
-#### Deck List (F6):
-
-The deck list is used to select the active deck. To switch between decks, simply select one using the arrow keys or the mouse. The loaded content is displayed next to the deck name. The following functions are available via the context menu:
-
-* Load File (Ctrl+F): Loads an audio file into the selected deck.
-* Load URL (Ctrl+U): Opens an internet stream in the selected deck.
-* Load Sound Card Input (Ctrl+D): Enables playback of an audio source connected to the computer (microphone, line-in).
-* Output device: Select a different audio device for each deck (multiroom mode only). 
-* Rename Deck (F2): Allows you to assign a custom name to the deck.
-* Toggle Loop (Ctrl+L): Enables or disables loop playback for local audio files.
-* Unload Deck (Del): Removes the file loaded on the selected deck.
-* Start Deck Recording (Ctrl+Shift+R): Enables individual deck recording, independent of the selected operating mode.
+The deck list is used to select the active deck. To switch between decks, simply select one using the arrow keys or the mouse. The loaded content is displayed next to the deck name, along with status information and output device. 
 
 #### Active Deck Controls
 
@@ -161,7 +166,7 @@ The deck list is used to select the active deck. To switch between decks, simply
 * Position (Alt+Left/Right): Allows seeking within local audio files.
 * Level: Provides a visual representation of the volume level along with the value in dB.
 
-### Status Bar:
+### Status Bar
 
 The status bar is divided into 3 sections:
 
@@ -177,6 +182,7 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 
 * Language: Sets the program language.
 * Number of Decks: The number of decks shown in the main window.
+* Deck list style: Select between compact and detailed view. **Note**: Screen reader users running linux should always use the compact deck list view, as the detailed list control is currently not accessible.
 * Theme: Sets the default appearance of the program.
 
 ### Audio
