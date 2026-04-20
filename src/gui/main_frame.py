@@ -754,10 +754,8 @@ class MainFrame(wx.Frame):
                 elif deck.state != DECK_STATE_EMPTY:
                     status = "⏹"
 
-                index = self.deck_listbox.control.InsertItem(i, status)
-                self.deck_listbox.control.SetItem(index, 1, deck_name)
-                self.deck_listbox.control.SetItem(index, 2, file_info)
-                self.deck_listbox.control.SetItem(index, 3, output_label)
+                row_data = [status, deck_name, file_info, output_label]
+                self.deck_listbox.Append(row_data)
 
             if current_selection != -1 and current_selection < self.deck_listbox.control.GetItemCount():
                 self.deck_listbox.control.Select(current_selection)

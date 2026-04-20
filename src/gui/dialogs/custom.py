@@ -165,13 +165,21 @@ class UniversalListCtrl:
             self.control.InsertColumn(col, heading, width=width)
 
     def Append(self, entry):
+        """
+        Adds a row to the list.
+        'entry' must be a list or tuple of values matching the column count.
+        """
         if self.is_linux:
-            self.control.AppendItem(entry)
+            # DataViewListCtrl.AppendItem expects exactly one argument: a sequence
+            # Ensure all elements match the expected column types (usually strings)
+            formatted_entry = [str(item) for item in entry]
+            self.control.AppendItem(formatted_entry)
         else:
+            # ListCtrl: Insert the first item, then set sub-items
             index = self.control.GetItemCount()
             self.control.InsertItem(index, str(entry[0]))
-            for i in range(1, len(entry)):
-                self.control.SetItem(index, i, str(entry[i]))
+            for col_idx in range(1, len(entry)):
+                self.control.SetItem(index, col_idx, str(entry[col_idx]))
 
     def Bind(self, event_type, handler):
         """
