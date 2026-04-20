@@ -183,7 +183,7 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 
 * Language: Sets the program language.
 * Number of Decks: The number of decks shown in the main window.
-* Deck list style: Select between compact and detailed view. **Note**: Screen reader users running linux should always use the compact deck list view, as the detailed list control is currently not accessible.
+* Deck list style: Select between compact and detailed view.
 * Theme: Sets the default appearance of the program.
 
 ### Audio

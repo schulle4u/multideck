@@ -183,7 +183,7 @@ Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+Shift+O aufrufbar.
 
 * Sprache: Legt die Programmsprache fest.
 * Anzahl der Decks: Die Anzahl sichtbarer Decks im Hauptfenster.
-* Stil der Deckliste: Erlaubt das Umschalten zwischen einer kompakten oder detailierten Deckliste. **Hinweis**: Für Screenreadernutzer unter Linux muss die kompakte Deckliste gewählt werden, da die detailierte Ansicht derzeit nicht barrierefrei nutzbar ist.
+* Stil der Deckliste: Erlaubt das Umschalten zwischen einer kompakten oder detailierten Deckliste. 
 * Theme: Legt das Standard-Aussehen des Programms fest.
 
 ### Audio
