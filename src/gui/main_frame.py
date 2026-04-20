@@ -7,7 +7,7 @@ import wx.adv
 import os
 from pathlib import Path
 
-from gui.dialogs.custom import CustomTextEntryDialog
+from gui.dialogs.custom import CustomTextEntryDialog, UniversalListCtrl
 from gui.theme_manager import ThemeManager
 from audio.audio_engine import AudioEngine
 from audio.mixer import Mixer
@@ -89,7 +89,7 @@ class MainFrame(wx.Frame):
         self._create_status_bar()
 
         # Set initial focus to deck list after UI is fully built
-        wx.CallAfter(self.deck_listbox.SetFocus)
+        wx.CallAfter(self.deck_listbox.control.SetFocus) if self.deck_list_style == "detailed" else wx.CallAfter(self.deck_listbox.SetFocus)
 
         # Window settings
         self._apply_window_settings()
@@ -245,9 +245,9 @@ class MainFrame(wx.Frame):
         # Initialize deck list and select first deck
         self._update_deck_listbox()
         if self.deck_list_style == "detailed":
-            if self.deck_listbox.GetItemCount() > 0:
-                self.deck_listbox.Select(0)
-                self.deck_listbox.Focus(0)
+            if self.deck_listbox.control.GetItemCount() > 0:
+                self.deck_listbox.control.Select(0)
+                self.deck_listbox.control.Focus(0)
                 self._update_active_deck_controls()
         else:
             if self.deck_listbox.GetCount() > 0:
@@ -345,7 +345,7 @@ class MainFrame(wx.Frame):
         list_static_box = list_box.GetStaticBox()
 
         if self.deck_list_style == "detailed":
-            self.deck_listbox = wx.ListView(
+            self.deck_listbox = UniversalListCtrl(
                 list_static_box,
                 style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_SUNKEN
             )
@@ -354,15 +354,18 @@ class MainFrame(wx.Frame):
             self.deck_listbox.InsertColumn(2, _("File"), width=wx.LIST_AUTOSIZE)
             self.deck_listbox.InsertColumn(3, _("Output"), width=wx.LIST_AUTOSIZE)
             self.deck_listbox.Bind(wx.EVT_LIST_ITEM_SELECTED, self._on_deck_listbox_select)
+            self.deck_listbox.control.SetName(_("Deck Selection"))
+            self.deck_listbox.control.SetLabel(_("Deck Selection"))
         else:
             self.deck_listbox = wx.ListBox(list_static_box, style=wx.LB_SINGLE)
             self.deck_listbox.Bind(wx.EVT_LISTBOX, self._on_deck_listbox_select)
-        self.deck_listbox.SetName(_("Deck Selection"))
-        self.deck_listbox.SetLabel(_("Deck Selection"))
+            self.deck_listbox.SetName(_("Deck Selection"))
+            self.deck_listbox.SetLabel(_("Deck Selection"))
         self.deck_listbox.Bind(wx.EVT_CONTEXT_MENU, self._on_deck_context_menu)
         # Use CHAR_HOOK to intercept Enter before native ListBox processing
         self.deck_listbox.Bind(wx.EVT_CHAR_HOOK, self._on_deck_listbox_key)
-        list_box.Add(self.deck_listbox, 1, wx.EXPAND | wx.ALL, 5)
+        
+        list_box.Add(self.deck_listbox.GetControl(), 1, wx.EXPAND | wx.ALL, 5) if self.deck_list_style == "detailed" else list_box.Add(self.deck_listbox, 1, wx.EXPAND | wx.ALL, 5)
 
         list_panel_sizer.Add(list_box, 1, wx.EXPAND)
         list_panel.SetSizer(list_panel_sizer)
@@ -707,7 +710,7 @@ class MainFrame(wx.Frame):
     def _get_selected_index(self):
         """ListBox/ListCtrl wrapper to get selected index"""
         if self.deck_list_style == "detailed":
-            return self.deck_listbox.GetFirstSelected()
+            return self.deck_listbox.control.GetFirstSelected()
         return self.deck_listbox.GetSelection()
 
     def _update_deck_panel(self, deck_id):
@@ -721,7 +724,7 @@ class MainFrame(wx.Frame):
 
     def _update_deck_listbox(self):
         current_selection = self._get_selected_index()
-        self.deck_listbox.DeleteAllItems() if self.deck_list_style == "detailed" else self.deck_listbox.Clear()
+        self.deck_listbox.control.DeleteAllItems() if self.deck_list_style == "detailed" else self.deck_listbox.Clear()
         if self.deck_list_style == "detailed":
             for i, deck in enumerate(self.mixer.decks):
                 deck_name = deck.name
@@ -751,14 +754,14 @@ class MainFrame(wx.Frame):
                 elif deck.state != DECK_STATE_EMPTY:
                     status = "⏹"
 
-                index = self.deck_listbox.InsertItem(i, status)
-                self.deck_listbox.SetItem(index, 1, deck_name)
-                self.deck_listbox.SetItem(index, 2, file_info)
-                self.deck_listbox.SetItem(index, 3, output_label)
+                index = self.deck_listbox.control.InsertItem(i, status)
+                self.deck_listbox.control.SetItem(index, 1, deck_name)
+                self.deck_listbox.control.SetItem(index, 2, file_info)
+                self.deck_listbox.control.SetItem(index, 3, output_label)
 
-            if current_selection != -1 and current_selection < self.deck_listbox.GetItemCount():
-                self.deck_listbox.Select(current_selection)
-                self.deck_listbox.Focus(current_selection)
+            if current_selection != -1 and current_selection < self.deck_listbox.control.GetItemCount():
+                self.deck_listbox.control.Select(current_selection)
+                self.deck_listbox.control.Focus(current_selection)
         else:
             for i, deck in enumerate(self.mixer.decks):
                 # Build display text: deck name + file info if loaded
@@ -952,14 +955,14 @@ class MainFrame(wx.Frame):
         # Open context menu on Enter or Application/Menu key
         # This helps VoiceOver users on macOS who can't trigger EVT_CONTEXT_MENU
         if key in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
-            self._show_deck_context_menu(self.deck_listbox)
+            self._show_deck_context_menu(self.deck_listbox.control) if self.deck_list_style == "detailed" else self._show_deck_context_menu(self.deck_listbox)
             # Don't Skip() - we handled the event
         else:
             event.Skip()
 
     def _on_deck_context_menu(self, event):
         """Show context menu for deck listbox (right-click or Shift+F10)"""
-        self._show_deck_context_menu(self.deck_listbox)
+        self._show_deck_context_menu(self.deck_listbox.control) if self.deck_list_style == "detailed" else self._show_deck_context_menu(self.deck_listbox)
 
     def _show_deck_context_menu(self, parent_widget):
         """Show the deck context menu on the specified widget"""
@@ -1299,10 +1302,10 @@ class MainFrame(wx.Frame):
     def _sync_listbox_selection(self, deck_index):
         """Sync listbox selection with mixer's active deck"""
         if self.deck_list_style == "detailed":
-            if deck_index < self.deck_listbox.GetItemCount():
-                if self.deck_listbox.GetFirstSelected() != deck_index:
-                    self.deck_listbox.Select(deck_index)
-                    self.deck_listbox.Focus(deck_index)
+            if deck_index < self.deck_listbox.control.GetItemCount():
+                if self.deck_listbox.control.GetFirstSelected() != deck_index:
+                    self.deck_listbox.control.Select(deck_index)
+                    self.deck_listbox.control.Focus(deck_index)
                 self._update_active_deck_controls()
         else:
             if deck_index < self.deck_listbox.GetCount():

@@ -2,6 +2,8 @@
 Various Custom dialogs to workaround some wx limitations
 """
 import wx
+import wx.dataview as dv
+import sys
 
 
 class AccessibleSpinCtrl(wx.BoxSizer):
@@ -144,3 +146,75 @@ class CustomTextEntryDialog(wx.Dialog):
         """Return value from custom text entry dialog"""
         return self.text_ctrl.GetValue()
 
+
+class UniversalListCtrl:
+    def __init__(self, parent, size=wx.DefaultSize, style=wx.LC_REPORT | wx.BORDER_SUNKEN):
+        self.is_linux = sys.platform.startswith('linux')
+        
+        if self.is_linux:
+            # Accessibility: Better GTK/Orca support
+            self.control = dv.DataViewListCtrl(parent, style=style, size=size)
+        else:
+            # Performance/Native Look on Windows
+            self.control = wx.ListCtrl(parent, style=style, size=size)
+
+    def InsertColumn(self, col, heading, width=wx.LIST_AUTOSIZE):
+        if self.is_linux:
+            self.control.AppendTextColumn(heading, width=width)
+        else:
+            self.control.InsertColumn(col, heading, width=width)
+
+    def Append(self, entry):
+        if self.is_linux:
+            self.control.AppendItem(entry)
+        else:
+            index = self.control.GetItemCount()
+            self.control.InsertItem(index, str(entry[0]))
+            for i in range(1, len(entry)):
+                self.control.SetItem(index, i, str(entry[i]))
+
+    def Bind(self, event_type, handler):
+        """
+        Unifies binding for common list events.
+        """
+        if event_type == wx.EVT_LIST_ITEM_SELECTED:
+            if self.is_linux:
+                # Map DataView selection to List selection logic
+                self.control.Bind(dv.EVT_DATAVIEW_SELECTION_CHANGED, 
+                                  lambda evt: self._handle_selection(evt, handler))
+            else:
+                self.control.Bind(wx.EVT_LIST_ITEM_SELECTED, handler)
+        
+        elif event_type in [wx.EVT_CONTEXT_MENU, wx.EVT_CHAR_HOOK]:
+            # These are standard wx.Window events, no mapping needed
+            self.control.Bind(event_type, handler)
+        
+        else:
+            # Fallback for other events
+            self.control.Bind(event_type, handler)
+
+    def _handle_selection(self, evt, user_handler):
+        """
+        Internal helper to normalize DataViewEvent so it feels 
+        closer to a ListEvent for the handler.
+        """
+        # Accessibility: Ensure screen reader focus remains stable 
+        # while processing selection logic.
+        if self.is_linux:
+            item = evt.GetItem()
+            if item.IsOk():
+                # We can inject a 'GetIndex' method into the event object
+                # to mimic ListEvent if necessary, or just call the handler.
+                evt.GetIndex = lambda: self.control.ItemToRow(item)
+        
+        user_handler(evt)
+
+    def GetSelectedRow(self):
+        if self.is_linux:
+            item = self.control.GetSelection()
+            return self.control.ItemToRow(item) if item.IsOk() else -1
+        else:
+            return self.control.GetFirstSelected()
+
+    def GetControl(self):
+        return self.control
