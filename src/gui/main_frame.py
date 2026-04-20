@@ -710,7 +710,7 @@ class MainFrame(wx.Frame):
     def _get_selected_index(self):
         """ListBox/ListCtrl wrapper to get selected index"""
         if self.deck_list_style == "detailed":
-            return self.deck_listbox.control.GetFirstSelected()
+            return self.deck_listbox.GetSelectedRow()
         return self.deck_listbox.GetSelection()
 
     def _update_deck_panel(self, deck_id):
