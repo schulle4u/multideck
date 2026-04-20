@@ -224,5 +224,25 @@ class UniversalListCtrl:
         else:
             return self.control.GetFirstSelected()
 
+    def GetItemCount(self):
+        """Returns the total number of items in the list."""
+        return self.control.GetItemCount()
+
+    def SelectRow(self, index):
+        """
+        Selects and focuses a row by index.
+        """
+        if index < 0 or index >= self.GetItemCount():
+            return
+
+        if self.is_linux:
+            item = self.control.RowToItem(index)
+            if item.IsOk():
+                self.control.Select(item)
+                self.control.EnsureVisible(item)
+        else:
+            self.control.Select(index)
+            self.control.Focus(index)
+
     def GetControl(self):
         return self.control

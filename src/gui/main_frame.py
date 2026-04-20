@@ -245,9 +245,8 @@ class MainFrame(wx.Frame):
         # Initialize deck list and select first deck
         self._update_deck_listbox()
         if self.deck_list_style == "detailed":
-            if self.deck_listbox.control.GetItemCount() > 0:
-                self.deck_listbox.control.Select(0)
-                self.deck_listbox.control.Focus(0)
+            if self.deck_listbox.GetItemCount() > 0:
+                self.deck_listbox.SelectRow(0)
                 self._update_active_deck_controls()
         else:
             if self.deck_listbox.GetCount() > 0:
@@ -757,9 +756,8 @@ class MainFrame(wx.Frame):
                 row_data = [status, deck_name, file_info, output_label]
                 self.deck_listbox.Append(row_data)
 
-            if current_selection != -1 and current_selection < self.deck_listbox.control.GetItemCount():
-                self.deck_listbox.control.Select(current_selection)
-                self.deck_listbox.control.Focus(current_selection)
+            if current_selection != -1 and current_selection < self.deck_listbox.GetItemCount():
+                self.deck_listbox.SelectRow(current_selection)
         else:
             for i, deck in enumerate(self.mixer.decks):
                 # Build display text: deck name + file info if loaded
@@ -1302,8 +1300,7 @@ class MainFrame(wx.Frame):
         if self.deck_list_style == "detailed":
             if deck_index < self.deck_listbox.control.GetItemCount():
                 if self.deck_listbox.control.GetFirstSelected() != deck_index:
-                    self.deck_listbox.control.Select(deck_index)
-                    self.deck_listbox.control.Focus(deck_index)
+                    self.deck_listbox.SelectRow(deck_index)
                 self._update_active_deck_controls()
         else:
             if deck_index < self.deck_listbox.GetCount():
