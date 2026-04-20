@@ -236,10 +236,12 @@ class UniversalListCtrl:
             return
 
         if self.is_linux:
-            item = self.control.RowToItem(index)
-            if item.IsOk():
-                self.control.Select(item)
-                self.control.EnsureVisible(item)
+            # Try to avoid ATK noise
+            if self.control.GetColumnCount() > 0:
+                item = self.control.RowToItem(index)
+                if item.IsOk():
+                    self.control.Select(item)
+                    self.control.EnsureVisible(item)
         else:
             self.control.Select(index)
             self.control.Focus(index)
