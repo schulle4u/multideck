@@ -1298,8 +1298,8 @@ class MainFrame(wx.Frame):
     def _sync_listbox_selection(self, deck_index):
         """Sync listbox selection with mixer's active deck"""
         if self.deck_list_style == "detailed":
-            if deck_index < self.deck_listbox.control.GetItemCount():
-                if self.deck_listbox.control.GetFirstSelected() != deck_index:
+            if deck_index < self.deck_listbox.GetItemCount():
+                if self.deck_listbox.GetSelectedRow() != deck_index:
                     self.deck_listbox.SelectRow(deck_index)
                 self._update_active_deck_controls()
         else:
