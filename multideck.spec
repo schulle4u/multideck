@@ -42,6 +42,7 @@ hiddenimports = [
     'soundfile',
     'wx',
     'wx.adv',
+    'wx.dataview',
     'wx.lib.newevent',
     '_sounddevice_data',
 ]
