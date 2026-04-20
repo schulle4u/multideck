@@ -345,7 +345,7 @@ class MainFrame(wx.Frame):
         list_static_box = list_box.GetStaticBox()
 
         if self.deck_list_style == "detailed":
-            self.deck_listbox = wx.ListCtrl(
+            self.deck_listbox = wx.ListView(
                 list_static_box,
                 style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_SUNKEN
             )
