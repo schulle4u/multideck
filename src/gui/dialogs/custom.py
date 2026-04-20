@@ -149,17 +149,16 @@ class CustomTextEntryDialog(wx.Dialog):
 
 class UniversalListCtrl:
     def __init__(self, parent, size=wx.DefaultSize, style=wx.LC_REPORT | wx.BORDER_SUNKEN):
-        self.is_linux = sys.platform.startswith('linux')
-        
-        if self.is_linux:
-            # Accessibility: Better GTK/Orca support
+        # We use DataViewListCtrl for Linux and macOS (better accessibility)
+        self.use_dataview = sys.platform.startswith('linux') or sys.platform == 'darwin'
+
+        if self.use_dataview:
             self.control = dv.DataViewListCtrl(parent, style=style, size=size)
         else:
-            # Performance/Native Look on Windows
             self.control = wx.ListCtrl(parent, style=style, size=size)
 
     def InsertColumn(self, col, heading, width=wx.LIST_AUTOSIZE):
-        if self.is_linux:
+        if self.use_dataview:
             self.control.AppendTextColumn(heading, width=width)
         else:
             self.control.InsertColumn(col, heading, width=width)
@@ -169,7 +168,7 @@ class UniversalListCtrl:
         Adds a row to the list.
         'entry' must be a list or tuple of values matching the column count.
         """
-        if self.is_linux:
+        if self.use_dataview:
             # DataViewListCtrl.AppendItem expects exactly one argument: a sequence
             # Ensure all elements match the expected column types (usually strings)
             formatted_entry = [str(item) for item in entry]
@@ -186,7 +185,7 @@ class UniversalListCtrl:
         Unifies binding for common list events.
         """
         if event_type == wx.EVT_LIST_ITEM_SELECTED:
-            if self.is_linux:
+            if self.use_dataview:
                 # Map DataView selection to List selection logic
                 self.control.Bind(dv.EVT_DATAVIEW_SELECTION_CHANGED, 
                                   lambda evt: self._handle_selection(evt, handler))
@@ -208,7 +207,7 @@ class UniversalListCtrl:
         """
         # Accessibility: Ensure screen reader focus remains stable 
         # while processing selection logic.
-        if self.is_linux:
+        if self.use_dataview:
             item = evt.GetItem()
             if item.IsOk():
                 # We can inject a 'GetIndex' method into the event object
@@ -218,7 +217,7 @@ class UniversalListCtrl:
         user_handler(evt)
 
     def GetSelectedRow(self):
-        if self.is_linux:
+        if self.use_dataview:
             item = self.control.GetSelection()
             return self.control.ItemToRow(item) if item.IsOk() else -1
         else:
@@ -235,7 +234,7 @@ class UniversalListCtrl:
         if index < 0 or index >= self.GetItemCount():
             return
 
-        if self.is_linux:
+        if self.use_dataview:
             # Try to avoid ATK noise
             if self.control.GetColumnCount() > 0:
                 item = self.control.RowToItem(index)
