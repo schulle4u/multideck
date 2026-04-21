@@ -1010,7 +1010,7 @@ class OptionsDialog(wx.Dialog):
         """Save general settings to config and return restart reasons"""
         old_language = self.config_manager.get('General', 'language', 'en')
         old_deck_count = self.config_manager.get('General', 'deck_count', '10')
-        old_list_style = self.config_manager.get('General', 'deck_list_style', 'compact')
+        old_deck_list_style = self.config_manager.get('General', 'deck_list_style', 'compact')
 
         languages = ['en', 'de']
         self.config_manager.set('General', 'language', languages[self.language_choice.GetSelection()])
@@ -1025,7 +1025,7 @@ class OptionsDialog(wx.Dialog):
             restart_reasons.append(_("Language"))
         if self.config_manager.get('General', 'deck_count', '10') != old_deck_count:
             restart_reasons.append(_("Number of decks"))
-        if self.config_manager.get('General', 'deck_list_style', 'compact') != old_deck_count:
+        if self.config_manager.get('General', 'deck_list_style', 'compact') != old_deck_list_style:
             restart_reasons.append(_("Deck list style"))
         return restart_reasons
 
