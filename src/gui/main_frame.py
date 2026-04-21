@@ -155,10 +155,8 @@ class MainFrame(wx.Frame):
         self.rename_item = self.deck_menu.Append(wx.ID_ANY, _("Rename Deck") + "...\tF2")
         self.unload_item = self.deck_menu.Append(wx.ID_ANY, _("Unload Deck") + "\tDel")
         self.record_deck_menu_item = self.deck_menu.Append(wx.ID_ANY, _("Start Recording Deck") + "\tCtrl+Shift+R")
-        self.stream_deck_menu_item = self.deck_menu.Append(wx.ID_ANY, _("Start Livestream"))
         self.unload_item.Enable(False)
         self.record_deck_menu_item.Enable(False)
-        self.stream_deck_menu_item.Enable(False)
         menu_bar.Append(self.deck_menu, _("&Deck"))
 
         # Playback menu
@@ -217,7 +215,6 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_rename(), self.rename_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_unload(), self.unload_item)
         self.Bind(wx.EVT_MENU, self._on_selected_deck_toggle_recording, self.record_deck_menu_item)
-        self.Bind(wx.EVT_MENU, self._on_toggle_livestream, self.stream_deck_menu_item)
         self.Bind(wx.EVT_MENU, self._on_global_play_pause, self.play_all_item)
         self.Bind(wx.EVT_MENU, self._on_global_stop, self.stop_all_item)
         self.Bind(wx.EVT_MENU, self._on_active_play_pause, self.play_active_item)
@@ -901,13 +898,11 @@ class MainFrame(wx.Frame):
         self.rename_item.Enable(has_deck)
         self.unload_item.Enable(is_loaded)
         self.record_deck_menu_item.Enable(is_loaded)
-        self.stream_deck_menu_item.Enable(can_stream)
         if is_recording:
             self.record_deck_menu_item.SetItemLabel(_("Stop Recording Deck") + "\tCtrl+Shift+R")
         else:
             self.record_deck_menu_item.SetItemLabel(_("Start Recording Deck") + "\tCtrl+Shift+R")
         stream_label = _("Stop Livestream") if self.streamer.is_streaming else _("Start Livestream")
-        self.stream_deck_menu_item.SetItemLabel(stream_label)
         self.stream_menu_item.SetItemLabel(stream_label)
 
     def _on_menu_open(self, event):
@@ -1012,8 +1007,6 @@ class MainFrame(wx.Frame):
         else:
             record_deck_item = menu.Append(wx.ID_ANY, _("Start Recording Deck") + "\tCtrl+Shift+R")
         record_deck_item.Enable(deck.state != DECK_STATE_EMPTY)
-        stream_item = menu.Append(wx.ID_ANY, _("Stop Livestream") if self.streamer.is_streaming else _("Start Livestream"))
-        stream_item.Enable(self._can_start_livestream())
 
         output_labels, output_values, output_devices = self._get_output_device_choices()
         current_device_id = deck.output_device_id
@@ -1039,7 +1032,6 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_rename(), rename_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_unload(), unload_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_toggle_deck_recording(deck), record_deck_item)
-        self.Bind(wx.EVT_MENU, self._on_toggle_livestream, stream_item)
 
         parent_widget.PopupMenu(menu)
         menu.Destroy()
