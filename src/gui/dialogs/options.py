@@ -166,19 +166,29 @@ class OptionsDialog(wx.Dialog):
         # handler (_on_theme_change) for live preview, which also updates Apply state.
         for ctrl in (self.language_choice, self.list_style_choice,
                      self.device_choice, self.buffer_choice, self.rate_choice,
-                     self.format_choice, self.bitrate_choice, self.depth_choice):
+                     self.format_choice, self.bitrate_choice, self.depth_choice,
+                     self.stream_codec_choice, self.stream_bitrate_choice):
             ctrl.Bind(wx.EVT_CHOICE, self._on_control_changed)
 
         for ctrl in (self.deck_count_spin, self.interval_spin,
                      self.threshold_spin, self.hysteresis_spin, self.hold_time_spin,
-                     self.preroll_spin, self.wait_spin):
+                     self.preroll_spin, self.wait_spin, self.stream_port_spin):
             ctrl.Bind(wx.EVT_SPINCTRL, self._on_control_changed)
 
         self.crossfade_ctrl.Bind(wx.EVT_SPINCTRLDOUBLE, self._on_control_changed)
         self.crossfade_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
         self.level_switch_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
+        self.connect_at_startup_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
+        self.stream_public_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
         self.auto_reconnect_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
         self.output_dir_text.Bind(wx.EVT_TEXT, self._on_control_changed)
+        self.stream_server_text.Bind(wx.EVT_TEXT, self._on_control_changed)
+        self.stream_mount_text.Bind(wx.EVT_TEXT, self._on_control_changed)
+        self.stream_credentials_text.Bind(wx.EVT_TEXT, self._on_control_changed)
+        self.stream_name_text.Bind(wx.EVT_TEXT, self._on_control_changed)
+        self.stream_description_text.Bind(wx.EVT_TEXT, self._on_control_changed)
+        self.stream_genre_text.Bind(wx.EVT_TEXT, self._on_control_changed)
+        self.stream_url_text.Bind(wx.EVT_TEXT, self._on_control_changed)
 
         self.tts_enabled_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
         self.tts_engine_choice.Bind(wx.EVT_CHOICE, self._on_tts_engine_changed)
@@ -575,6 +585,112 @@ class OptionsDialog(wx.Dialog):
         panel = wx.Panel(parent)
         sizer = wx.BoxSizer(wx.VERTICAL)
 
+        server_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        server_label = wx.StaticText(panel, label=_("Server") + ":")
+        server_sizer.Add(server_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.stream_server_text = wx.TextCtrl(panel, value=self.config_manager.get('Streaming', 'server', ''))
+        self.stream_server_text.SetName(_("Server"))
+        server_sizer.Add(self.stream_server_text, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(server_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        port_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        port_label = wx.StaticText(panel, label=_("Port") + ":")
+        port_sizer.Add(port_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        current_port = self.config_manager.getint('Streaming', 'port', 8000)
+        self.stream_port_spin = wx.SpinCtrl(panel, value=str(current_port), min=1, max=65535, initial=current_port)
+        self.stream_port_spin.SetName(_("Port"))
+        port_sizer.Add(self.stream_port_spin, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(port_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        mount_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        mount_label = wx.StaticText(panel, label=_("Mountpoint") + ":")
+        mount_sizer.Add(mount_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.stream_mount_text = wx.TextCtrl(panel, value=self.config_manager.get('Streaming', 'mountpoint', '/stream'))
+        self.stream_mount_text.SetName(_("Mountpoint"))
+        mount_sizer.Add(self.stream_mount_text, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(mount_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        credentials_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        credentials_label = wx.StaticText(panel, label=_("Username:Password") + ":")
+        credentials_sizer.Add(credentials_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.stream_credentials_text = wx.TextCtrl(
+            panel, value=self.config_manager.get('Streaming', 'credentials', 'source:hackme')
+        )
+        self.stream_credentials_text.SetName(_("Username:Password"))
+        credentials_sizer.Add(self.stream_credentials_text, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(credentials_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        codec_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        codec_label = wx.StaticText(panel, label=_("Codec") + ":")
+        codec_sizer.Add(codec_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.stream_codec_values = ['mp3', 'ogg']
+        self.stream_codec_choice = wx.Choice(panel, choices=['MP3', 'OGG Vorbis'])
+        self.stream_codec_choice.SetName(_("Codec"))
+        current_codec = self.config_manager.get('Streaming', 'codec', 'mp3')
+        self.stream_codec_choice.SetSelection(
+            self.stream_codec_values.index(current_codec) if current_codec in self.stream_codec_values else 0
+        )
+        codec_sizer.Add(self.stream_codec_choice, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(codec_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        bitrate_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        bitrate_label = wx.StaticText(panel, label=_("Bitrate") + ":")
+        bitrate_sizer.Add(bitrate_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.stream_bitrate_values = ['96', '128', '160', '192', '256', '320']
+        self.stream_bitrate_choice = wx.Choice(panel, choices=[f"{value} kbps" for value in self.stream_bitrate_values])
+        self.stream_bitrate_choice.SetName(_("Bitrate"))
+        current_stream_bitrate = str(self.config_manager.getint('Streaming', 'bitrate', 192))
+        self.stream_bitrate_choice.SetSelection(
+            self.stream_bitrate_values.index(current_stream_bitrate)
+            if current_stream_bitrate in self.stream_bitrate_values else 3
+        )
+        bitrate_sizer.Add(self.stream_bitrate_choice, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(bitrate_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        name_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        name_label = wx.StaticText(panel, label=_("Stream Name") + ":")
+        name_sizer.Add(name_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.stream_name_text = wx.TextCtrl(panel, value=self.config_manager.get('Streaming', 'name', 'MultiDeck Live'))
+        self.stream_name_text.SetName(_("Stream Name"))
+        name_sizer.Add(self.stream_name_text, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(name_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        description_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        description_label = wx.StaticText(panel, label=_("Description") + ":")
+        description_sizer.Add(description_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.stream_description_text = wx.TextCtrl(panel, value=self.config_manager.get('Streaming', 'description', ''))
+        self.stream_description_text.SetName(_("Description"))
+        description_sizer.Add(self.stream_description_text, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(description_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        genre_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        genre_label = wx.StaticText(panel, label=_("Genre") + ":")
+        genre_sizer.Add(genre_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.stream_genre_text = wx.TextCtrl(panel, value=self.config_manager.get('Streaming', 'genre', ''))
+        self.stream_genre_text.SetName(_("Genre"))
+        genre_sizer.Add(self.stream_genre_text, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(genre_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        url_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        url_label = wx.StaticText(panel, label=_("Website URL") + ":")
+        url_sizer.Add(url_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.stream_url_text = wx.TextCtrl(panel, value=self.config_manager.get('Streaming', 'url', ''))
+        self.stream_url_text.SetName(_("Website URL"))
+        url_sizer.Add(self.stream_url_text, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(url_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        self.stream_public_check = wx.CheckBox(panel, label=_("List stream as public"))
+        self.stream_public_check.SetName(_("List stream as public"))
+        self.stream_public_check.SetValue(self.config_manager.getboolean('Streaming', 'public', False))
+        sizer.Add(self.stream_public_check, 0, wx.ALL, 5)
+
+        self.connect_at_startup_check = wx.CheckBox(panel, label=_("Connect livestream at startup"))
+        self.connect_at_startup_check.SetName(_("Connect livestream at startup"))
+        self.connect_at_startup_check.SetValue(
+            self.config_manager.getboolean('Streaming', 'connect_at_startup', False)
+        )
+        sizer.Add(self.connect_at_startup_check, 0, wx.ALL, 5)
+
         # Auto-reconnect
         self.auto_reconnect_check = wx.CheckBox(panel, label=_("Auto-reconnect on connection loss"))
         self.auto_reconnect_check.SetName(_("Auto-reconnect on connection loss"))
@@ -762,6 +878,18 @@ class OptionsDialog(wx.Dialog):
                 self.output_dir_text.GetValue(),
             ),
             'streaming': (
+                self.stream_server_text.GetValue(),
+                self.stream_port_spin.GetValue(),
+                self.stream_mount_text.GetValue(),
+                self.stream_credentials_text.GetValue(),
+                self.stream_codec_choice.GetSelection(),
+                self.stream_bitrate_choice.GetSelection(),
+                self.stream_name_text.GetValue(),
+                self.stream_description_text.GetValue(),
+                self.stream_genre_text.GetValue(),
+                self.stream_url_text.GetValue(),
+                self.stream_public_check.GetValue(),
+                self.connect_at_startup_check.GetValue(),
                 self.auto_reconnect_check.GetValue(),
                 self.wait_spin.GetValue(),
             ),
@@ -809,6 +937,18 @@ class OptionsDialog(wx.Dialog):
             )
         elif tab_name == 'streaming':
             return (
+                self.stream_server_text.GetValue(),
+                self.stream_port_spin.GetValue(),
+                self.stream_mount_text.GetValue(),
+                self.stream_credentials_text.GetValue(),
+                self.stream_codec_choice.GetSelection(),
+                self.stream_bitrate_choice.GetSelection(),
+                self.stream_name_text.GetValue(),
+                self.stream_description_text.GetValue(),
+                self.stream_genre_text.GetValue(),
+                self.stream_url_text.GetValue(),
+                self.stream_public_check.GetValue(),
+                self.connect_at_startup_check.GetValue(),
                 self.auto_reconnect_check.GetValue(),
                 self.wait_spin.GetValue(),
             )
@@ -940,6 +1080,23 @@ class OptionsDialog(wx.Dialog):
 
     def _save_streaming(self):
         """Save streaming settings to config"""
+        self.config_manager.set('Streaming', 'server', self.stream_server_text.GetValue().strip())
+        self.config_manager.set('Streaming', 'port', self.stream_port_spin.GetValue())
+        mountpoint = self.stream_mount_text.GetValue().strip() or '/stream'
+        if not mountpoint.startswith('/'):
+            mountpoint = f'/{mountpoint}'
+        self.config_manager.set('Streaming', 'mountpoint', mountpoint)
+        self.config_manager.set('Streaming', 'credentials', self.stream_credentials_text.GetValue().strip())
+        self.config_manager.set('Streaming', 'codec',
+                               self.stream_codec_values[self.stream_codec_choice.GetSelection()])
+        self.config_manager.set('Streaming', 'bitrate',
+                               self.stream_bitrate_values[self.stream_bitrate_choice.GetSelection()])
+        self.config_manager.set('Streaming', 'name', self.stream_name_text.GetValue().strip())
+        self.config_manager.set('Streaming', 'description', self.stream_description_text.GetValue().strip())
+        self.config_manager.set('Streaming', 'genre', self.stream_genre_text.GetValue().strip())
+        self.config_manager.set('Streaming', 'url', self.stream_url_text.GetValue().strip())
+        self.config_manager.set('Streaming', 'public', self.stream_public_check.GetValue())
+        self.config_manager.set('Streaming', 'connect_at_startup', self.connect_at_startup_check.GetValue())
         self.config_manager.set('Streaming', 'auto_reconnect',
                                self.auto_reconnect_check.GetValue())
         self.config_manager.set('Streaming', 'reconnect_wait', self.wait_spin.GetValue())
@@ -1035,4 +1192,3 @@ class OptionsDialog(wx.Dialog):
         self.config_manager.save()
         self._show_restart_message(restart_reasons)
         self.EndModal(wx.ID_OK)
-

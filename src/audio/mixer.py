@@ -26,7 +26,7 @@ class Mixer:
     Supports three operating modes: Mixer, Solo, and Automatic.
     """
 
-    def __init__(self, audio_engine: AudioEngine, num_decks: int = 10, recorder=None):
+    def __init__(self, audio_engine: AudioEngine, num_decks: int = 10, recorder=None, streamer=None):
         """
         Initialize mixer.
 
@@ -34,10 +34,12 @@ class Mixer:
             audio_engine: AudioEngine instance
             num_decks: Number of decks (2, 4, 6, 8, or 10)
             recorder: Optional Recorder instance for master output recording
+            streamer: Optional livestreamer instance for master output streaming
         """
         self.audio_engine = audio_engine
         self.num_decks = num_decks
         self.recorder = recorder
+        self.streamer = streamer
 
         # Create decks with per-deck effect chains
         self.decks: List[Deck] = []
@@ -233,7 +235,10 @@ class Mixer:
         """
         audio_data = audio_data * self.master_volume
         audio_data = self.master_effects.process(audio_data)
+        self._handle_master_capture_output(audio_data)
 
+    def _handle_master_capture_output(self, audio_data: np.ndarray):
+        """Feed master-output consumers such as recorder and livestreamer."""
         if self.recorder:
             try:
                 if self.recorder.is_recording:
@@ -242,6 +247,12 @@ class Mixer:
                     self.recorder.buffer_frames(audio_data)
             except Exception as rec_error:
                 logger.error(f"Error with recorder: {rec_error}")
+
+        if self.streamer:
+            try:
+                self.streamer.write_frames(audio_data)
+            except Exception as stream_error:
+                logger.error(f"Error with livestreamer: {stream_error}")
 
     def _render_multiroom_block(self, frames: int) -> tuple[dict, np.ndarray]:
         """
@@ -335,17 +346,7 @@ class Mixer:
             # Apply master effects
             audio_data = self.master_effects.process(audio_data)
 
-            # Handle recorder: buffer for pre-roll and/or write to file
-            if self.recorder:
-                try:
-                    if self.recorder.is_recording:
-                        # Write directly to file during recording
-                        self.recorder.write_frames(audio_data)
-                    else:
-                        # Buffer for pre-roll when not recording
-                        self.recorder.buffer_frames(audio_data)
-                except Exception as rec_error:
-                    logger.error(f"Error with recorder: {rec_error}")
+            self._handle_master_capture_output(audio_data)
 
             # Copy to output buffer
             outdata[:] = audio_data
@@ -1165,6 +1166,8 @@ class Mixer:
     def cleanup(self):
         """Cleanup resources"""
         self.stop_all_deck_recordings()
+        if self.streamer:
+            self.streamer.stop_streaming(notify=False)
         self._stop_automatic_switching()
         self._stop_multiroom_playback()
         self.audio_engine.stop_stream()
