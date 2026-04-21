@@ -2434,6 +2434,10 @@ class MainFrame(wx.Frame):
             'public': self.config_manager.getboolean('Streaming', 'public', False),
             'auto_reconnect': self.config_manager.getboolean('Streaming', 'auto_reconnect', True),
             'reconnect_wait': self.config_manager.getint('Streaming', 'reconnect_wait', 5),
+            'queue_blocks': self.config_manager.getint('Streaming', 'queue_blocks', 64),
+            'writer_poll_ms': self.config_manager.getint('Streaming', 'writer_poll_ms', 100),
+            'ffmpeg_close_timeout': self.config_manager.getfloat('Streaming', 'ffmpeg_close_timeout', 5.0),
+            'ffmpeg_loglevel': self.config_manager.get('Streaming', 'ffmpeg_loglevel', 'error'),
         }
 
     def _can_start_livestream(self) -> bool:

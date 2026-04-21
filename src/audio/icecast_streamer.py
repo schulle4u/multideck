@@ -80,11 +80,35 @@ class IcecastStreamer:
             'public': bool(config.get('public', False)),
             'auto_reconnect': bool(config.get('auto_reconnect', True)),
             'reconnect_wait': max(1, min(60, int(config.get('reconnect_wait', 5) or 5))),
+            'queue_blocks': max(4, min(512, int(config.get('queue_blocks', 64) or 64))),
+            'writer_poll_ms': max(10, min(1000, int(config.get('writer_poll_ms', 100) or 100))),
+            'ffmpeg_close_timeout': max(0.5, min(30.0, float(config.get('ffmpeg_close_timeout', 5.0) or 5.0))),
+            'ffmpeg_loglevel': str(config.get('ffmpeg_loglevel', 'error') or 'error').strip().lower(),
         }
 
     def update_config(self, config: dict):
         with self._lock:
             self.config = self._normalize_config(config)
+            self._resize_queue(self.config['queue_blocks'])
+
+    def _resize_queue(self, maxsize: int):
+        current_queue = self._audio_queue
+        if current_queue.maxsize == maxsize:
+            return
+
+        replacement: "queue.Queue[np.ndarray]" = queue.Queue(maxsize=maxsize)
+        while True:
+            try:
+                replacement.put_nowait(current_queue.get_nowait())
+            except queue.Empty:
+                break
+            except queue.Full:
+                try:
+                    replacement.get_nowait()
+                    replacement.put_nowait(current_queue.get_nowait())
+                except (queue.Empty, queue.Full):
+                    break
+        self._audio_queue = replacement
 
     def is_configured(self) -> bool:
         cfg = self.config
@@ -120,6 +144,7 @@ class IcecastStreamer:
                 self.frames_dropped = 0
                 self.last_error = ""
                 self._next_reconnect_time = 0.0
+                self._resize_queue(self.config['queue_blocks'])
                 self._ensure_writer_thread()
 
                 if self.on_streaming_started:
@@ -160,7 +185,7 @@ class IcecastStreamer:
             cmd.extend(['-ice_url', cfg['url']])
 
         cmd.extend(['-ice_public', '1' if cfg['public'] else '0'])
-        cmd.extend(['-loglevel', 'error', stream_url])
+        cmd.extend(['-loglevel', cfg['ffmpeg_loglevel'], stream_url])
 
         creationflags = subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
         self._ffmpeg_process = subprocess.Popen(
@@ -180,7 +205,7 @@ class IcecastStreamer:
     def _writer_loop(self):
         while not self._stop_event.is_set():
             try:
-                audio_data = self._audio_queue.get(timeout=0.1)
+                audio_data = self._audio_queue.get(timeout=self.config['writer_poll_ms'] / 1000.0)
             except queue.Empty:
                 continue
 
@@ -245,7 +270,7 @@ class IcecastStreamer:
             pass
 
         try:
-            self._ffmpeg_process.wait(timeout=5)
+            self._ffmpeg_process.wait(timeout=self.config.get('ffmpeg_close_timeout', 5.0))
         except Exception:
             try:
                 self._ffmpeg_process.kill()
@@ -311,6 +336,10 @@ class IcecastStreamer:
             'frames_dropped': self.frames_dropped,
             'auto_reconnect': self.config.get('auto_reconnect', True),
             'reconnect_wait': self.config.get('reconnect_wait', 5),
+            'queue_blocks': self.config.get('queue_blocks', 64),
+            'writer_poll_ms': self.config.get('writer_poll_ms', 100),
+            'ffmpeg_close_timeout': self.config.get('ffmpeg_close_timeout', 5.0),
+            'ffmpeg_loglevel': self.config.get('ffmpeg_loglevel', 'error'),
             'last_error': self.last_error,
         }
 
