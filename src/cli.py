@@ -171,75 +171,33 @@ class MultiDeckCLI:
                     break
 
                 deck = self.mixer.decks[i]
+                if not deck_data:
+                    continue
 
-                if deck_data and deck_data.get('source_type') == SOURCE_TYPE_SOUNDCARD_INPUT:
-                    # Apply deck settings
-                    if 'name' in deck_data:
-                        deck.name = deck_data['name']
-                    if 'volume' in deck_data:
-                        deck.volume = float(deck_data['volume'])
-                    if 'balance' in deck_data:
-                        deck.balance = float(deck_data['balance'])
-                    if 'mute' in deck_data:
-                        deck.mute = deck_data['mute'] if isinstance(deck_data['mute'], bool) else deck_data['mute'].lower() == 'true'
-                    if 'loop' in deck_data:
-                        deck.loop = deck_data['loop'] if isinstance(deck_data['loop'], bool) else deck_data['loop'].lower() == 'true'
-                    raw_output_id = deck_data.get('output_device_id')
-                    try:
-                        output_device_id = int(raw_output_id) if raw_output_id not in (None, '', 'default') else None
-                    except (ValueError, TypeError):
-                        output_device_id = None
-                    deck.set_output_device(output_device_id, deck_data.get('output_device_name', 'default'))
+                if not deck.from_dict(deck_data):
+                    if deck_data.get('source_type') == SOURCE_TYPE_SOUNDCARD_INPUT:
+                        self.logger.warning(f"Failed to open soundcard input for Deck {i + 1}")
+                    elif deck_data.get('file'):
+                        self.logger.warning(f"Failed to load Deck {i + 1}: {deck_data.get('file')}")
+                    continue
 
-                    # Load soundcard input
-                    device_name = deck_data.get('soundcard_device_name', '')
-                    raw_id = deck_data.get('soundcard_device_id')
-                    try:
-                        device_id = int(raw_id) if raw_id is not None else None
-                    except (ValueError, TypeError):
-                        device_id = None
-
-                    if device_id is not None and device_name:
-                        if deck.load_soundcard_input(device_id, device_name):
-                            if self.mixer.ensure_deck_loaded(deck):
-                                loaded_count += 1
-                                self.log(f"  Deck {i + 1} ({deck.name}): [Input] {device_name}")
-                            else:
-                                self.logger.warning(f"Failed to start soundcard input for Deck {i + 1}: {device_name}")
+                if deck.file_path or deck.is_soundcard_input:
+                    if self.mixer.ensure_deck_loaded(deck):
+                        loaded_count += 1
+                        if deck.is_soundcard_input:
+                            source_label = f"[Input] {deck.soundcard_device_name}"
+                        elif deck.is_stream:
+                            source_label = deck.file_path
                         else:
-                            self.logger.warning(f"Failed to open soundcard input for Deck {i + 1}: {device_name}")
-                    else:
-                        self.logger.warning(f"Deck {i + 1}: incomplete soundcard input config in project file")
+                            source_label = Path(deck.file_path).name
 
-                elif deck_data and 'file' in deck_data and deck_data['file']:
-                    # Apply deck settings
-                    if 'name' in deck_data:
-                        deck.name = deck_data['name']
-                    if 'volume' in deck_data:
-                        deck.volume = float(deck_data['volume'])
-                    if 'balance' in deck_data:
-                        deck.balance = float(deck_data['balance'])
-                    if 'mute' in deck_data:
-                        deck.mute = deck_data['mute'] if isinstance(deck_data['mute'], bool) else deck_data['mute'].lower() == 'true'
-                    if 'loop' in deck_data:
-                        deck.loop = deck_data['loop'] if isinstance(deck_data['loop'], bool) else deck_data['loop'].lower() == 'true'
-                    raw_output_id = deck_data.get('output_device_id')
-                    try:
-                        output_device_id = int(raw_output_id) if raw_output_id not in (None, '', 'default') else None
-                    except (ValueError, TypeError):
-                        output_device_id = None
-                    deck.set_output_device(output_device_id, deck_data.get('output_device_name', 'default'))
-
-                    # Load audio file or stream
-                    file_path = deck_data['file']
-                    if deck.load_file(file_path):
-                        if self.mixer.ensure_deck_loaded(deck):
-                            loaded_count += 1
-                            self.log(f"  Deck {i + 1} ({deck.name}): {Path(file_path).name if not file_path.startswith('http') else file_path}")
-                        else:
-                            self.logger.warning(f"Failed to preload Deck {i + 1}: {file_path}")
+                        intro_label = f" | Intro: {Path(deck.intro_file).name}" if deck.intro_file else ""
+                        self.log(f"  Deck {i + 1} ({deck.name}): {source_label}{intro_label}")
                     else:
-                        self.logger.warning(f"Failed to load Deck {i + 1}: {file_path}")
+                        source_label = deck.soundcard_device_name if deck.is_soundcard_input else (deck.file_path or "")
+                        self.logger.warning(f"Failed to preload Deck {i + 1}: {source_label}")
+                elif deck.intro_file:
+                    self.log(f"  Deck {i + 1} ({deck.name}): Intro {Path(deck.intro_file).name}")
 
             self.log(f"Loaded {loaded_count} deck(s)")
 
@@ -317,8 +275,9 @@ class MultiDeckCLI:
                     source = Path(deck.file_path).name
 
                 active_marker = "* " if self.mixer.mode in [MODE_SOLO, MODE_AUTOMATIC] and i == self.mixer.active_deck_index else "  "
+                intro_str = f" | Intro: {Path(deck.intro_file).name}" if deck.intro_file else ""
 
-                print(f"  {i + 1} ({deck.name}): {active_marker}[{status}] {source} - Vol: {volume_str}{mute_str}{loop_str}")
+                print(f"  {i + 1} ({deck.name}): {active_marker}[{status}] {source} - Vol: {volume_str}{mute_str}{loop_str}{intro_str}")
 
         print("-" * 50)
         print("Press Ctrl+C to stop")
@@ -405,7 +364,7 @@ class MultiDeckCLI:
                 if self.mixer.mode not in [MODE_SOLO, MODE_AUTOMATIC]:
                     self.mixer.set_mode(MODE_SOLO)
                     self.log(f"Mode set to Solo (--deck specified)")
-                self.mixer.set_active_deck(deck_index)
+                self.mixer.set_active_deck(deck_index, trigger_switch_event=True)
             else:
                 print(f"Error: Deck {self.initial_deck} does not exist (1-{len(self.mixer.decks)}).", file=sys.stderr)
                 self.cleanup()
