@@ -111,8 +111,19 @@ class IcecastStreamer:
         self._audio_queue = replacement
 
     def is_configured(self) -> bool:
+        return self.get_configuration_error() is None
+
+    def get_configuration_error(self) -> Optional[str]:
         cfg = self.config
-        return bool(cfg['server'] and cfg['mountpoint'] and cfg['credentials'])
+        if not cfg['server']:
+            return "Streaming server is not configured."
+        if not cfg['credentials']:
+            return "Streaming credentials are not configured."
+        if not cfg['mountpoint']:
+            return "Streaming mountpoint is not configured."
+        if cfg['mountpoint'] == '/':
+            return "FFmpeg does not support '/' as an Icecast mountpoint. Please use a real mount path such as '/live' or connect through a source endpoint that provides one."
+        return None
 
     def get_public_stream_url(self) -> str:
         cfg = self.config
@@ -129,8 +140,9 @@ class IcecastStreamer:
                 self._report_error("FFmpeg not found. Please install FFmpeg.")
                 return False
 
-            if not self.is_configured():
-                self._report_error("Streaming settings are incomplete.")
+            config_error = self.get_configuration_error()
+            if config_error:
+                self._report_error(config_error)
                 return False
 
             try:
@@ -301,7 +313,7 @@ class IcecastStreamer:
             return
         if not self._reconnect_pending:
             return
-        if time.time() < self._next_reconnect_time or not self.is_configured():
+        if time.time() < self._next_reconnect_time or self.get_configuration_error() is not None:
             return
         self.start_streaming()
 

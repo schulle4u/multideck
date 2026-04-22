@@ -2448,9 +2448,10 @@ class MainFrame(wx.Frame):
 
     def _show_streaming_configuration_error(self):
         """Explain why livestreaming cannot be started."""
-        if not self.streamer.is_configured():
+        config_error = self.streamer.get_configuration_error()
+        if config_error:
             wx.MessageBox(
-                _("Please complete the streaming settings in Options before starting the livestream."),
+                config_error,
                 _("Streaming Settings Incomplete"),
                 wx.OK | wx.ICON_INFORMATION
             )
