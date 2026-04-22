@@ -39,6 +39,22 @@ reconnect_wait = 5
 max_reconnect_attempts = 5
 connection_timeout = 10
 read_timeout = 30
+server = 
+port = 8000
+mountpoint = /stream
+credentials = source:hackme
+codec = mp3
+bitrate = 192
+name = MultiDeck Live
+description = 
+genre = Various
+url = 
+public = False
+connect_at_startup = False
+queue_blocks = 128
+writer_poll_ms = 100
+ffmpeg_close_timeout = 5.0
+ffmpeg_loglevel = error
 
 [Recent]
 max_recent_items = 10

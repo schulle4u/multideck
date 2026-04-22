@@ -80,7 +80,7 @@ class IcecastStreamer:
             'public': bool(config.get('public', False)),
             'auto_reconnect': bool(config.get('auto_reconnect', True)),
             'reconnect_wait': max(1, min(60, int(config.get('reconnect_wait', 5) or 5))),
-            'queue_blocks': max(4, min(512, int(config.get('queue_blocks', 64) or 64))),
+            'queue_blocks': max(4, min(512, int(config.get('queue_blocks', 128) or 128))),
             'writer_poll_ms': max(10, min(1000, int(config.get('writer_poll_ms', 100) or 100))),
             'ffmpeg_close_timeout': max(0.5, min(30.0, float(config.get('ffmpeg_close_timeout', 5.0) or 5.0))),
             'ffmpeg_loglevel': str(config.get('ffmpeg_loglevel', 'error') or 'error').strip().lower(),

@@ -53,7 +53,7 @@ DEFAULT_CONFIG = {
         'connect_at_startup': False,
         'auto_reconnect': True,
         'reconnect_wait': 5,
-        'queue_blocks': 64,
+        'queue_blocks': 128,
         'writer_poll_ms': 100,
         'ffmpeg_close_timeout': 5.0,
         'ffmpeg_loglevel': 'error',
