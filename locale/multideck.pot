@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-21 16:41+0200\n"
+"POT-Creation-Date: 2026-04-22 20:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -372,6 +372,10 @@ msgstr ""
 msgid "System Default"
 msgstr ""
 
+#: gui/dialogs/options.py:286
+msgid "No Output (Livestream Only)"
+msgstr ""
+
 #: gui/dialogs/options.py:308 gui/dialogs/options.py:315
 #: gui/dialogs/options.py:1050
 msgid "Buffer size"
@@ -446,7 +450,7 @@ msgstr ""
 msgid "Browse"
 msgstr ""
 
-#: gui/dialogs/options.py:578 gui/main_frame.py:2347 gui/main_frame.py:2499
+#: gui/dialogs/options.py:578 gui/main_frame.py:2347 gui/main_frame.py:2504
 msgid "Choose recording output directory"
 msgstr ""
 
@@ -899,7 +903,7 @@ msgstr ""
 #: gui/main_frame.py:835 gui/main_frame.py:1322 gui/main_frame.py:1502
 #: gui/main_frame.py:1540 gui/main_frame.py:1688 gui/main_frame.py:1701
 #: gui/main_frame.py:1706 gui/main_frame.py:1881 gui/main_frame.py:2031
-#: gui/main_frame.py:2075 gui/main_frame.py:2511 main.py:61 main.py:69
+#: gui/main_frame.py:2075 gui/main_frame.py:2516 main.py:61 main.py:69
 #: main.py:82
 msgid "Error"
 msgstr ""
@@ -1126,7 +1130,7 @@ msgstr ""
 msgid "Livestream could not be restarted with the new settings."
 msgstr ""
 
-#: gui/main_frame.py:1975 gui/main_frame.py:2456 gui/main_frame.py:2471
+#: gui/main_frame.py:1975 gui/main_frame.py:2461 gui/main_frame.py:2476
 msgid "Streaming Error"
 msgstr ""
 
@@ -1218,7 +1222,7 @@ msgstr ""
 msgid "Stop &Recording"
 msgstr ""
 
-#: gui/main_frame.py:2367 gui/main_frame.py:2545
+#: gui/main_frame.py:2367 gui/main_frame.py:2550
 #, python-brace-format
 msgid "Recording stopped: {}"
 msgstr ""
@@ -1236,28 +1240,24 @@ msgstr ""
 msgid "Livestream stopped"
 msgstr ""
 
-#: gui/main_frame.py:2449
-msgid "Please complete the streaming settings in Options before starting the livestream."
-msgstr ""
-
-#: gui/main_frame.py:2450
+#: gui/main_frame.py:2455
 msgid "Streaming Settings Incomplete"
 msgstr ""
 
-#: gui/main_frame.py:2455
+#: gui/main_frame.py:2460
 msgid "FFmpeg is required to start the livestream."
 msgstr ""
 
-#: gui/main_frame.py:2470
+#: gui/main_frame.py:2475
 msgid "Failed to start livestream."
 msgstr ""
 
-#: gui/main_frame.py:2510
+#: gui/main_frame.py:2515
 #, python-brace-format
 msgid "Failed to start recording for {}"
 msgstr ""
 
-#: gui/main_frame.py:2529
+#: gui/main_frame.py:2534
 #, python-brace-format
 msgid "Recording started: {}"
 msgstr ""

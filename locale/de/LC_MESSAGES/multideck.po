@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-21 16:41+0200\n"
-"PO-Revision-Date: 2026-04-21 16:48+0200\n"
+"POT-Creation-Date: 2026-04-22 20:01+0200\n"
+"PO-Revision-Date: 2026-04-22 20:02+0200\n"
 "Last-Translator: Steffen Schultz\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -379,6 +379,10 @@ msgstr "Ausgabegerät"
 msgid "System Default"
 msgstr "Systemstandard"
 
+#: gui/dialogs/options.py:286
+msgid "No Output (Livestream Only)"
+msgstr "Keine Ausgabe (nur Livestream)"
+
 #: gui/dialogs/options.py:308 gui/dialogs/options.py:315
 #: gui/dialogs/options.py:1050
 msgid "Buffer size"
@@ -453,7 +457,7 @@ msgstr "Ausgabeverzeichnis"
 msgid "Browse"
 msgstr "Durchsuchen"
 
-#: gui/dialogs/options.py:578 gui/main_frame.py:2347 gui/main_frame.py:2499
+#: gui/dialogs/options.py:578 gui/main_frame.py:2347 gui/main_frame.py:2504
 msgid "Choose recording output directory"
 msgstr "Aufnahme-Ausgabeverzeichnis wählen"
 
@@ -916,7 +920,7 @@ msgstr "Fehler beim Laden der Audiodatei"
 #: gui/main_frame.py:835 gui/main_frame.py:1322 gui/main_frame.py:1502
 #: gui/main_frame.py:1540 gui/main_frame.py:1688 gui/main_frame.py:1701
 #: gui/main_frame.py:1706 gui/main_frame.py:1881 gui/main_frame.py:2031
-#: gui/main_frame.py:2075 gui/main_frame.py:2511 main.py:61 main.py:69
+#: gui/main_frame.py:2075 gui/main_frame.py:2516 main.py:61 main.py:69
 #: main.py:82
 msgid "Error"
 msgstr "Fehler"
@@ -1151,7 +1155,7 @@ msgstr ""
 "Livestream konnte mit den geänderten Einstellungen nicht neu gestartet "
 "werden."
 
-#: gui/main_frame.py:1975 gui/main_frame.py:2456 gui/main_frame.py:2471
+#: gui/main_frame.py:1975 gui/main_frame.py:2461 gui/main_frame.py:2476
 msgid "Streaming Error"
 msgstr "Streaming-Fehler"
 
@@ -1249,7 +1253,7 @@ msgstr "Aufnahme: {}"
 msgid "Stop &Recording"
 msgstr "&Aufnahme beenden"
 
-#: gui/main_frame.py:2367 gui/main_frame.py:2545
+#: gui/main_frame.py:2367 gui/main_frame.py:2550
 #, python-brace-format
 msgid "Recording stopped: {}"
 msgstr "Aufnahme gestoppt: {}"
@@ -1267,30 +1271,24 @@ msgstr "Livestream gestartet: {}"
 msgid "Livestream stopped"
 msgstr "Livestream gestoppt"
 
-#: gui/main_frame.py:2449
-msgid ""
-"Please complete the streaming settings in Options before starting the "
-"livestream."
-msgstr "Bitte zuerst die Streaming-Einstellungen in den Optionen ausfüllen."
-
-#: gui/main_frame.py:2450
+#: gui/main_frame.py:2455
 msgid "Streaming Settings Incomplete"
 msgstr "Streamingeinstellungen unvollständig"
 
-#: gui/main_frame.py:2455
+#: gui/main_frame.py:2460
 msgid "FFmpeg is required to start the livestream."
 msgstr "FFmpeg wird zum Starten des Livestreams benötigt."
 
-#: gui/main_frame.py:2470
+#: gui/main_frame.py:2475
 msgid "Failed to start livestream."
 msgstr "Fehler beim Starten des Livestreams."
 
-#: gui/main_frame.py:2510
+#: gui/main_frame.py:2515
 #, python-brace-format
 msgid "Failed to start recording for {}"
 msgstr "Fehler beim Starten der Aufnahme von {}"
 
-#: gui/main_frame.py:2529
+#: gui/main_frame.py:2534
 #, python-brace-format
 msgid "Recording started: {}"
 msgstr "Aufnahme gestartet: {}"
@@ -1308,6 +1306,11 @@ msgid ""
 msgstr ""
 "Ungültiges Projektdateiformat: {}\n"
 ".mdap-Datei erwartet."
+
+#~ msgid ""
+#~ "Please complete the streaming settings in Options before starting the "
+#~ "livestream."
+#~ msgstr "Bitte zuerst die Streaming-Einstellungen in den Optionen ausfüllen."
 
 #~ msgid "Global Output"
 #~ msgstr "Globale Ausgabe"
