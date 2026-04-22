@@ -5,6 +5,7 @@ deck_count = 10
 deck_list_style = compact
 
 [Audio]
+# Use "null" for livestream-only operation without a physical sound device
 output_device = default
 buffer_size = 2048
 sample_rate = 48000
@@ -71,4 +72,3 @@ tts_engine =
 tts_voice = 
 tts_rate = 0
 tts_volume = -1
-

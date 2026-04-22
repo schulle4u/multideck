@@ -122,6 +122,14 @@ class Mixer:
     def _apply_output_mode(self):
         """Start/stop physical outputs according to the active mode."""
         if self.mode == MODE_MULTIROOM:
+            if self.audio_engine.is_null_output_device():
+                self._stop_multiroom_playback()
+                if not self.audio_engine.is_running():
+                    self._start_playback()
+                self._emit_routing_warning(
+                    "Multiroom mode is running without physical outputs; only the virtual master bus remains available."
+                )
+                return
             self._stop_global_playback()
             self._start_multiroom_playback()
         else:
@@ -372,6 +380,9 @@ class Mixer:
         elif self.mode == MODE_AUTOMATIC:
             return self._generate_automatic_mode(frames)
         elif self.mode == MODE_MULTIROOM:
+            if self.audio_engine.is_null_output_device():
+                _, virtual_sum = self._render_multiroom_block(frames)
+                return virtual_sum
             return self.audio_engine.create_silence(frames)
         else:
             return self.audio_engine.create_silence(frames)

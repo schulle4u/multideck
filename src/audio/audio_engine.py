@@ -10,8 +10,9 @@ import soundfile as sf
 import subprocess
 import threading
 import queue
+import time
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from utils.logger import get_logger
 from utils.helpers import check_ffmpeg
@@ -21,6 +22,7 @@ logger = get_logger('audio_engine')
 
 
 FFMPEG_AVAILABLE = check_ffmpeg()
+NULL_OUTPUT_DEVICE = 'null'
 
 
 class OutputDeviceWorker:
@@ -155,8 +157,11 @@ class AudioEngine:
         self._stream: Optional[sd.OutputStream] = None
         self._lock = threading.RLock()  # RLock allows recursive locking
         self._running = False
+        self._virtual_thread: Optional[threading.Thread] = None
+        self._virtual_stop_event = threading.Event()
+        self._virtual_callback = None
 
-    def _validate_device(self, device) -> Optional[int]:
+    def _validate_device(self, device) -> Optional[Union[int, str]]:
         """
         Validate and convert device parameter to safe device index.
 
@@ -164,10 +169,13 @@ class AudioEngine:
             device: Device identifier (None, 'default', index as int/str, or device name)
 
         Returns:
-            Valid device index or None for default device
+            Valid device index, NULL_OUTPUT_DEVICE, or None for default device
         """
         if device is None or device == 'default':
             return None
+
+        if isinstance(device, str) and device.strip().lower() == NULL_OUTPUT_DEVICE:
+            return NULL_OUTPUT_DEVICE
 
         try:
             devices = sd.query_devices()
@@ -201,6 +209,11 @@ class AudioEngine:
         except Exception as e:
             logger.error(f"Error validating device: {e}, using default")
             return None
+
+    def is_null_output_device(self, device=None) -> bool:
+        """Return True when the engine or provided device uses null output."""
+        candidate = self.device if device is None else device
+        return candidate == NULL_OUTPUT_DEVICE
 
     def get_available_devices(self) -> List[dict]:
         """
@@ -456,6 +469,32 @@ class AudioEngine:
         """
         return np.zeros((num_samples, channels), dtype=np.float32)
 
+    def _virtual_stream_loop(self):
+        """Drive the audio callback without opening a physical output device."""
+        block_duration = self.buffer_size / float(self.sample_rate)
+        next_deadline = time.perf_counter()
+
+        while not self._virtual_stop_event.is_set():
+            callback = self._virtual_callback
+            if callback is None:
+                if self._virtual_stop_event.wait(0.01):
+                    break
+                continue
+
+            outdata = self.create_silence(self.buffer_size)
+            try:
+                callback(outdata, self.buffer_size, None, None)
+            except Exception as e:
+                logger.error(f"Error in virtual audio callback: {e}")
+
+            next_deadline += block_duration
+            sleep_time = next_deadline - time.perf_counter()
+            if sleep_time > 0:
+                if self._virtual_stop_event.wait(sleep_time):
+                    break
+            else:
+                next_deadline = time.perf_counter()
+
     def start_stream(self, callback, retry_with_default: bool = True):
         """
         Start audio output stream with fallback to default device.
@@ -468,6 +507,16 @@ class AudioEngine:
             with self._lock:
                 if self._stream is not None:
                     self.stop_stream()
+                elif self._virtual_thread is not None:
+                    self.stop_stream()
+
+                if self.is_null_output_device():
+                    self._virtual_callback = callback
+                    self._virtual_stop_event.clear()
+                    self._virtual_thread = threading.Thread(target=self._virtual_stream_loop, daemon=True)
+                    self._virtual_thread.start()
+                    self._running = True
+                    return
 
                 try:
                     self._stream = sd.OutputStream(
@@ -511,7 +560,15 @@ class AudioEngine:
                     self._stream.stop()
                     self._stream.close()
                     self._stream = None
+                virtual_thread = self._virtual_thread
+                self._virtual_thread = None
+                self._virtual_callback = None
+                self._virtual_stop_event.set()
                 self._running = False
+
+            if virtual_thread is not None:
+                virtual_thread.join(timeout=1.0)
+            self._virtual_stop_event.clear()
 
         except Exception as e:
             logger.error(f"Error stopping audio stream: {e}")

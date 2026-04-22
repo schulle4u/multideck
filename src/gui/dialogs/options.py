@@ -283,8 +283,8 @@ class OptionsDialog(wx.Dialog):
 
         # Get available output devices
         self.output_devices = self._get_output_devices()
-        device_choices = [_("System Default")]
-        self.device_values = ['default']
+        device_choices = [_("System Default"), _("No Output (Livestream Only)")]
+        self.device_values = ['default', 'null']
 
         for device in self.output_devices:
             device_choices.append(device['name'])
