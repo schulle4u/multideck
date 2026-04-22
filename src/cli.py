@@ -26,6 +26,7 @@ from config.defaults import (
     SOURCE_TYPE_SOUNDCARD_INPUT
 )
 from audio.audio_engine import AudioEngine
+from audio.icecast_streamer import IcecastStreamer
 from audio.mixer import Mixer
 from utils.logger import configure_logging, get_logger
 from utils.tts_manager import TTSManager
@@ -50,6 +51,8 @@ class MultiDeckCLI:
         self.mixer = None
         self.audio_engine = None
         self.tts_manager = None
+        self.streamer = None
+        self.config_manager = None
         self.logger = get_logger('cli')
 
     def log(self, message: str):
@@ -75,6 +78,49 @@ class MultiDeckCLI:
         to_deck = self.mixer.decks[to_index]
         if to_deck.file_path:
             print(f"-> Deck {to_index + 1} ({to_deck.name})")
+
+    def _on_streaming_started(self, stream_url: str):
+        """Log livestream start events."""
+        message = "Livestream started"
+        if stream_url:
+            message = f"{message}: {stream_url}"
+        self.log(message)
+        self.logger.info(message)
+
+    def _on_streaming_stopped(self, stream_url: str, frames: int):
+        """Log livestream stop events."""
+        message = "Livestream stopped"
+        self.log(message)
+        self.logger.info(message)
+
+    def _on_streaming_error(self, message: str):
+        """Log livestream errors."""
+        self.logger.error(message)
+        if not self.silent:
+            print(f"[livestream] {message}", file=sys.stderr)
+
+    def _get_streaming_config(self) -> dict:
+        """Build livestream config dict from current settings."""
+        config = self.config_manager
+        return {
+            'server': config.get('Streaming', 'server', ''),
+            'port': config.getint('Streaming', 'port', 8000),
+            'mountpoint': config.get('Streaming', 'mountpoint', '/stream'),
+            'credentials': config.get('Streaming', 'credentials', ''),
+            'codec': config.get('Streaming', 'codec', 'mp3'),
+            'bitrate': config.getint('Streaming', 'bitrate', 192),
+            'name': config.get('Streaming', 'name', 'MultiDeck Live'),
+            'description': config.get('Streaming', 'description', ''),
+            'genre': config.get('Streaming', 'genre', ''),
+            'url': config.get('Streaming', 'url', ''),
+            'public': config.getboolean('Streaming', 'public', False),
+            'auto_reconnect': config.getboolean('Streaming', 'auto_reconnect', True),
+            'reconnect_wait': config.getint('Streaming', 'reconnect_wait', 5),
+            'queue_blocks': config.getint('Streaming', 'queue_blocks', 64),
+            'writer_poll_ms': config.getint('Streaming', 'writer_poll_ms', 100),
+            'ffmpeg_close_timeout': config.getfloat('Streaming', 'ffmpeg_close_timeout', 5.0),
+            'ffmpeg_loglevel': config.get('Streaming', 'ffmpeg_loglevel', 'error'),
+        }
 
     def load_project(self) -> bool:
         """
@@ -241,6 +287,8 @@ class MultiDeckCLI:
         print(f"Project: {Path(self.project_file).name}")
         print(f"Mode: {mode_names.get(self.mixer.mode, self.mixer.mode)}")
         print(f"Master Volume: {int(self.mixer.master_volume * 100)}%")
+        if self.streamer:
+            print(f"Livestream: {'On' if self.streamer.is_streaming else 'Off'}")
 
         if self.mixer.mode == MODE_AUTOMATIC:
             print(f"Auto-switch interval: {self.mixer.auto_switch_interval}s")
@@ -295,6 +343,7 @@ class MultiDeckCLI:
 
         # Load application configuration
         config = ConfigManager()
+        self.config_manager = config
 
         # Initialize audio engine
         buffer_size = config.getint('Audio', 'buffer_size', 2048)
@@ -311,9 +360,14 @@ class MultiDeckCLI:
             print(f"Error: Failed to initialize audio engine: {e}", file=sys.stderr)
             return 1
 
+        self.streamer = IcecastStreamer(sample_rate=sample_rate, channels=2, config=self._get_streaming_config())
+        self.streamer.on_streaming_started = self._on_streaming_started
+        self.streamer.on_streaming_stopped = self._on_streaming_stopped
+        self.streamer.on_error = self._on_streaming_error
+
         # Initialize mixer
         num_decks = config.get_deck_count()
-        self.mixer = Mixer(self.audio_engine, num_decks=num_decks)
+        self.mixer = Mixer(self.audio_engine, num_decks=num_decks, streamer=self.streamer)
 
         # Apply automation settings from config (project file may override these)
         self.mixer.auto_switch_interval = config.getint('Automation', 'switch_interval', 10)
@@ -363,6 +417,9 @@ class MultiDeckCLI:
         # Start playback
         self.mixer.play_all()
         self.running = True
+
+        if config.getboolean('Streaming', 'connect_at_startup', False):
+            self.streamer.start_streaming()
 
         # Print initial status
         if not self.silent:
