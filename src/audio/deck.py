@@ -56,6 +56,7 @@ class Deck:
 
         # Audio properties
         self.file_path: Optional[str] = None
+        self.intro_file: Optional[str] = None
         self.is_stream = False
         self.is_soundcard_input = False
         self.soundcard_device_id: Optional[int] = None
@@ -409,6 +410,10 @@ class Deck:
         """Set custom deck name"""
         self.name = name
 
+    def set_intro_file(self, intro_file: Optional[str]):
+        """Assign an optional intro file that can be played on deck switches."""
+        self.intro_file = intro_file or None
+
     def get_effective_volume(self) -> float:
         """
         Get effective volume considering mute state.
@@ -466,6 +471,7 @@ class Deck:
             'name': self.name,
             'state': self.state,
             'file_path': self.file_path,
+            'intro_file': self.intro_file,
             'is_stream': self.is_stream,
             'output_device_id': self.output_device_id,
             'output_device_name': self.output_device_name,
@@ -485,12 +491,13 @@ class Deck:
         Returns:
             Dictionary with deck configuration
         """
-        if self.state == DECK_STATE_EMPTY:
+        if self.state == DECK_STATE_EMPTY and not self.intro_file:
             return {}
 
         if self.is_soundcard_input:
             return {
                 'name': self.name,
+                'intro_file': self.intro_file or '',
                 'source_type': 'soundcard_input',
                 'soundcard_device_id': self.soundcard_device_id,
                 'soundcard_device_name': self.soundcard_device_name or '',
@@ -504,6 +511,7 @@ class Deck:
 
         return {
             'name': self.name,
+            'intro_file': self.intro_file or '',
             'file': self.file_path or '',
             'output_device_id': self.output_device_id,
             'output_device_name': self.output_device_name,
@@ -539,6 +547,7 @@ class Deck:
                 return False
 
             self.name = data.get('name', f"Deck {self.deck_id}")
+            self.set_intro_file(data.get('intro_file'))
             self.volume = float(data.get('volume', 1.0))
             self.balance = float(data.get('balance', 0.0))
             self.mute = bool(data.get('mute', False))
@@ -570,7 +579,7 @@ class Deck:
 
             # File or stream source (original behaviour)
             if 'file' not in data or not data['file']:
-                return False
+                return bool(self.intro_file)
             return self.load_file(data['file'])
 
         except Exception as e:

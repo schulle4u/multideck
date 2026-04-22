@@ -89,6 +89,9 @@ class Mixer:
         # Audio processing
         self._lock = threading.Lock()
         self._loaded_audio_cache = {}  # deck_id -> audio_data
+        self._switch_intro_cache = {}  # intro_file -> audio_data
+        self._switch_intro_audio = None
+        self._switch_intro_position = 0
 
         # Underflow warning rate limiting
         self._last_underflow_time = 0
@@ -376,7 +379,7 @@ class Mixer:
         if self.mode == MODE_MIXER:
             return self._generate_mixer_mode(frames)
         elif self.mode == MODE_SOLO:
-            return self._generate_solo_mode(frames)
+            return self._mix_switch_intro(self._generate_solo_mode(frames), frames)
         elif self.mode == MODE_AUTOMATIC:
             return self._generate_automatic_mode(frames)
         elif self.mode == MODE_MULTIROOM:
@@ -426,10 +429,12 @@ class Mixer:
         """Generate audio for Automatic mode (solo with auto-switching and crossfade)"""
         # If crossfade is active, mix both decks with fading volumes
         if self._crossfade_active:
-            return self._generate_crossfade_audio(frames)
+            base_audio = self._generate_crossfade_audio(frames)
+        else:
+            # Otherwise, same as solo mode
+            base_audio = self._generate_solo_mode(frames)
 
-        # Otherwise, same as solo mode
-        return self._generate_solo_mode(frames)
+        return self._mix_switch_intro(base_audio, frames)
 
     def _generate_crossfade_audio(self, frames: int) -> np.ndarray:
         """Generate audio during crossfade transition"""
@@ -511,6 +516,61 @@ class Mixer:
 
         if self.mode == MODE_AUTOMATIC:
             self._announce_auto_switch(self._crossfade_to_deck)
+
+    def _mix_switch_intro(self, base_audio: np.ndarray, frames: int) -> np.ndarray:
+        """Overlay the currently active switch-intro clip onto the base output."""
+        intro_audio = self._get_switch_intro_audio(frames)
+        if intro_audio is None:
+            return base_audio
+        return self.audio_engine.mix_audio([base_audio, intro_audio])
+
+    def _get_switch_intro_audio(self, frames: int) -> Optional[np.ndarray]:
+        """Render one block from the active switch-intro clip."""
+        if self._switch_intro_audio is None:
+            return None
+
+        audio_data = self._switch_intro_audio
+        start = self._switch_intro_position
+        if start >= len(audio_data):
+            self._switch_intro_audio = None
+            self._switch_intro_position = 0
+            return None
+
+        end = start + frames
+        if end > len(audio_data):
+            chunk = audio_data[start:]
+            padding = np.zeros((end - len(audio_data), 2), dtype=np.float32)
+            chunk = np.vstack([chunk, padding])
+            self._switch_intro_audio = None
+            self._switch_intro_position = 0
+        else:
+            chunk = audio_data[start:end]
+            self._switch_intro_position = end
+
+        return chunk.astype(np.float32, copy=False)
+
+    def _start_switch_intro(self, deck: Deck) -> bool:
+        """Load and start the configured intro clip for a deck."""
+        intro_file = getattr(deck, 'intro_file', None)
+        if not intro_file:
+            self._switch_intro_audio = None
+            self._switch_intro_position = 0
+            return False
+
+        audio_data = self._switch_intro_cache.get(intro_file)
+        if audio_data is None:
+            result = self.audio_engine.load_audio_file(intro_file)
+            if not result:
+                logger.warning(f"Failed to load intro file for Deck {deck.deck_id}: {intro_file}")
+                self._switch_intro_audio = None
+                self._switch_intro_position = 0
+                return False
+            audio_data, _, _ = result
+            self._switch_intro_cache[intro_file] = audio_data
+
+        self._switch_intro_audio = audio_data
+        self._switch_intro_position = 0
+        return True
 
     def _get_deck_audio(self, deck: Deck, frames: int) -> Optional[np.ndarray]:
         """
@@ -791,34 +851,53 @@ class Mixer:
         if self.on_mode_change:
             self.on_mode_change(old_mode, mode)
 
-    def set_active_deck(self, deck_index: int):
+    def set_active_deck(self, deck_index: int, trigger_switch_event: bool = False) -> bool:
         """
         Set active deck for Solo/Automatic modes.
 
         Args:
             deck_index: Deck index (0-based)
+            trigger_switch_event: Start a deck intro when manually switching in solo mode
+
+        Returns:
+            True if a deck intro was started, otherwise False
         """
         if 0 <= deck_index < len(self.decks):
             old_index = self.active_deck_index
-            self.active_deck_index = deck_index
+            if old_index == deck_index:
+                return False
 
-            if old_index != deck_index and self.on_active_deck_change:
+            self.active_deck_index = deck_index
+            intro_started = False
+
+            if trigger_switch_event and self.mode == MODE_SOLO:
+                intro_started = self._start_switch_intro(self.decks[deck_index])
+
+            if self.on_active_deck_change:
                 self.on_active_deck_change(old_index, deck_index)
 
-    def next_deck(self, use_crossfade: bool = None):
+            return intro_started
+
+        return False
+
+    def next_deck(self, use_crossfade: bool = None, trigger_switch_event: bool = False) -> bool:
         """
         Switch to next deck (Solo/Automatic mode).
         In Automatic mode, only switches to decks that have content loaded.
 
         Args:
             use_crossfade: Whether to use crossfade (None = auto based on mode and settings)
+            trigger_switch_event: Start a deck intro when manually switching in solo mode
+
+        Returns:
+            True if a deck intro was started, otherwise False
         """
         # In automatic mode, only consider loaded decks
         if self.mode == MODE_AUTOMATIC:
             loaded_indices = self._get_loaded_deck_indices()
             if len(loaded_indices) <= 1:
                 # No other loaded deck to switch to
-                return
+                return False
 
             # Find current position in loaded list and get next
             try:
@@ -837,23 +916,28 @@ class Mixer:
 
         if use_crossfade and not self._crossfade_active:
             self._start_crossfade(self.active_deck_index, next_index)
+            return False
         else:
-            self.set_active_deck(next_index)
+            return self.set_active_deck(next_index, trigger_switch_event=trigger_switch_event)
 
-    def previous_deck(self, use_crossfade: bool = None):
+    def previous_deck(self, use_crossfade: bool = None, trigger_switch_event: bool = False) -> bool:
         """
         Switch to previous deck (Solo/Automatic mode).
         In Automatic mode, only switches to decks that have content loaded.
 
         Args:
             use_crossfade: Whether to use crossfade (None = auto based on mode and settings)
+            trigger_switch_event: Start a deck intro when manually switching in solo mode
+
+        Returns:
+            True if a deck intro was started, otherwise False
         """
         # In automatic mode, only consider loaded decks
         if self.mode == MODE_AUTOMATIC:
             loaded_indices = self._get_loaded_deck_indices()
             if len(loaded_indices) <= 1:
                 # No other loaded deck to switch to
-                return
+                return False
 
             # Find current position in loaded list and get previous
             try:
@@ -872,8 +956,9 @@ class Mixer:
 
         if use_crossfade and not self._crossfade_active:
             self._start_crossfade(self.active_deck_index, prev_index)
+            return False
         else:
-            self.set_active_deck(prev_index)
+            return self.set_active_deck(prev_index, trigger_switch_event=trigger_switch_event)
 
     def set_master_volume(self, volume: float):
         """
@@ -1073,10 +1158,12 @@ class Mixer:
 
     def _announce_auto_switch(self, to_deck_index: int):
         """Announce the newly active deck via TTS (automatic mode only)."""
-        if self.tts_manager is None:
-            return
         if 0 <= to_deck_index < len(self.decks):
-            self.tts_manager.speak(self.decks[to_deck_index].name)
+            deck = self.decks[to_deck_index]
+            if self._start_switch_intro(deck):
+                return
+            if self.tts_manager is not None:
+                self.tts_manager.speak(deck.name)
 
     def _start_automatic_switching(self):
         """Start automatic deck switching"""
@@ -1183,6 +1270,9 @@ class Mixer:
         self._stop_multiroom_playback()
         self.audio_engine.stop_stream()
         self._loaded_audio_cache.clear()
+        self._switch_intro_cache.clear()
+        self._switch_intro_audio = None
+        self._switch_intro_position = 0
 
     def __del__(self):
         """Cleanup on deletion"""

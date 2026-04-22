@@ -152,6 +152,9 @@ class MainFrame(wx.Frame):
         self.load_url_item = self.deck_menu.Append(wx.ID_ANY, _("Load URL") + "...\tCtrl+U")
         self.load_input_item = self.deck_menu.Append(wx.ID_ANY, _("Load sound card input") + "...\tCtrl+D")
         self.deck_menu.AppendSeparator()
+        self.set_intro_item = self.deck_menu.Append(wx.ID_ANY, _("Set Intro File") + "...")
+        self.clear_intro_item = self.deck_menu.Append(wx.ID_ANY, _("Clear Intro File"))
+        self.deck_menu.AppendSeparator()
         self.rename_item = self.deck_menu.Append(wx.ID_ANY, _("Rename Deck") + "...\tF2")
         self.unload_item = self.deck_menu.Append(wx.ID_ANY, _("Unload Deck") + "\tDel")
         self.record_deck_menu_item = self.deck_menu.Append(wx.ID_ANY, _("Start Recording Deck") + "\tCtrl+Shift+R")
@@ -212,6 +215,8 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._on_selected_deck_load_file, self.load_file_item)
         self.Bind(wx.EVT_MENU, self._on_selected_deck_load_url, self.load_url_item)
         self.Bind(wx.EVT_MENU, self._on_selected_deck_load_soundcard_input, self.load_input_item)
+        self.Bind(wx.EVT_MENU, self._on_selected_deck_set_intro_file, self.set_intro_item)
+        self.Bind(wx.EVT_MENU, self._on_selected_deck_clear_intro_file, self.clear_intro_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_rename(), self.rename_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_unload(), self.unload_item)
         self.Bind(wx.EVT_MENU, self._on_selected_deck_toggle_recording, self.record_deck_menu_item)
@@ -722,6 +727,34 @@ class MainFrame(wx.Frame):
 
         dlg.Destroy()
 
+    def _on_deck_set_intro_file(self, deck):
+        """Handle selecting a switch-intro audio file for a deck."""
+        dlg = wx.FileDialog(
+            self,
+            _("Choose an intro audio file"),
+            wildcard="|".join([f"{name}|{pattern}" for name, pattern in SUPPORTED_FILE_FORMATS]),
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
+        )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            intro_path = dlg.GetPath()
+            deck.set_intro_file(intro_path)
+            self.SetStatusText(_("Intro set for {}: {}").format(deck.name, os.path.basename(intro_path)), 0)
+            self._update_deck_panel(deck.deck_id)
+            self._mark_project_modified()
+
+        dlg.Destroy()
+
+    def _on_deck_clear_intro_file(self, deck):
+        """Handle clearing the switch-intro audio file from a deck."""
+        if not deck.intro_file:
+            return
+
+        deck.set_intro_file(None)
+        self.SetStatusText(_("Intro cleared for {}").format(deck.name), 0)
+        self._update_deck_panel(deck.deck_id)
+        self._mark_project_modified()
+
     def _get_selected_index(self):
         """ListBox/ListCtrl wrapper to get selected index"""
         if self.deck_list_style == "detailed":
@@ -800,7 +833,7 @@ class MainFrame(wx.Frame):
         deck_index = self._get_selected_index()
         if deck_index != wx.NOT_FOUND:
             # Update mixer's active deck for Solo/Automatic mode
-            self.mixer.set_active_deck(deck_index)
+            self.mixer.set_active_deck(deck_index, trigger_switch_event=True)
             # Update controls to show selected deck
             self._update_active_deck_controls()
 
@@ -842,6 +875,9 @@ class MainFrame(wx.Frame):
             else:
                 file_info = os.path.basename(deck.file_path)
             status_text = f"{status_text} - {file_info}"
+
+        if deck.intro_file:
+            status_text = f"{status_text}\n{_('Intro')}: {os.path.basename(deck.intro_file)}"
 
         self.active_deck_status.SetLabel(status_text)
 
@@ -895,6 +931,8 @@ class MainFrame(wx.Frame):
         self.load_file_item.Enable(has_deck)
         self.load_url_item.Enable(has_deck)
         self.load_input_item.Enable(has_deck)
+        self.set_intro_item.Enable(has_deck)
+        self.clear_intro_item.Enable(has_deck and bool(deck.intro_file))
         self.rename_item.Enable(has_deck)
         self.unload_item.Enable(is_loaded)
         self.record_deck_menu_item.Enable(is_loaded)
@@ -928,6 +966,18 @@ class MainFrame(wx.Frame):
         deck = self._get_selected_deck()
         if deck:
             self._on_deck_load_soundcard_input(deck)
+
+    def _on_selected_deck_set_intro_file(self, event):
+        """Set the intro file for the currently selected deck from the main menu."""
+        deck = self._get_selected_deck()
+        if deck:
+            self._on_deck_set_intro_file(deck)
+
+    def _on_selected_deck_clear_intro_file(self, event):
+        """Clear the intro file for the currently selected deck from the main menu."""
+        deck = self._get_selected_deck()
+        if deck:
+            self._on_deck_clear_intro_file(deck)
 
     def _on_selected_deck_toggle_recording(self, event):
         """Toggle recording for the currently selected deck from the main menu."""
@@ -993,6 +1043,10 @@ class MainFrame(wx.Frame):
         load_file_item = menu.Append(wx.ID_ANY, _("Load File") + "...\tCtrl+F")
         load_url_item = menu.Append(wx.ID_ANY, _("Load URL") + "...\tCtrl+U")
         load_input_item = menu.Append(wx.ID_ANY, _("Load sound card input") + "...\tCtrl+D")
+        menu.AppendSeparator()
+        set_intro_item = menu.Append(wx.ID_ANY, _("Set Intro File") + "...")
+        clear_intro_item = menu.Append(wx.ID_ANY, _("Clear Intro File"))
+        clear_intro_item.Enable(bool(deck.intro_file))
         output_menu = wx.Menu()
         menu.AppendSubMenu(output_menu, _("Output Device"))
         menu.AppendSeparator()
@@ -1029,6 +1083,8 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_file(deck), load_file_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_url(deck), load_url_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_soundcard_input(deck), load_input_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_deck_set_intro_file(deck), set_intro_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_deck_clear_intro_file(deck), clear_intro_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_rename(), rename_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_unload(), unload_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_toggle_deck_recording(deck), record_deck_item)
@@ -2231,33 +2287,36 @@ class MainFrame(wx.Frame):
     def _on_deck_shortcut(self, deck_index):
         """Handle Ctrl+N deck shortcut"""
         if deck_index < len(self.mixer.decks):
-            self.mixer.set_active_deck(deck_index)
+            intro_started = self.mixer.set_active_deck(deck_index, trigger_switch_event=True)
             deck = self.mixer.decks[deck_index]
             message = _("Active deck: {}").format(deck.name)
             self.SetStatusText(message, 0)
-            self.tts_manager.speak(message)
+            if not intro_started:
+                self.tts_manager.speak(message)
             # Update deck listbox selection
             self._sync_listbox_selection(deck_index)
 
     def _on_next_deck(self, event):
         """Handle Ctrl+Tab for next deck"""
-        self.mixer.next_deck()
+        intro_started = self.mixer.next_deck(trigger_switch_event=True)
         deck_index = self.mixer.active_deck_index
         self._sync_listbox_selection(deck_index)
         deck = self.mixer.decks[deck_index]
         message = _("Active deck: {}").format(deck.name)
         self.SetStatusText(message, 0)
-        self.tts_manager.speak(message)
+        if not intro_started:
+            self.tts_manager.speak(message)
 
     def _on_previous_deck(self, event):
         """Handle Ctrl+Shift+Tab for previous deck"""
-        self.mixer.previous_deck()
+        intro_started = self.mixer.previous_deck(trigger_switch_event=True)
         deck_index = self.mixer.active_deck_index
         self._sync_listbox_selection(deck_index)
         deck = self.mixer.decks[deck_index]
         message = _("Active deck: {}").format(deck.name)
         self.SetStatusText(message, 0)
-        self.tts_manager.speak(message)
+        if not intro_started:
+            self.tts_manager.speak(message)
 
     def _on_mute_active_deck(self, event):
         """Handle Ctrl+M for mute"""
