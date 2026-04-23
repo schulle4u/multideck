@@ -320,6 +320,12 @@ class MainFrame(wx.Frame):
         button_sizer.Add(self.global_stop_btn, 0, wx.ALL, 5)
 
         playback_box.Add(button_sizer, 0, wx.EXPAND)
+
+        self.active_stream_cb = wx.CheckBox(playback_static_box, label=_("Enable Livestream"))
+        self.active_stream_cb.SetName(_("Enable Livestream"))
+        self.active_stream_cb.Bind(wx.EVT_CHECKBOX, self._on_active_stream_change)
+        playback_box.Add(self.active_stream_cb, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+
         playback_panel_sizer.Add(playback_box, 1, wx.EXPAND)
         playback_panel.SetSizer(playback_panel_sizer)
         sizer.Add(playback_panel, 0, wx.ALL, 5)
@@ -329,6 +335,14 @@ class MainFrame(wx.Frame):
         volume_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         volume_box = wx.StaticBoxSizer(wx.VERTICAL, volume_panel, label=_("Master Volume"))
         volume_static_box = volume_box.GetStaticBox()
+
+        volume_header = wx.BoxSizer(wx.HORIZONTAL)
+        volume_label = wx.StaticText(volume_static_box, label=_("Master Volume"))
+        volume_header.Add(volume_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        volume_header.AddStretchSpacer()
+        self.master_volume_value_label = wx.StaticText(volume_static_box, label="80%")
+        volume_header.Add(self.master_volume_value_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        volume_box.Add(volume_header, 0, wx.EXPAND)
 
         master_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.master_volume_slider = wx.Slider(
@@ -355,6 +369,7 @@ class MainFrame(wx.Frame):
         list_panel = wx.Panel(panel)
         list_panel.SetName(_("Deck Selection"))
         list_panel.SetLabel(_("Deck Selection"))
+        list_panel.SetMinSize((360, -1))
         list_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         list_box = wx.StaticBoxSizer(wx.VERTICAL, list_panel, label=_("Deck Selection") + " (F6)")
         list_static_box = list_box.GetStaticBox()
@@ -384,10 +399,11 @@ class MainFrame(wx.Frame):
 
         list_panel_sizer.Add(list_box, 1, wx.EXPAND)
         list_panel.SetSizer(list_panel_sizer)
-        main_sizer.Add(list_panel, 1, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(list_panel, 5, wx.EXPAND | wx.ALL, 5)
 
         # Right side: Controls for active deck
         controls_panel = wx.Panel(panel)
+        controls_panel.SetMinSize((420, -1))
         controls_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         controls_box = wx.StaticBoxSizer(wx.VERTICAL, controls_panel, label=_("Active Deck Controls"))
         controls_static_box = controls_box.GetStaticBox()
@@ -396,14 +412,16 @@ class MainFrame(wx.Frame):
         self.active_deck_label = wx.StaticText(controls_static_box, label=_("No deck selected"))
         font = self.active_deck_label.GetFont()
         font.SetWeight(wx.FONTWEIGHT_BOLD)
+        font.SetPointSize(font.GetPointSize() + 2)
         self.active_deck_label.SetFont(font)
         controls_box.Add(self.active_deck_label, 0, wx.ALL, 5)
 
         self.active_deck_status = wx.StaticText(controls_static_box, label="")
+        self.active_deck_status.SetMinSize((-1, 44))
         controls_box.Add(self.active_deck_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
         # Playback buttons
-        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        button_sizer = wx.GridSizer(rows=1, cols=3, vgap=8, hgap=8)
 
         self.active_play_btn = wx.Button(controls_static_box, label=_("Play"))
         self.active_play_btn.SetName(_("Play"))
@@ -422,55 +440,75 @@ class MainFrame(wx.Frame):
 
         controls_box.Add(button_sizer, 0, wx.EXPAND)
 
-        # Volume slider
-        volume_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        volume_label = wx.StaticText(controls_static_box, label=_("Volume") + ":")
-        volume_sizer.Add(volume_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        # Compact control grid for the active deck
+        controls_grid = wx.FlexGridSizer(rows=2, cols=2, vgap=10, hgap=10)
+        controls_grid.AddGrowableCol(0, 1)
+        controls_grid.AddGrowableCol(1, 1)
+
+        volume_panel = wx.Panel(controls_static_box)
+        volume_panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        volume_box = wx.StaticBoxSizer(wx.VERTICAL, volume_panel, label=_("Volume"))
+        volume_static_box = volume_box.GetStaticBox()
+        volume_header = wx.BoxSizer(wx.HORIZONTAL)
+        volume_label = wx.StaticText(volume_static_box, label=_("Deck volume"))
+        volume_header.Add(volume_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        volume_header.AddStretchSpacer()
+        self.active_volume_value_label = wx.StaticText(volume_static_box, label="100%")
+        volume_header.Add(self.active_volume_value_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        volume_box.Add(volume_header, 0, wx.EXPAND)
 
         self.active_volume_slider = wx.Slider(
-            controls_static_box, value=100, minValue=0, maxValue=100,
+            volume_static_box, value=100, minValue=0, maxValue=100,
             style=wx.SL_HORIZONTAL
         )
         self.active_volume_slider.SetName(_("Volume"))
         self.active_volume_slider.Bind(wx.EVT_SLIDER, self._on_active_volume_change)
-        volume_sizer.Add(self.active_volume_slider, 1, wx.ALL | wx.EXPAND, 5)
+        volume_box.Add(self.active_volume_slider, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+        volume_panel_sizer.Add(volume_box, 1, wx.EXPAND)
+        volume_panel.SetSizer(volume_panel_sizer)
+        controls_grid.Add(volume_panel, 1, wx.EXPAND)
 
-        controls_box.Add(volume_sizer, 0, wx.EXPAND)
-
-        # Balance slider
-        balance_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        balance_label = wx.StaticText(controls_static_box, label=_("Balance") + ":")
-        balance_sizer.Add(balance_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        balance_panel = wx.Panel(controls_static_box)
+        balance_panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        balance_box = wx.StaticBoxSizer(wx.VERTICAL, balance_panel, label=_("Balance"))
+        balance_static_box = balance_box.GetStaticBox()
+        balance_header = wx.BoxSizer(wx.HORIZONTAL)
+        balance_label = wx.StaticText(balance_static_box, label=_("Left / Right"))
+        balance_header.Add(balance_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        balance_header.AddStretchSpacer()
+        self.active_balance_value_label = wx.StaticText(balance_static_box, label=_("Center"))
+        balance_header.Add(self.active_balance_value_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        balance_box.Add(balance_header, 0, wx.EXPAND)
 
         self.active_balance_slider = wx.Slider(
-            controls_static_box, value=0, minValue=-100, maxValue=100,
+            balance_static_box, value=0, minValue=-100, maxValue=100,
             style=wx.SL_HORIZONTAL
         )
         self.active_balance_slider.SetName(_("Balance"))
         self.active_balance_slider.Bind(wx.EVT_SLIDER, self._on_active_balance_change)
-        balance_sizer.Add(self.active_balance_slider, 1, wx.ALL | wx.EXPAND, 5)
+        balance_box.Add(self.active_balance_slider, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+        balance_panel_sizer.Add(balance_box, 1, wx.EXPAND)
+        balance_panel.SetSizer(balance_panel_sizer)
+        controls_grid.Add(balance_panel, 1, wx.EXPAND)
 
-        controls_box.Add(balance_sizer, 0, wx.EXPAND)
+        options_panel = wx.Panel(controls_static_box)
+        options_panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        options_box = wx.StaticBoxSizer(wx.VERTICAL, options_panel, label=_("Options"))
+        options_static_box = options_box.GetStaticBox()
 
-        # Mute and Loop checkboxes
-        checkbox_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.active_mute_cb = wx.CheckBox(controls_static_box, label=_("Mute"))
+        self.active_mute_cb = wx.CheckBox(options_static_box, label=_("Mute"))
         self.active_mute_cb.SetName(_("Mute"))
         self.active_mute_cb.Bind(wx.EVT_CHECKBOX, self._on_active_mute_change)
-        checkbox_sizer.Add(self.active_mute_cb, 0, wx.ALL, 5)
+        options_box.Add(self.active_mute_cb, 0, wx.ALL, 5)
 
-        self.active_loop_cb = wx.CheckBox(controls_static_box, label=_("Loop"))
+        self.active_loop_cb = wx.CheckBox(options_static_box, label=_("Loop"))
         self.active_loop_cb.SetName(_("Loop"))
         self.active_loop_cb.Bind(wx.EVT_CHECKBOX, self._on_active_loop_change)
-        checkbox_sizer.Add(self.active_loop_cb, 0, wx.ALL, 5)
+        options_box.Add(self.active_loop_cb, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
-        self.active_stream_cb = wx.CheckBox(controls_static_box, label=_("Enable Livestream"))
-        self.active_stream_cb.SetName(_("Enable Livestream"))
-        self.active_stream_cb.Bind(wx.EVT_CHECKBOX, self._on_active_stream_change)
-        checkbox_sizer.Add(self.active_stream_cb, 0, wx.ALL, 5)
-
-        controls_box.Add(checkbox_sizer, 0)
+        options_panel_sizer.Add(options_box, 1, wx.EXPAND)
+        options_panel.SetSizer(options_panel_sizer)
+        controls_grid.Add(options_panel, 1, wx.EXPAND)
 
         # Position/Seek slider (only for local files)
         position_panel = wx.Panel(controls_static_box)
@@ -507,7 +545,7 @@ class MainFrame(wx.Frame):
 
         position_panel_sizer.Add(position_box, 1, wx.EXPAND)
         position_panel.SetSizer(position_panel_sizer)
-        controls_box.Add(position_panel, 0, wx.EXPAND | wx.TOP, 5)
+        controls_grid.Add(position_panel, 1, wx.EXPAND)
 
         # Level meter
         level_panel = wx.Panel(controls_static_box)
@@ -534,14 +572,45 @@ class MainFrame(wx.Frame):
         if not show_level:
             level_panel.Hide()
 
-        controls_box.Add(level_panel, 0, wx.EXPAND | wx.TOP, 5)
+        controls_box.Add(controls_grid, 0, wx.EXPAND | wx.TOP, 5)
+        controls_box.Add(level_panel, 0, wx.EXPAND | wx.TOP, 10)
 
         controls_panel_sizer.Add(controls_box, 1, wx.EXPAND)
         controls_panel.SetSizer(controls_panel_sizer)
-        main_sizer.Add(controls_panel, 2, wx.EXPAND | wx.ALL, 5)
+        controls_panel.Bind(wx.EVT_SIZE, self._on_active_controls_resize)
+        main_sizer.Add(controls_panel, 7, wx.EXPAND | wx.ALL, 5)
 
         panel.SetSizer(main_sizer)
         return panel
+
+    def _set_active_volume_value_label(self, value):
+        """Update the text label that mirrors the volume slider value."""
+        self.active_volume_value_label.SetLabel(f"{int(value)}%")
+
+    def _set_active_balance_value_label(self, value):
+        """Update the text label that mirrors the balance slider value."""
+        value = int(value)
+        if value == 0:
+            label = _("Center")
+        elif value < 0:
+            label = _("Left {}%").format(abs(value))
+        else:
+            label = _("Right {}%").format(value)
+        self.active_balance_value_label.SetLabel(label)
+
+    def _wrap_active_deck_status(self):
+        """Wrap the active deck status text to the available panel width."""
+        if not hasattr(self, 'active_deck_status'):
+            return
+
+        width = self.active_deck_status.GetContainingSizer().GetSize().GetWidth()
+        if width > 40:
+            self.active_deck_status.Wrap(max(200, width - 10))
+
+    def _on_active_controls_resize(self, event):
+        """Keep the active deck status readable while the panel is resized."""
+        self._wrap_active_deck_status()
+        event.Skip()
 
     def _create_status_bar(self):
         """Create status bar"""
@@ -620,10 +689,16 @@ class MainFrame(wx.Frame):
 
     def _on_master_volume_change(self, event):
         """Handle master volume change"""
-        volume = self.master_volume_slider.GetValue() / 100.0
+        slider_value = self.master_volume_slider.GetValue()
+        self._set_master_volume_value_label(slider_value)
+        volume = slider_value / 100.0
         self.mixer.set_master_volume(volume)
         self.SetStatusText(f"{_('Master')}: {int(volume * 100)}%", 2)
         self._mark_project_modified()
+
+    def _set_master_volume_value_label(self, value):
+        """Update the text label that mirrors the master volume slider value."""
+        self.master_volume_value_label.SetLabel(f"{int(value)}%")
 
     def _on_global_play_pause(self, event):
         """Handle global play/pause button"""
@@ -845,13 +920,23 @@ class MainFrame(wx.Frame):
             self.active_deck_status.SetLabel("")
             self.active_play_btn.Enable(False)
             self.active_stop_btn.Enable(False)
+            self.active_volume_slider.SetValue(100)
+            self.active_balance_slider.SetValue(0)
+            self._set_active_volume_value_label(100)
+            self._set_active_balance_value_label(0)
+            self.active_volume_slider.Enable(False)
+            self.active_balance_slider.Enable(False)
+            self.active_mute_cb.SetValue(False)
+            self.active_loop_cb.SetValue(False)
+            self.active_mute_cb.Enable(False)
+            self.active_loop_cb.Enable(False)
             # Disable position slider
             self.active_position_slider.SetValue(0)
             self.active_position_slider.Enable(False)
             self.active_position_label.SetLabel("--:--")
             self.active_duration_label.SetLabel("--:--")
-            self.active_stream_cb.SetValue(False)
-            self.active_stream_cb.Enable(False)
+            self._update_livestream_control()
+            self._wrap_active_deck_status()
             self._update_deck_menu_items()
             return
         deck = self.mixer.decks[deck_index]
@@ -880,6 +965,7 @@ class MainFrame(wx.Frame):
             status_text = f"{status_text}\n{_('Intro')}: {os.path.basename(deck.intro_file)}"
 
         self.active_deck_status.SetLabel(status_text)
+        self._wrap_active_deck_status()
 
         # Update play button
         if deck.is_playing:
@@ -893,16 +979,23 @@ class MainFrame(wx.Frame):
         is_loaded = deck.state != DECK_STATE_EMPTY
         self.active_play_btn.Enable(is_loaded)
         self.active_stop_btn.Enable(is_loaded)
+        self.active_volume_slider.Enable(True)
+        self.active_balance_slider.Enable(True)
+        self.active_mute_cb.Enable(True)
+        self.active_loop_cb.Enable(True)
 
         # Update sliders
-        self.active_volume_slider.SetValue(int(deck.volume * 100))
-        self.active_balance_slider.SetValue(int(deck.balance * 100))
+        volume_value = int(deck.volume * 100)
+        balance_value = int(deck.balance * 100)
+        self.active_volume_slider.SetValue(volume_value)
+        self.active_balance_slider.SetValue(balance_value)
+        self._set_active_volume_value_label(volume_value)
+        self._set_active_balance_value_label(balance_value)
 
         # Update checkboxes
         self.active_mute_cb.SetValue(deck.mute)
         self.active_loop_cb.SetValue(deck.loop)
-        self.active_stream_cb.SetValue(self.streamer.is_streaming)
-        self.active_stream_cb.Enable(self._can_start_livestream())
+        self._update_livestream_control()
 
         # Update position slider and time display
         self._update_position_display(deck)
@@ -942,6 +1035,14 @@ class MainFrame(wx.Frame):
             self.record_deck_menu_item.SetItemLabel(_("Start Recording Deck") + "\tCtrl+Shift+R")
         stream_label = _("Stop Livestream") + "\tF8" if self.streamer.is_streaming else _("Start Livestream") + "\tF8"
         self.stream_menu_item.SetItemLabel(stream_label)
+        self._update_livestream_control()
+
+    def _update_livestream_control(self):
+        """Update the global livestream checkbox without tying it to deck selection."""
+        if not hasattr(self, 'active_stream_cb'):
+            return
+        self.active_stream_cb.SetValue(self.streamer.is_streaming)
+        self.active_stream_cb.Enable(self._can_start_livestream())
 
     def _on_menu_open(self, event):
         """Refresh menu state just before a menu is shown."""
@@ -1141,7 +1242,9 @@ class MainFrame(wx.Frame):
         """Handle volume change for active deck"""
         deck = self._get_selected_deck()
         if deck:
-            volume = self.active_volume_slider.GetValue() / 100.0
+            slider_value = self.active_volume_slider.GetValue()
+            self._set_active_volume_value_label(slider_value)
+            volume = slider_value / 100.0
             deck.set_volume(volume)
             self._update_deck_panel(deck.deck_id)
             self._mark_project_modified()
@@ -1150,7 +1253,9 @@ class MainFrame(wx.Frame):
         """Handle balance change for active deck"""
         deck = self._get_selected_deck()
         if deck:
-            balance = self.active_balance_slider.GetValue() / 100.0
+            slider_value = self.active_balance_slider.GetValue()
+            self._set_active_balance_value_label(slider_value)
+            balance = slider_value / 100.0
             deck.set_balance(balance)
             self._update_deck_panel(deck.deck_id)
             self._mark_project_modified()
@@ -1640,7 +1745,9 @@ class MainFrame(wx.Frame):
             mode_radios[self.mixer.mode].SetValue(True)
 
         # Update master volume slider
-        self.master_volume_slider.SetValue(int(self.mixer.master_volume * 100))
+        master_volume_value = int(self.mixer.master_volume * 100)
+        self.master_volume_slider.SetValue(master_volume_value)
+        self._set_master_volume_value_label(master_volume_value)
 
         # Update status bar
         mode_names = {
@@ -2392,6 +2499,7 @@ class MainFrame(wx.Frame):
         current = self.master_volume_slider.GetValue()
         new_value = max(0, min(100, current + delta))
         self.master_volume_slider.SetValue(new_value)
+        self._set_master_volume_value_label(new_value)
         self.mixer.set_master_volume(new_value / 100.0)
         self.SetStatusText(f"{_('Master')}: {new_value}%", 2)
 
