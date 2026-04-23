@@ -109,6 +109,8 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 * Datei laden (Ctrl+F): Lädt eine Audiodatei in das gewählte Deck. 
 * URL laden (Ctrl+U): Öffnet einen Internetstream im gewählten Deck.
 * Soundkarteneingang laden (Ctrl+D): Ermöglicht die Wiedergabe einer an den Computer angeschlossenen Audioquelle (Mikrofon, Line). 
+* Introdatei festlegen: Ermöglicht das festlegen einer Intro-Audiodatei, welche beim Umschalten auf das Deck abgespielt wird.
+* Introdatei löschen: Entfernt die zuvor festgelegte Intro-Audiodatei aus dem Deck.
 * Deck umbenennen (F2): Erlaubt das Hinterlegen eines benutzerdefinierten Decknamens. 
 * Deck entladen (Del/Entf): Entfernt die auf dem gewählten Deck geladene Datei.
 * Deckaufnahme starten (Ctrl+Shift+R): Ermöglicht eine individuelle Deckaufnahme, unabhängig vom gewählten Betriebsmodus. 
@@ -132,6 +134,7 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 #### Werkzeuge
 
 * Aufnahme starten/beenden (Ctrl+R): Startet die Live-Aufnahme des Ausgabemixers. Wenn in den Programmoptionen kein Ausgabeverzeichnis festgelegt wurde, fragt das Programm vor dem Starten der Aufnahme nach dem Verzeichnis zum Speichern der Datei. 
+* Livestream starten/stoppen (F8): Startet den Livestream, um das Mixersignal an einen Icecast-Server zu senden. Zuvor müssen die Zugangsdaten in den Programmeinstellungen hinterlegt werden. 
 * Audioeffekte (Ctrl+Shift+E): Öffnet ein Fenster zum Konfigurieren von Audioeffekten und VST-Plugins. 
 * Optionen (Ctrl+Shift+O): Öffnet die Programmeinstellungen.
 
@@ -212,6 +215,15 @@ Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+Shift+O aufrufbar.
 
 ### Streaming
 
+* Server: Der für den Livestream zu verwendende Hostname (ohne voranstehendes http).
+* Port: Der Port des Icecast-Servers.
+* Einhängepunkt (häufig auch Mountpoint): Der Pfad zum Livestream-Mointpoint, beginnend mit einem Schrägstrich. 
+* Benutzerdaten: Die Zugangsdaten für den Stream im Format Benutzername:Passwort.
+* Codec: Streaming-Codec, MP3 oder OGG Vorbis.
+* Bitrate: Qualität des Livestreams.
+* Streamname, Beschreibung, Genre und Website-URL: Metadaten des Streams.
+* Öffentlicher Stream: Listet den Stream in öffentlichen Verzeichnissen, sofern diese auf dem Icecast-Server aktiviert sind.
+* Verbindung bei Programmstart: Aktiviert den Livestream beim Starten des Programms.
 * Automatisch neu verbinden bei Verbindungsabbruch: Baut den Stream nach Möglichkeit neu auf, wenn die Verbindung unterbrochen wird.
 * Wartezeit für Neuverbindung (Sekunden): Zeitdauer, bis ein neuer Verbindungsversuch gestartet werden soll.
 

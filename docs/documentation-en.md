@@ -109,6 +109,8 @@ The program window largely follows a standard layout, consisting of a menu bar, 
 * Load File (Ctrl+F): Loads an audio file into the selected deck.
 * Load URL (Ctrl+U): Opens an internet stream in the selected deck.
 * Load Sound Card Input (Ctrl+D): Enables playback of an audio source connected to the computer (microphone, line-in).
+* Set intro file: Allows to select an intro audio file that will be played during deck switches.
+* Clear intro file: Remove a previously selected intro audio file from the deck.
 * Rename Deck (F2): Allows you to assign a custom name to the deck.
 * Unload Deck (Del): Removes the file loaded on the selected deck.
 * Start Deck Recording (Ctrl+Shift+R): Enables individual deck recording, independent of the selected operating mode.
@@ -132,6 +134,7 @@ The program window largely follows a standard layout, consisting of a menu bar, 
 #### Tools
 
 * Start/Stop Recording (Ctrl+R): Starts live recording of the output mixer. If no output directory has been set in the program options, the program will ask for a directory before starting the recording.
+* Start/stop livestream (F8): Sends the mixer output to an Icecast server. Configure live streaming data in the program options first. 
 * Audio Effects (Ctrl+Shift+E): Opens a window for configuring audio effects and VST plugins.
 * Options (Ctrl+Shift+O): Opens the program settings.
 
@@ -212,6 +215,15 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 
 ### Streaming
 
+* Server: the Icecast servers hostname without http.
+* Port: Icecast server port.
+* Mountpoint: Path to streaming mountpoint, starting with slash. 
+* User credencials: Username and password separated by a colon.
+* Codec: Streaming codec, MP3 or OGG Vorbis.
+* Bitrate: Live stream quality.
+* Stream name, description, genre and website URL: Stream meta data.
+* Public stream: Tells the server to list the stream in public directories.
+* Connect at startup: Connects the livestream when the program starts.
 * Automatically Reconnect on Connection Loss: Rebuilds the stream if possible when the connection is interrupted.
 * Reconnect Wait Time (seconds): The time to wait before attempting a new connection.
 
