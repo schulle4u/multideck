@@ -125,7 +125,19 @@ class MainFrame(wx.Frame):
         """Create menu bar"""
         menu_bar = wx.MenuBar()
 
-        # File menu
+        menu_bar.Append(self._create_file_menu(), _("&File"))
+        menu_bar.Append(self._create_deck_menu(), _("&Deck"))
+        menu_bar.Append(self._create_playback_menu(), _("&Playback"))
+        menu_bar.Append(self._create_view_menu(), _("&View"))
+        menu_bar.Append(self._create_tools_menu(), _("&Tools"))
+        menu_bar.Append(self._create_help_menu(), _("&Help"))
+
+        self.SetMenuBar(menu_bar)
+        self._bind_menu_events()
+        self._update_deck_menu_items()
+
+    def _create_file_menu(self):
+        """Create the File menu."""
         file_menu = wx.Menu()
         file_menu.Append(wx.ID_NEW, _("&New Project") + "...\tCtrl+N")
         file_menu.Append(wx.ID_OPEN, _("&Open Project") + "...\tCtrl+O")
@@ -144,9 +156,10 @@ class MainFrame(wx.Frame):
 
         file_menu.AppendSeparator()
         file_menu.Append(wx.ID_EXIT, _("E&xit") + "\tAlt+F4")
-        menu_bar.Append(file_menu, _("&File"))
+        return file_menu
 
-        # Deck menu
+    def _create_deck_menu(self):
+        """Create the Deck menu."""
         self.deck_menu = wx.Menu()
         self.load_file_item = self.deck_menu.Append(wx.ID_ANY, _("Load File") + "...\tCtrl+F")
         self.load_url_item = self.deck_menu.Append(wx.ID_ANY, _("Load URL") + "...\tCtrl+U")
@@ -160,9 +173,10 @@ class MainFrame(wx.Frame):
         self.record_deck_menu_item = self.deck_menu.Append(wx.ID_ANY, _("Start Recording Deck") + "\tCtrl+Shift+R")
         self.unload_item.Enable(False)
         self.record_deck_menu_item.Enable(False)
-        menu_bar.Append(self.deck_menu, _("&Deck"))
+        return self.deck_menu
 
-        # Playback menu
+    def _create_playback_menu(self):
+        """Create the Playback menu."""
         playback_menu = wx.Menu()
         self.play_all_item = playback_menu.Append(wx.ID_ANY, _("Play/Pause all decks") + "\tCtrl+P")
         self.stop_all_item = playback_menu.Append(wx.ID_ANY, _("Stop all decks") + "\tCtrl+.")
@@ -172,9 +186,10 @@ class MainFrame(wx.Frame):
         self.toggle_loop_item = playback_menu.Append(wx.ID_ANY, _("Toggle Loop") + "\tCtrl+L")
         self.toggle_mute_item = playback_menu.Append(wx.ID_ANY, _("Toggle Mute") + "\tCtrl+M")
         self.jump_to_item = playback_menu.Append(wx.ID_ANY, _("Jump to time") + "\tCtrl+J")
-        menu_bar.Append(playback_menu, _("&Playback"))
+        return playback_menu
 
-        # View menu
+    def _create_view_menu(self):
+        """Create the View menu."""
         view_menu = wx.Menu()
         self.statusbar_item = view_menu.AppendCheckItem(wx.ID_ANY, _("&Status Bar") + "\tCtrl+T")
         self.statusbar_item.Check(True)
@@ -182,9 +197,10 @@ class MainFrame(wx.Frame):
         self.level_meter_item.Check(self.config_manager.getboolean('UI', 'show_level_meter', True))
         view_menu.AppendSeparator()
         self.theme_item = view_menu.Append(wx.ID_ANY, _("Toggle &Theme") + "\tCtrl+Shift+T")
-        menu_bar.Append(view_menu, _("&View"))
+        return view_menu
 
-        # Tools menu
+    def _create_tools_menu(self):
+        """Create the Tools menu."""
         tools_menu = wx.Menu()
         self.record_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Recording") + "\tCtrl+R")
         self.stream_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Livestream") + "\tF8")
@@ -192,19 +208,19 @@ class MainFrame(wx.Frame):
         self.effects_menu_item = tools_menu.Append(wx.ID_ANY, _("Audio &Effects") + "...\tCtrl+Shift+E")
         tools_menu.AppendSeparator()
         tools_menu.Append(wx.ID_PREFERENCES, _("&Options") + "...\tCtrl+Shift+O")
-        menu_bar.Append(tools_menu, _("&Tools"))
+        return tools_menu
 
-        # Help menu
+    def _create_help_menu(self):
+        """Create the Help menu."""
         help_menu = wx.Menu()
         help_menu.Append(wx.ID_HELP, _("&Documentation") + "\tF1")
         self.website_item = help_menu.Append(wx.ID_ANY, _("Open &Website") + "\tCtrl+F1")
         help_menu.AppendSeparator()
         help_menu.Append(wx.ID_ABOUT, _("&About") + "...")
-        menu_bar.Append(help_menu, _("&Help"))
+        return help_menu
 
-        self.SetMenuBar(menu_bar)
-
-        # Bind menu events
+    def _bind_menu_events(self):
+        """Bind all menu events to their handlers."""
         self.Bind(wx.EVT_MENU, self._on_new_project, id=wx.ID_NEW)
         self.Bind(wx.EVT_MENU, self._on_open_project, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self._on_save_project, id=wx.ID_SAVE)
@@ -238,8 +254,6 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._on_website, self.website_item)
         self.Bind(wx.EVT_MENU, self._on_about, id=wx.ID_ABOUT)
         self.Bind(wx.EVT_MENU_OPEN, self._on_menu_open)
-
-        self._update_deck_menu_items()
 
     def _create_ui(self):
         """Create main UI"""
