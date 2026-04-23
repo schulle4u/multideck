@@ -11,6 +11,7 @@ from gui.dialogs.custom import CustomTextEntryDialog
 from gui.menus import create_menu_bar
 from gui.panels import create_active_deck_panel, create_mixer_panel
 from gui.playlist_service import M3UPlaylistService
+from gui.shortcuts import setup_keyboard_shortcuts
 from gui.theme_manager import ThemeManager
 from audio.audio_engine import AudioEngine
 from audio.icecast_streamer import IcecastStreamer
@@ -1684,105 +1685,7 @@ class MainFrame(wx.Frame):
 
     def _setup_keyboard_shortcuts(self):
         """Setup keyboard accelerators"""
-        accel_entries = []
-
-        # Ctrl+1 to Ctrl+0 for deck selection, Ctrl + Alt if more than 10 decks
-        num_decks = self.config_manager.get_deck_count()
-        for i in range(1, num_decks + 1):
-            digit = i % 10
-            key = ord(str(digit)) if digit != 0 else ord('0')
-            if i <= 10:
-                modifiers = wx.ACCEL_CTRL
-            else:
-                modifiers = wx.ACCEL_CTRL | wx.ACCEL_ALT
-            self._add_keyboard_shortcut(
-                accel_entries,
-                modifiers,
-                key,
-                lambda e, deck_idx=i-1: self._on_deck_shortcut(deck_idx)
-            )
-
-        # Ctrl+Tab / Ctrl+Shift+Tab for next/previous deck
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, wx.WXK_TAB, self._on_next_deck)
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL | wx.ACCEL_SHIFT, wx.WXK_TAB, self._on_previous_deck)
-
-        # F3-F7 for mode selection
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F3, lambda e: self._set_mode_with_ui(MODE_MIXER))
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F4, lambda e: self._set_mode_with_ui(MODE_SOLO))
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F5, lambda e: self._set_mode_with_ui(MODE_AUTOMATIC))
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F7, lambda e: self._set_mode_with_ui(MODE_MULTIROOM))
-
-        # Ctrl+M for mute active deck
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('M'), self._on_mute_active_deck)
-
-        # Ctrl+L for loop active deck
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('L'), self._on_loop_active_deck)
-
-        # Ctrl+R for recorder toggle
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('R'), self._on_toggle_recording)
-
-        # Ctrl+Shift+R for per-deck recording toggle
-        self._add_keyboard_shortcut(
-            accel_entries,
-            wx.ACCEL_CTRL | wx.ACCEL_SHIFT,
-            ord('R'),
-            self._on_toggle_deck_recording_shortcut
-        )
-
-        # F6 for jump to deck list (accessibility standard)
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F6, self._on_jump_to_deck_list)
-
-        # Ctrl+F for load file
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('F'), self._on_shortcut_load_file)
-
-        # Ctrl+U for load URL
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('U'), self._on_shortcut_load_url)
-
-        # Ctrl+D for load soundcard input
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('D'), self._on_shortcut_load_soundcard_input)
-
-        # F2 for rename deck
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F2, self._on_shortcut_rename)
-
-        # Delete for unload deck
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_DELETE, self._on_shortcut_unload)
-
-        # Ctrl+Up/Down for deck volume
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, wx.WXK_UP, lambda e: self._on_deck_volume_change(5))
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, wx.WXK_DOWN, lambda e: self._on_deck_volume_change(-5))
-
-        # Ctrl+Left/Right for deck balance
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, wx.WXK_LEFT, lambda e: self._on_deck_balance_change(-5))
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, wx.WXK_RIGHT, lambda e: self._on_deck_balance_change(5))
-
-        # Ctrl+Shift+Up/Down for master volume
-        self._add_keyboard_shortcut(
-            accel_entries,
-            wx.ACCEL_CTRL | wx.ACCEL_SHIFT,
-            wx.WXK_UP,
-            lambda e: self._on_master_volume_shortcut(5)
-        )
-        self._add_keyboard_shortcut(
-            accel_entries,
-            wx.ACCEL_CTRL | wx.ACCEL_SHIFT,
-            wx.WXK_DOWN,
-            lambda e: self._on_master_volume_shortcut(-5)
-        )
-
-        # Alt+Left/Right for seek ±5 seconds
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_ALT, wx.WXK_RIGHT, self._on_seek_forward)
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_ALT, wx.WXK_LEFT, self._on_seek_backward)
-
-        # Alt+Shift+Left/Right for seek ±30 seconds
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_ALT | wx.ACCEL_SHIFT, wx.WXK_RIGHT, self._on_seek_forward_large)
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_ALT | wx.ACCEL_SHIFT, wx.WXK_LEFT, self._on_seek_backward_large)
-
-        # Ctrl+J for jump to time
-        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('J'), self._on_jump_to_time)
-
-        # Set accelerator table
-        accel_table = wx.AcceleratorTable(accel_entries)
-        self.SetAcceleratorTable(accel_table)
+        return setup_keyboard_shortcuts(self)
 
     def _add_keyboard_shortcut(self, accel_entries, modifiers, key_code, handler):
         """Register one keyboard accelerator and bind it to a handler."""
