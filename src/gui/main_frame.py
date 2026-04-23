@@ -187,7 +187,7 @@ class MainFrame(wx.Frame):
         # Tools menu
         tools_menu = wx.Menu()
         self.record_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Recording") + "\tCtrl+R")
-        self.stream_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Livestream"))
+        self.stream_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Livestream") + "\tF8")
         tools_menu.AppendSeparator()
         self.effects_menu_item = tools_menu.Append(wx.ID_ANY, _("Audio &Effects") + "...\tCtrl+Shift+E")
         tools_menu.AppendSeparator()
@@ -940,7 +940,7 @@ class MainFrame(wx.Frame):
             self.record_deck_menu_item.SetItemLabel(_("Stop Recording Deck") + "\tCtrl+Shift+R")
         else:
             self.record_deck_menu_item.SetItemLabel(_("Start Recording Deck") + "\tCtrl+Shift+R")
-        stream_label = _("Stop Livestream") if self.streamer.is_streaming else _("Start Livestream")
+        stream_label = _("Stop Livestream") + "\tF8" if self.streamer.is_streaming else _("Start Livestream") + "\tF8"
         self.stream_menu_item.SetItemLabel(stream_label)
 
     def _on_menu_open(self, event):
