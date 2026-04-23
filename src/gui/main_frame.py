@@ -274,68 +274,66 @@ class MainFrame(wx.Frame):
         panel = wx.Panel(parent)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        # Operating mode
-        mode_panel = wx.Panel(panel)
+        sizer.Add(self._create_mode_panel(panel), 0, wx.ALL, 5)
+        sizer.Add(self._create_global_playback_panel(panel), 0, wx.ALL, 5)
+        sizer.Add(self._create_master_volume_panel(panel), 1, wx.ALL | wx.EXPAND, 5)
+
+        panel.SetSizer(sizer)
+        return panel
+
+    def _create_mode_panel(self, parent):
+        """Create operating mode controls."""
+        mode_panel = wx.Panel(parent)
         mode_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         mode_box = wx.StaticBoxSizer(wx.VERTICAL, mode_panel, label=_("Operating Mode"))
         mode_static_box = mode_box.GetStaticBox()
-
         self.mixer_mode_radio = wx.RadioButton(mode_static_box, label=_("Mixer Mode") + "\tF3", style=wx.RB_GROUP)
         self.solo_mode_radio = wx.RadioButton(mode_static_box, label=_("Solo Mode") + "\tF4")
         self.auto_mode_radio = wx.RadioButton(mode_static_box, label=_("Automatic Mode") + "\tF5")
         self.multiroom_mode_radio = wx.RadioButton(mode_static_box, label=_("Multiroom Mode") + "\tF7")
-
         self.mixer_mode_radio.SetValue(True)
-
         self.mixer_mode_radio.Bind(wx.EVT_RADIOBUTTON, lambda e: self._set_mode(MODE_MIXER))
         self.solo_mode_radio.Bind(wx.EVT_RADIOBUTTON, lambda e: self._set_mode(MODE_SOLO))
         self.auto_mode_radio.Bind(wx.EVT_RADIOBUTTON, lambda e: self._set_mode(MODE_AUTOMATIC))
         self.multiroom_mode_radio.Bind(wx.EVT_RADIOBUTTON, lambda e: self._set_mode(MODE_MULTIROOM))
-
         mode_box.Add(self.mixer_mode_radio, 0, wx.ALL, 5)
         mode_box.Add(self.solo_mode_radio, 0, wx.ALL, 5)
         mode_box.Add(self.auto_mode_radio, 0, wx.ALL, 5)
         mode_box.Add(self.multiroom_mode_radio, 0, wx.ALL, 5)
-
         mode_panel_sizer.Add(mode_box, 1, wx.EXPAND)
         mode_panel.SetSizer(mode_panel_sizer)
-        sizer.Add(mode_panel, 0, wx.ALL, 5)
+        return mode_panel
 
-        # Global playback controls
-        playback_panel = wx.Panel(panel)
+    def _create_global_playback_panel(self, parent):
+        """Create global playback controls."""
+        playback_panel = wx.Panel(parent)
         playback_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         playback_box = wx.StaticBoxSizer(wx.VERTICAL, playback_panel, label=_("Global Playback"))
         playback_static_box = playback_box.GetStaticBox()
-
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
         self.global_play_pause_btn = wx.Button(playback_static_box, label=_("Play All"))
         self.global_play_pause_btn.SetToolTip(_("Play/Pause all decks"))
         self.global_play_pause_btn.Bind(wx.EVT_BUTTON, self._on_global_play_pause)
         button_sizer.Add(self.global_play_pause_btn, 0, wx.ALL, 5)
-
         self.global_stop_btn = wx.Button(playback_static_box, label=_("Stop All"))
         self.global_stop_btn.SetToolTip(_("Stop all decks and reset positions"))
         self.global_stop_btn.Bind(wx.EVT_BUTTON, self._on_global_stop)
         button_sizer.Add(self.global_stop_btn, 0, wx.ALL, 5)
-
         playback_box.Add(button_sizer, 0, wx.EXPAND)
-
         self.active_stream_cb = wx.CheckBox(playback_static_box, label=_("Enable Livestream"))
         self.active_stream_cb.SetName(_("Enable Livestream"))
         self.active_stream_cb.Bind(wx.EVT_CHECKBOX, self._on_active_stream_change)
         playback_box.Add(self.active_stream_cb, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
-
         playback_panel_sizer.Add(playback_box, 1, wx.EXPAND)
         playback_panel.SetSizer(playback_panel_sizer)
-        sizer.Add(playback_panel, 0, wx.ALL, 5)
+        return playback_panel
 
-        # Master volume
-        volume_panel = wx.Panel(panel)
+    def _create_master_volume_panel(self, parent):
+        """Create master volume controls."""
+        volume_panel = wx.Panel(parent)
         volume_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         volume_box = wx.StaticBoxSizer(wx.VERTICAL, volume_panel, label=_("Master Volume"))
         volume_static_box = volume_box.GetStaticBox()
-
         volume_header = wx.BoxSizer(wx.HORIZONTAL)
         volume_label = wx.StaticText(volume_static_box, label=_("Master Volume"))
         volume_header.Add(volume_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
@@ -343,7 +341,6 @@ class MainFrame(wx.Frame):
         self.master_volume_value_label = wx.StaticText(volume_static_box, label="80%")
         volume_header.Add(self.master_volume_value_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         volume_box.Add(volume_header, 0, wx.EXPAND)
-
         master_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.master_volume_slider = wx.Slider(
             volume_static_box, value=80, minValue=0, maxValue=100,
@@ -351,32 +348,49 @@ class MainFrame(wx.Frame):
         )
         self.master_volume_slider.Bind(wx.EVT_SLIDER, self._on_master_volume_change)
         master_sizer.Add(self.master_volume_slider, 1, wx.EXPAND | wx.ALL, 5)
-
         volume_box.Add(master_sizer, 0, wx.EXPAND)
         volume_panel_sizer.Add(volume_box, 1, wx.EXPAND)
         volume_panel.SetSizer(volume_panel_sizer)
-        sizer.Add(volume_panel, 1, wx.ALL | wx.EXPAND, 5)
-
-        panel.SetSizer(sizer)
-        return panel
+        return volume_panel
 
     def _create_active_deck_panel(self, parent):
         """Create the active deck control panel with listbox and controls"""
         panel = wx.Panel(parent)
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        # Left side: Deck listbox
-        list_panel = wx.Panel(panel)
+        list_panel = self._create_deck_selection_panel(panel)
+        main_sizer.Add(list_panel, 5, wx.EXPAND | wx.ALL, 5)
+
+        controls_panel = self._create_active_deck_controls_panel(panel)
+        main_sizer.Add(controls_panel, 7, wx.EXPAND | wx.ALL, 5)
+
+        panel.SetSizer(main_sizer)
+        return panel
+
+    def _create_deck_selection_panel(self, parent):
+        """Create the deck selection list panel."""
+        list_panel = wx.Panel(parent)
         list_panel.SetName(_("Deck Selection"))
         list_panel.SetLabel(_("Deck Selection"))
         list_panel.SetMinSize((360, -1))
+
         list_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         list_box = wx.StaticBoxSizer(wx.VERTICAL, list_panel, label=_("Deck Selection") + " (F6)")
         list_static_box = list_box.GetStaticBox()
 
+        self._create_deck_listbox(list_static_box)
+        deck_list_control = self.deck_listbox.GetControl() if self.deck_list_style == "detailed" else self.deck_listbox
+        list_box.Add(deck_list_control, 1, wx.EXPAND | wx.ALL, 5)
+
+        list_panel_sizer.Add(list_box, 1, wx.EXPAND)
+        list_panel.SetSizer(list_panel_sizer)
+        return list_panel
+
+    def _create_deck_listbox(self, parent):
+        """Create the configured deck listbox implementation."""
         if self.deck_list_style == "detailed":
             self.deck_listbox = UniversalListCtrl(
-                list_static_box,
+                parent,
                 style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_SUNKEN
             )
             self.deck_listbox.InsertColumn(0, _("Status"), width=80)
@@ -387,65 +401,82 @@ class MainFrame(wx.Frame):
             self.deck_listbox.control.SetName(_("Deck Selection"))
             self.deck_listbox.control.SetLabel(_("Deck Selection"))
         else:
-            self.deck_listbox = wx.ListBox(list_static_box, style=wx.LB_SINGLE)
+            self.deck_listbox = wx.ListBox(parent, style=wx.LB_SINGLE)
             self.deck_listbox.Bind(wx.EVT_LISTBOX, self._on_deck_listbox_select)
             self.deck_listbox.SetName(_("Deck Selection"))
             self.deck_listbox.SetLabel(_("Deck Selection"))
+
         self.deck_listbox.Bind(wx.EVT_CONTEXT_MENU, self._on_deck_context_menu)
-        # Use CHAR_HOOK to intercept Enter before native ListBox processing
         self.deck_listbox.Bind(wx.EVT_CHAR_HOOK, self._on_deck_listbox_key)
-        
-        list_box.Add(self.deck_listbox.GetControl(), 1, wx.EXPAND | wx.ALL, 5) if self.deck_list_style == "detailed" else list_box.Add(self.deck_listbox, 1, wx.EXPAND | wx.ALL, 5)
 
-        list_panel_sizer.Add(list_box, 1, wx.EXPAND)
-        list_panel.SetSizer(list_panel_sizer)
-        main_sizer.Add(list_panel, 5, wx.EXPAND | wx.ALL, 5)
-
-        # Right side: Controls for active deck
-        controls_panel = wx.Panel(panel)
+    def _create_active_deck_controls_panel(self, parent):
+        """Create the right-side active deck controls panel."""
+        controls_panel = wx.Panel(parent)
         controls_panel.SetMinSize((420, -1))
         controls_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         controls_box = wx.StaticBoxSizer(wx.VERTICAL, controls_panel, label=_("Active Deck Controls"))
         controls_static_box = controls_box.GetStaticBox()
 
-        # Deck name/status display
-        self.active_deck_label = wx.StaticText(controls_static_box, label=_("No deck selected"))
+        self._create_active_deck_header(controls_static_box, controls_box)
+        controls_box.Add(self._create_active_deck_button_sizer(controls_static_box), 0, wx.EXPAND)
+
+        controls_grid = self._create_active_deck_control_grid(controls_static_box)
+        level_panel = self._create_active_deck_level_panel(controls_static_box)
+        controls_box.Add(controls_grid, 0, wx.EXPAND | wx.TOP, 5)
+        controls_box.Add(level_panel, 0, wx.EXPAND | wx.TOP, 10)
+
+        controls_panel_sizer.Add(controls_box, 1, wx.EXPAND)
+        controls_panel.SetSizer(controls_panel_sizer)
+        controls_panel.Bind(wx.EVT_SIZE, self._on_active_controls_resize)
+        return controls_panel
+
+    def _create_active_deck_header(self, parent, sizer):
+        """Create active deck title and status text."""
+        self.active_deck_label = wx.StaticText(parent, label=_("No deck selected"))
         font = self.active_deck_label.GetFont()
         font.SetWeight(wx.FONTWEIGHT_BOLD)
         font.SetPointSize(font.GetPointSize() + 2)
         self.active_deck_label.SetFont(font)
-        controls_box.Add(self.active_deck_label, 0, wx.ALL, 5)
+        sizer.Add(self.active_deck_label, 0, wx.ALL, 5)
 
-        self.active_deck_status = wx.StaticText(controls_static_box, label="")
+        self.active_deck_status = wx.StaticText(parent, label="")
         self.active_deck_status.SetMinSize((-1, 44))
-        controls_box.Add(self.active_deck_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+        sizer.Add(self.active_deck_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
-        # Playback buttons
+    def _create_active_deck_button_sizer(self, parent):
+        """Create active deck playback/menu buttons."""
         button_sizer = wx.GridSizer(rows=1, cols=3, vgap=8, hgap=8)
 
-        self.active_play_btn = wx.Button(controls_static_box, label=_("Play"))
+        self.active_play_btn = wx.Button(parent, label=_("Play"))
         self.active_play_btn.SetName(_("Play"))
         self.active_play_btn.Bind(wx.EVT_BUTTON, self._on_active_play_pause)
         button_sizer.Add(self.active_play_btn, 1, wx.ALL, 5)
 
-        self.active_stop_btn = wx.Button(controls_static_box, label=_("Stop"))
+        self.active_stop_btn = wx.Button(parent, label=_("Stop"))
         self.active_stop_btn.SetName(_("Stop"))
         self.active_stop_btn.Bind(wx.EVT_BUTTON, self._on_active_stop)
         button_sizer.Add(self.active_stop_btn, 1, wx.ALL, 5)
 
-        self.active_menu_btn = wx.Button(controls_static_box, label=_("Menu") + "...")
+        self.active_menu_btn = wx.Button(parent, label=_("Menu") + "...")
         self.active_menu_btn.SetName(_("Menu") + "...")
         self.active_menu_btn.Bind(wx.EVT_BUTTON, self._on_active_menu)
         button_sizer.Add(self.active_menu_btn, 1, wx.ALL, 5)
+        return button_sizer
 
-        controls_box.Add(button_sizer, 0, wx.EXPAND)
-
-        # Compact control grid for the active deck
+    def _create_active_deck_control_grid(self, parent):
+        """Create the compact grid for deck controls."""
         controls_grid = wx.FlexGridSizer(rows=2, cols=2, vgap=10, hgap=10)
         controls_grid.AddGrowableCol(0, 1)
         controls_grid.AddGrowableCol(1, 1)
+        controls_grid.Add(self._create_active_deck_volume_panel(parent), 1, wx.EXPAND)
+        controls_grid.Add(self._create_active_deck_balance_panel(parent), 1, wx.EXPAND)
+        controls_grid.Add(self._create_active_deck_options_panel(parent), 1, wx.EXPAND)
+        controls_grid.Add(self._create_active_deck_position_panel(parent), 1, wx.EXPAND)
+        return controls_grid
 
-        volume_panel = wx.Panel(controls_static_box)
+    def _create_active_deck_volume_panel(self, parent):
+        """Create the active deck volume control panel."""
+        volume_panel = wx.Panel(parent)
         volume_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         volume_box = wx.StaticBoxSizer(wx.VERTICAL, volume_panel, label=_("Volume"))
         volume_static_box = volume_box.GetStaticBox()
@@ -466,9 +497,11 @@ class MainFrame(wx.Frame):
         volume_box.Add(self.active_volume_slider, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
         volume_panel_sizer.Add(volume_box, 1, wx.EXPAND)
         volume_panel.SetSizer(volume_panel_sizer)
-        controls_grid.Add(volume_panel, 1, wx.EXPAND)
+        return volume_panel
 
-        balance_panel = wx.Panel(controls_static_box)
+    def _create_active_deck_balance_panel(self, parent):
+        """Create the active deck balance control panel."""
+        balance_panel = wx.Panel(parent)
         balance_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         balance_box = wx.StaticBoxSizer(wx.VERTICAL, balance_panel, label=_("Balance"))
         balance_static_box = balance_box.GetStaticBox()
@@ -489,9 +522,11 @@ class MainFrame(wx.Frame):
         balance_box.Add(self.active_balance_slider, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
         balance_panel_sizer.Add(balance_box, 1, wx.EXPAND)
         balance_panel.SetSizer(balance_panel_sizer)
-        controls_grid.Add(balance_panel, 1, wx.EXPAND)
+        return balance_panel
 
-        options_panel = wx.Panel(controls_static_box)
+    def _create_active_deck_options_panel(self, parent):
+        """Create active deck option checkboxes."""
+        options_panel = wx.Panel(parent)
         options_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         options_box = wx.StaticBoxSizer(wx.VERTICAL, options_panel, label=_("Options"))
         options_static_box = options_box.GetStaticBox()
@@ -508,31 +543,27 @@ class MainFrame(wx.Frame):
 
         options_panel_sizer.Add(options_box, 1, wx.EXPAND)
         options_panel.SetSizer(options_panel_sizer)
-        controls_grid.Add(options_panel, 1, wx.EXPAND)
+        return options_panel
 
-        # Position/Seek slider (only for local files)
-        position_panel = wx.Panel(controls_static_box)
+    def _create_active_deck_position_panel(self, parent):
+        """Create active deck position controls."""
+        position_panel = wx.Panel(parent)
         position_panel.SetLabel(_("Position"))
         position_panel.SetName(_("Position"))
         position_panel_sizer = wx.BoxSizer(wx.VERTICAL)
         position_box = wx.StaticBoxSizer(wx.VERTICAL, position_panel, label=_("Position"))
         position_static_box = position_box.GetStaticBox()
 
-        # Time display
         time_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.active_position_label = wx.StaticText(position_static_box, label="0:00")
         self.active_position_label.SetName(_("Current position"))
         time_sizer.Add(self.active_position_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-
         time_sizer.AddStretchSpacer()
-
         self.active_duration_label = wx.StaticText(position_static_box, label="0:00")
         self.active_duration_label.SetName(_("Total duration"))
         time_sizer.Add(self.active_duration_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-
         position_box.Add(time_sizer, 0, wx.EXPAND)
 
-        # Position slider
         self.active_position_slider = wx.Slider(
             position_static_box, value=0, minValue=0, maxValue=1000,
             style=wx.SL_HORIZONTAL
@@ -545,10 +576,11 @@ class MainFrame(wx.Frame):
 
         position_panel_sizer.Add(position_box, 1, wx.EXPAND)
         position_panel.SetSizer(position_panel_sizer)
-        controls_grid.Add(position_panel, 1, wx.EXPAND)
+        return position_panel
 
-        # Level meter
-        level_panel = wx.Panel(controls_static_box)
+    def _create_active_deck_level_panel(self, parent):
+        """Create active deck level meter controls."""
+        level_panel = wx.Panel(parent)
         level_panel.SetLabel(_("Level"))
         level_panel.SetName(_("Level"))
         level_panel_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -571,17 +603,7 @@ class MainFrame(wx.Frame):
         show_level = self.config_manager.getboolean('UI', 'show_level_meter', True)
         if not show_level:
             level_panel.Hide()
-
-        controls_box.Add(controls_grid, 0, wx.EXPAND | wx.TOP, 5)
-        controls_box.Add(level_panel, 0, wx.EXPAND | wx.TOP, 10)
-
-        controls_panel_sizer.Add(controls_box, 1, wx.EXPAND)
-        controls_panel.SetSizer(controls_panel_sizer)
-        controls_panel.Bind(wx.EVT_SIZE, self._on_active_controls_resize)
-        main_sizer.Add(controls_panel, 7, wx.EXPAND | wx.ALL, 5)
-
-        panel.SetSizer(main_sizer)
-        return panel
+        return level_panel
 
     def _set_active_volume_value_label(self, value):
         """Update the text label that mirrors the volume slider value."""
@@ -2262,134 +2284,104 @@ class MainFrame(wx.Frame):
         for i in range(1, num_decks + 1):
             digit = i % 10
             key = ord(str(digit)) if digit != 0 else ord('0')
-            accel_id = wx.NewIdRef()
             if i <= 10:
                 modifiers = wx.ACCEL_CTRL
             else:
                 modifiers = wx.ACCEL_CTRL | wx.ACCEL_ALT
-            accel_entries.append(wx.AcceleratorEntry(modifiers, key, accel_id))
-            self.Bind(wx.EVT_MENU, lambda e, deck_idx=i-1: self._on_deck_shortcut(deck_idx), id=accel_id)
+            self._add_keyboard_shortcut(
+                accel_entries,
+                modifiers,
+                key,
+                lambda e, deck_idx=i-1: self._on_deck_shortcut(deck_idx)
+            )
 
         # Ctrl+Tab / Ctrl+Shift+Tab for next/previous deck
-        next_id = wx.NewIdRef()
-        prev_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_TAB, next_id))
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL | wx.ACCEL_SHIFT, wx.WXK_TAB, prev_id))
-        self.Bind(wx.EVT_MENU, self._on_next_deck, id=next_id)
-        self.Bind(wx.EVT_MENU, self._on_previous_deck, id=prev_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, wx.WXK_TAB, self._on_next_deck)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL | wx.ACCEL_SHIFT, wx.WXK_TAB, self._on_previous_deck)
 
         # F3-F7 for mode selection
-        mode_mixer_id = wx.NewIdRef()
-        mode_solo_id = wx.NewIdRef()
-        mode_auto_id = wx.NewIdRef()
-        mode_multiroom_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F3, mode_mixer_id))
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F4, mode_solo_id))
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F5, mode_auto_id))
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F7, mode_multiroom_id))
-        self.Bind(wx.EVT_MENU, lambda e: self._set_mode_with_ui(MODE_MIXER), id=mode_mixer_id)
-        self.Bind(wx.EVT_MENU, lambda e: self._set_mode_with_ui(MODE_SOLO), id=mode_solo_id)
-        self.Bind(wx.EVT_MENU, lambda e: self._set_mode_with_ui(MODE_AUTOMATIC), id=mode_auto_id)
-        self.Bind(wx.EVT_MENU, lambda e: self._set_mode_with_ui(MODE_MULTIROOM), id=mode_multiroom_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F3, lambda e: self._set_mode_with_ui(MODE_MIXER))
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F4, lambda e: self._set_mode_with_ui(MODE_SOLO))
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F5, lambda e: self._set_mode_with_ui(MODE_AUTOMATIC))
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F7, lambda e: self._set_mode_with_ui(MODE_MULTIROOM))
 
         # Ctrl+M for mute active deck
-        mute_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('M'), mute_id))
-        self.Bind(wx.EVT_MENU, self._on_mute_active_deck, id=mute_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('M'), self._on_mute_active_deck)
 
         # Ctrl+L for loop active deck
-        loop_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('L'), loop_id))
-        self.Bind(wx.EVT_MENU, self._on_loop_active_deck, id=loop_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('L'), self._on_loop_active_deck)
 
         # Ctrl+R for recorder toggle
-        record_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('R'), record_id))
-        self.Bind(wx.EVT_MENU, self._on_toggle_recording, id=record_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('R'), self._on_toggle_recording)
 
         # Ctrl+Shift+R for per-deck recording toggle
-        deck_record_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL | wx.ACCEL_SHIFT, ord('R'), deck_record_id))
-        self.Bind(wx.EVT_MENU, self._on_toggle_deck_recording_shortcut, id=deck_record_id)
+        self._add_keyboard_shortcut(
+            accel_entries,
+            wx.ACCEL_CTRL | wx.ACCEL_SHIFT,
+            ord('R'),
+            self._on_toggle_deck_recording_shortcut
+        )
 
         # F6 for jump to deck list (accessibility standard)
-        jump_f6_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F6, jump_f6_id))
-        self.Bind(wx.EVT_MENU, self._on_jump_to_deck_list, id=jump_f6_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F6, self._on_jump_to_deck_list)
 
         # Ctrl+F for load file
-        load_file_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('F'), load_file_id))
-        self.Bind(wx.EVT_MENU, self._on_shortcut_load_file, id=load_file_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('F'), self._on_shortcut_load_file)
 
         # Ctrl+U for load URL
-        load_url_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('U'), load_url_id))
-        self.Bind(wx.EVT_MENU, self._on_shortcut_load_url, id=load_url_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('U'), self._on_shortcut_load_url)
 
         # Ctrl+D for load soundcard input
-        load_input_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('D'), load_input_id))
-        self.Bind(wx.EVT_MENU, self._on_shortcut_load_soundcard_input, id=load_input_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('D'), self._on_shortcut_load_soundcard_input)
 
         # F2 for rename deck
-        rename_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F2, rename_id))
-        self.Bind(wx.EVT_MENU, self._on_shortcut_rename, id=rename_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F2, self._on_shortcut_rename)
 
         # Delete for unload deck
-        unload_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_DELETE, unload_id))
-        self.Bind(wx.EVT_MENU, self._on_shortcut_unload, id=unload_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_DELETE, self._on_shortcut_unload)
 
         # Ctrl+Up/Down for deck volume
-        vol_up_id = wx.NewIdRef()
-        vol_down_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_UP, vol_up_id))
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_DOWN, vol_down_id))
-        self.Bind(wx.EVT_MENU, lambda e: self._on_deck_volume_change(5), id=vol_up_id)
-        self.Bind(wx.EVT_MENU, lambda e: self._on_deck_volume_change(-5), id=vol_down_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, wx.WXK_UP, lambda e: self._on_deck_volume_change(5))
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, wx.WXK_DOWN, lambda e: self._on_deck_volume_change(-5))
 
         # Ctrl+Left/Right for deck balance
-        bal_left_id = wx.NewIdRef()
-        bal_right_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_LEFT, bal_left_id))
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_RIGHT, bal_right_id))
-        self.Bind(wx.EVT_MENU, lambda e: self._on_deck_balance_change(-5), id=bal_left_id)
-        self.Bind(wx.EVT_MENU, lambda e: self._on_deck_balance_change(5), id=bal_right_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, wx.WXK_LEFT, lambda e: self._on_deck_balance_change(-5))
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, wx.WXK_RIGHT, lambda e: self._on_deck_balance_change(5))
 
         # Ctrl+Shift+Up/Down for master volume
-        master_up_id = wx.NewIdRef()
-        master_down_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL | wx.ACCEL_SHIFT, wx.WXK_UP, master_up_id))
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL | wx.ACCEL_SHIFT, wx.WXK_DOWN, master_down_id))
-        self.Bind(wx.EVT_MENU, lambda e: self._on_master_volume_shortcut(5), id=master_up_id)
-        self.Bind(wx.EVT_MENU, lambda e: self._on_master_volume_shortcut(-5), id=master_down_id)
+        self._add_keyboard_shortcut(
+            accel_entries,
+            wx.ACCEL_CTRL | wx.ACCEL_SHIFT,
+            wx.WXK_UP,
+            lambda e: self._on_master_volume_shortcut(5)
+        )
+        self._add_keyboard_shortcut(
+            accel_entries,
+            wx.ACCEL_CTRL | wx.ACCEL_SHIFT,
+            wx.WXK_DOWN,
+            lambda e: self._on_master_volume_shortcut(-5)
+        )
 
         # Alt+Left/Right for seek ±5 seconds
-        seek_fwd_id = wx.NewIdRef()
-        seek_bwd_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_ALT, wx.WXK_RIGHT, seek_fwd_id))
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_ALT, wx.WXK_LEFT, seek_bwd_id))
-        self.Bind(wx.EVT_MENU, self._on_seek_forward, id=seek_fwd_id)
-        self.Bind(wx.EVT_MENU, self._on_seek_backward, id=seek_bwd_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_ALT, wx.WXK_RIGHT, self._on_seek_forward)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_ALT, wx.WXK_LEFT, self._on_seek_backward)
 
         # Alt+Shift+Left/Right for seek ±30 seconds
-        seek_fwd_large_id = wx.NewIdRef()
-        seek_bwd_large_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_ALT | wx.ACCEL_SHIFT, wx.WXK_RIGHT, seek_fwd_large_id))
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_ALT | wx.ACCEL_SHIFT, wx.WXK_LEFT, seek_bwd_large_id))
-        self.Bind(wx.EVT_MENU, self._on_seek_forward_large, id=seek_fwd_large_id)
-        self.Bind(wx.EVT_MENU, self._on_seek_backward_large, id=seek_bwd_large_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_ALT | wx.ACCEL_SHIFT, wx.WXK_RIGHT, self._on_seek_forward_large)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_ALT | wx.ACCEL_SHIFT, wx.WXK_LEFT, self._on_seek_backward_large)
 
         # Ctrl+J for jump to time
-        jump_time_id = wx.NewIdRef()
-        accel_entries.append(wx.AcceleratorEntry(wx.ACCEL_CTRL, ord('J'), jump_time_id))
-        self.Bind(wx.EVT_MENU, self._on_jump_to_time, id=jump_time_id)
+        self._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('J'), self._on_jump_to_time)
 
         # Set accelerator table
         accel_table = wx.AcceleratorTable(accel_entries)
         self.SetAcceleratorTable(accel_table)
+
+    def _add_keyboard_shortcut(self, accel_entries, modifiers, key_code, handler):
+        """Register one keyboard accelerator and bind it to a handler."""
+        accel_id = wx.NewIdRef()
+        accel_entries.append(wx.AcceleratorEntry(modifiers, key_code, accel_id))
+        self.Bind(wx.EVT_MENU, handler, id=accel_id)
 
     def _on_deck_shortcut(self, deck_index):
         """Handle Ctrl+N deck shortcut"""
