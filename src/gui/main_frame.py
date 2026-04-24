@@ -109,7 +109,7 @@ class MainFrame(wx.Frame):
         wx.CallAfter(self._apply_current_theme)
 
         # Setup keyboard shortcuts
-        self._setup_keyboard_shortcuts()
+        setup_keyboard_shortcuts(self)
 
         # Bind close event
         self.Bind(wx.EVT_CLOSE, self._on_close)
@@ -137,13 +137,13 @@ class MainFrame(wx.Frame):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Mixer controls at top
-        mixer_panel = self._create_mixer_panel(panel)
+        mixer_panel = create_mixer_panel(self, panel)
         main_sizer.Add(mixer_panel, 0, wx.EXPAND | wx.ALL, 5)
 
         main_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.ALL, 5)
 
         # Active deck control panel with deck selection list
-        active_deck_panel = self._create_active_deck_panel(panel)
+        active_deck_panel = create_active_deck_panel(self, panel)
         main_sizer.Add(active_deck_panel, 1, wx.EXPAND | wx.ALL, 5)
 
         panel.SetSizer(main_sizer)
@@ -158,14 +158,6 @@ class MainFrame(wx.Frame):
             if self.deck_listbox.GetCount() > 0:
                 self.deck_listbox.SetSelection(0)
                 self._update_active_deck_controls()
-
-    def _create_mixer_panel(self, parent):
-        """Create mixer control panel"""
-        return create_mixer_panel(self, parent)
-
-    def _create_active_deck_panel(self, parent):
-        """Create the active deck control panel with listbox and controls"""
-        return create_active_deck_panel(self, parent)
 
     def _set_active_volume_value_label(self, value):
         """Update the text label that mirrors the volume slider value."""
@@ -1682,10 +1674,6 @@ class MainFrame(wx.Frame):
     def _on_exit(self, event):
         """Handle exit"""
         self.Close()
-
-    def _setup_keyboard_shortcuts(self):
-        """Setup keyboard accelerators"""
-        return setup_keyboard_shortcuts(self)
 
     def _add_keyboard_shortcut(self, accel_entries, modifiers, key_code, handler):
         """Register one keyboard accelerator and bind it to a handler."""
