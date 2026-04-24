@@ -98,6 +98,7 @@ class MainFrame(wx.Frame):
         self._create_menu_bar()
         self._create_ui()
         self._create_status_bar()
+        self._update_streaming_ui()
 
         # Set initial focus to deck list after UI is fully built
         wx.CallAfter(self.deck_listbox.control.SetFocus) if self.deck_list_style == "detailed" else wx.CallAfter(self.deck_listbox.SetFocus)
@@ -511,7 +512,6 @@ class MainFrame(wx.Frame):
             self.active_position_slider.Enable(False)
             self.active_position_label.SetLabel("--:--")
             self.active_duration_label.SetLabel("--:--")
-            self._update_livestream_control()
             self._wrap_active_deck_status()
             self._update_deck_menu_items()
             return
@@ -571,7 +571,6 @@ class MainFrame(wx.Frame):
         # Update checkboxes
         self.active_mute_cb.SetValue(deck.mute)
         self.active_loop_cb.SetValue(deck.loop)
-        self._update_livestream_control()
 
         # Update position slider and time display
         self._update_position_display(deck)
@@ -595,7 +594,6 @@ class MainFrame(wx.Frame):
         has_deck = deck is not None
         is_loaded = has_deck and deck.state != DECK_STATE_EMPTY
         is_recording = has_deck and self.mixer.is_deck_recording(deck.deck_id)
-        can_stream = has_deck and self._can_start_livestream()
 
         self.load_file_item.Enable(has_deck)
         self.load_url_item.Enable(has_deck)
@@ -609,21 +607,35 @@ class MainFrame(wx.Frame):
             self.record_deck_menu_item.SetItemLabel(_("Stop Recording Deck") + "\tCtrl+Shift+R")
         else:
             self.record_deck_menu_item.SetItemLabel(_("Start Recording Deck") + "\tCtrl+Shift+R")
-        stream_label = _("Stop Livestream") + "\tF8" if self.streamer.is_streaming else _("Start Livestream") + "\tF8"
-        self.stream_menu_item.SetItemLabel(stream_label)
+
+    def _update_streaming_ui(self):
+        """Update only the UI elements that control the master livestream."""
         self._update_livestream_control()
+        self._update_stream_menu_item()
 
     def _update_livestream_control(self):
-        """Update the global livestream checkbox without tying it to deck selection."""
+        """Update the global livestream checkbox state."""
         if not hasattr(self, 'active_stream_cb'):
             return
         self.active_stream_cb.SetValue(self.streamer.is_streaming)
         self.active_stream_cb.Enable(self._can_start_livestream())
 
+    def _update_stream_menu_item(self):
+        """Update the Tools menu entry for the master livestream."""
+        if not hasattr(self, 'stream_menu_item'):
+            return
+        stream_label = _("Stop Livestream") + "\tF8" if self.streamer.is_streaming else _("Start Livestream") + "\tF8"
+        self.stream_menu_item.SetItemLabel(stream_label)
+        self.stream_menu_item.Enable(self._can_start_livestream())
+
     def _on_menu_open(self, event):
         """Refresh menu state just before a menu is shown."""
         if hasattr(self, 'deck_menu') and event.GetMenu() is self.deck_menu:
             self._update_deck_menu_items()
+        if hasattr(self, 'stream_menu_item'):
+            tools_menu = self.stream_menu_item.GetMenu()
+            if tools_menu and event.GetMenu() is tools_menu:
+                self._update_streaming_ui()
         event.Skip()
 
     def _on_selected_deck_load_file(self, event):
@@ -853,7 +865,7 @@ class MainFrame(wx.Frame):
             self._mark_project_modified()
 
     def _on_active_stream_change(self, event):
-        """Handle livestream toggle from the active deck controls."""
+        """Handle livestream toggle from the global playback controls."""
         should_stream = self.active_stream_cb.GetValue()
         if should_stream == self.streamer.is_streaming:
             return
@@ -1560,8 +1572,7 @@ class MainFrame(wx.Frame):
                 _("Streaming Error"),
                 wx.OK | wx.ICON_ERROR
             )
-        self._update_deck_menu_items()
-        self._update_active_deck_controls()
+        self._update_streaming_ui()
 
     def apply_tts_settings(self):
         """Apply TTS settings from config to the TTS manager"""
@@ -1838,8 +1849,7 @@ class MainFrame(wx.Frame):
         """Handle livestream start on the GUI thread."""
         self.SetStatusText(message, 0)
         self.tts_manager.speak(message)
-        self._update_deck_menu_items()
-        self._update_active_deck_controls()
+        self._update_streaming_ui()
 
     def _on_streaming_stopped(self, stream_url, frames):
         """Callback when livestreaming stops."""
@@ -1849,8 +1859,7 @@ class MainFrame(wx.Frame):
         """Handle livestream stop on the GUI thread."""
         self.SetStatusText(_("Livestream stopped"), 0)
         self.tts_manager.speak(_("Livestream stopped"))
-        self._update_deck_menu_items()
-        self._update_active_deck_controls()
+        self._update_streaming_ui()
 
     def _on_streaming_error(self, message):
         """Handle livestream errors."""
@@ -1859,8 +1868,7 @@ class MainFrame(wx.Frame):
     def _handle_streaming_error(self, message):
         """Handle livestream errors on the GUI thread."""
         self.SetStatusText(message, 0)
-        self._update_deck_menu_items()
-        self._update_active_deck_controls()
+        self._update_streaming_ui()
 
     # --- Per-deck recording ---
 
@@ -1934,15 +1942,13 @@ class MainFrame(wx.Frame):
                     wx.OK | wx.ICON_ERROR
                 )
             return False
-        self._update_deck_menu_items()
-        self._update_active_deck_controls()
+        self._update_streaming_ui()
         return True
 
     def _stop_livestream(self):
         """Stop the master livestream."""
         self.streamer.stop_streaming()
-        self._update_deck_menu_items()
-        self._update_active_deck_controls()
+        self._update_streaming_ui()
 
     def _on_toggle_livestream(self, event):
         """Toggle the master livestream from menus."""
