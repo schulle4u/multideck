@@ -164,7 +164,7 @@ class OptionsDialog(wx.Dialog):
         # Bind change events on all controls to update Apply button state
         # Note: theme_choice is excluded here because it already has a dedicated
         # handler (_on_theme_change) for live preview, which also updates Apply state.
-        for ctrl in (self.language_choice, self.list_style_choice,
+        for ctrl in (self.language_choice,
                      self.device_choice, self.buffer_choice, self.rate_choice,
                      self.format_choice, self.bitrate_choice, self.depth_choice,
                      self.stream_codec_choice, self.stream_bitrate_choice):
@@ -230,24 +230,6 @@ class OptionsDialog(wx.Dialog):
         deck_sizer.Add(self.deck_count_spin, 1, wx.EXPAND | wx.ALL, 5)
 
         sizer.Add(deck_sizer, 0, wx.EXPAND | wx.ALL, 5)
-
-        # Deck list style
-        list_style_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        list_style_label = wx.StaticText(panel, label=_("Deck list style") + ":")
-        list_style_sizer.Add(list_style_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
-
-        current_list_style = self.config_manager.get('General', 'deck_list_style', 'compact')
-        list_style_choices = [_("Compact"), _("Detailed")]
-        list_style_values = ['compact', 'detailed']
-
-        self.list_style_choice = wx.Choice(panel, choices=list_style_choices)
-        self.list_style_choice.SetName(_("Deck list style"))
-        if current_list_style in list_style_values:
-            self.list_style_choice.SetSelection(list_style_values.index(current_list_style))
-        self.list_style_values = list_style_values
-        list_style_sizer.Add(self.list_style_choice, 1, wx.EXPAND | wx.ALL, 5)
-
-        sizer.Add(list_style_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
         # Theme
         theme_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -854,7 +836,6 @@ class OptionsDialog(wx.Dialog):
                 self.language_choice.GetSelection(),
                 self.deck_count_spin.GetValue(),
                 self.theme_choice.GetSelection(),
-                self.list_style_choice.GetSelection(),
             ),
             'audio': (
                 self.device_choice.GetSelection(),
@@ -909,7 +890,6 @@ class OptionsDialog(wx.Dialog):
                 self.language_choice.GetSelection(),
                 self.deck_count_spin.GetValue(),
                 self.theme_choice.GetSelection(),
-                self.list_style_choice.GetSelection(),
             )
         elif tab_name == 'audio':
             return (
@@ -1010,23 +990,18 @@ class OptionsDialog(wx.Dialog):
         """Save general settings to config and return restart reasons"""
         old_language = self.config_manager.get('General', 'language', 'en')
         old_deck_count = self.config_manager.get('General', 'deck_count', '10')
-        old_deck_list_style = self.config_manager.get('General', 'deck_list_style', 'compact')
 
         languages = ['en', 'de']
         self.config_manager.set('General', 'language', languages[self.language_choice.GetSelection()])
         self.config_manager.set('General', 'deck_count', self.deck_count_spin.GetValue())
         self.config_manager.set('General', 'theme',
                                self.theme_values[self.theme_choice.GetSelection()])
-        self.config_manager.set('General', 'deck_list_style',
-                               self.list_style_values[self.list_style_choice.GetSelection()])
 
         restart_reasons = []
         if self.config_manager.get('General', 'language', 'en') != old_language:
             restart_reasons.append(_("Language"))
         if self.config_manager.get('General', 'deck_count', '10') != old_deck_count:
             restart_reasons.append(_("Number of decks"))
-        if self.config_manager.get('General', 'deck_list_style', 'compact') != old_deck_list_style:
-            restart_reasons.append(_("Deck list style"))
         return restart_reasons
 
     def _save_audio(self):

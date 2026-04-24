@@ -2,7 +2,6 @@
 language = en
 theme = dark
 deck_count = 10
-deck_list_style = compact
 
 [Audio]
 # Use "null" for livestream-only operation without a physical sound device

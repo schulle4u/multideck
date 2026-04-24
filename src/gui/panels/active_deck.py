@@ -33,7 +33,7 @@ def _create_deck_selection_panel(owner, parent):
     list_static_box = list_box.GetStaticBox()
 
     _create_deck_listbox(owner, list_static_box)
-    deck_list_control = owner.deck_listbox.GetControl() if owner.deck_list_style == "detailed" else owner.deck_listbox
+    deck_list_control = owner.deck_listbox.GetControl()
     list_box.Add(deck_list_control, 1, wx.EXPAND | wx.ALL, 5)
 
     list_panel_sizer.Add(list_box, 1, wx.EXPAND)
@@ -43,24 +43,17 @@ def _create_deck_selection_panel(owner, parent):
 
 def _create_deck_listbox(owner, parent):
     """Create the configured deck listbox implementation."""
-    if owner.deck_list_style == "detailed":
-        owner.deck_listbox = UniversalListCtrl(
-            parent,
-            style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_SUNKEN
-        )
-        owner.deck_listbox.InsertColumn(0, _("Status"), width=80)
-        owner.deck_listbox.InsertColumn(1, _("Deck"), width=wx.LIST_AUTOSIZE)
-        owner.deck_listbox.InsertColumn(2, _("File"), width=wx.LIST_AUTOSIZE)
-        owner.deck_listbox.InsertColumn(3, _("Output"), width=wx.LIST_AUTOSIZE)
-        owner.deck_listbox.Bind(wx.EVT_LIST_ITEM_SELECTED, owner._on_deck_listbox_select)
-        owner.deck_listbox.control.SetName(_("Deck Selection"))
-        owner.deck_listbox.control.SetLabel(_("Deck Selection"))
-    else:
-        owner.deck_listbox = wx.ListBox(parent, style=wx.LB_SINGLE)
-        owner.deck_listbox.Bind(wx.EVT_LISTBOX, owner._on_deck_listbox_select)
-        owner.deck_listbox.SetName(_("Deck Selection"))
-        owner.deck_listbox.SetLabel(_("Deck Selection"))
-
+    owner.deck_listbox = UniversalListCtrl(
+        parent,
+        style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_SUNKEN
+    )
+    owner.deck_listbox.InsertColumn(0, _("Status"), width=80)
+    owner.deck_listbox.InsertColumn(1, _("Deck"), width=wx.LIST_AUTOSIZE)
+    owner.deck_listbox.InsertColumn(2, _("File"), width=wx.LIST_AUTOSIZE)
+    owner.deck_listbox.InsertColumn(3, _("Output"), width=wx.LIST_AUTOSIZE)
+    owner.deck_listbox.Bind(wx.EVT_LIST_ITEM_SELECTED, owner._on_deck_listbox_select)
+    owner.deck_listbox.control.SetName(_("Deck Selection"))
+    owner.deck_listbox.control.SetLabel(_("Deck Selection"))
     owner.deck_listbox.Bind(wx.EVT_CONTEXT_MENU, owner._on_deck_context_menu)
     owner.deck_listbox.Bind(wx.EVT_CHAR_HOOK, owner._on_deck_listbox_key)
 
