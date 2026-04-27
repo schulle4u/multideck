@@ -11,6 +11,7 @@ from typing import Optional
 
 class I18n:
     """Internationalization manager"""
+    SYSTEM_LANGUAGE = 'system'
 
     def __init__(self, language: Optional[str] = None):
         """
@@ -20,9 +21,15 @@ class I18n:
             language: Language code (e.g., 'en', 'de') or None for system default
         """
         self.locale_dir = self._get_locale_dir()
-        self.language = language or self._get_system_language()
+        self.language = self._normalize_language(language)
         self.translation = None
         self._load_translation()
+
+    def _normalize_language(self, language: Optional[str]) -> str:
+        """Resolve stored language values to an actual language code."""
+        if not language or language == self.SYSTEM_LANGUAGE:
+            return self._get_system_language()
+        return language
 
     def _get_locale_dir(self) -> Path:
         """Get path to locale directory"""
@@ -76,7 +83,7 @@ class I18n:
         Args:
             language: Language code (e.g., 'en', 'de')
         """
-        self.language = language
+        self.language = self._normalize_language(language)
         self._load_translation()
 
     def gettext(self, message: str) -> str:
@@ -170,9 +177,3 @@ def _(message: str) -> str:
     """
     return get_i18n().gettext(message)
 
-
-# Language names for UI
-LANGUAGE_NAMES = {
-    'en': 'English',
-    'de': 'Deutsch',
-}

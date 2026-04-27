@@ -5,13 +5,14 @@ Options dialog for MultiDeck Audio Player
 import wx
 import sys
 import sounddevice as sd
-from utils.i18n import _, LANGUAGE_NAMES
-from config.defaults import VALID_DECK_RANGE
+from utils.i18n import _, I18n, get_i18n
+from config.defaults import LANGUAGE_NAMES, VALID_DECK_RANGE
 from utils.helpers import check_ffmpeg
 from gui.dialogs.custom import AccessibleSpinCtrl
 
 
 FFMPEG_AVAILABLE = check_ffmpeg()
+SYSTEM_LANGUAGE = I18n.SYSTEM_LANGUAGE
 
 
 class OptionsDialog(wx.Dialog):
@@ -207,12 +208,17 @@ class OptionsDialog(wx.Dialog):
         lang_sizer.Add(lang_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_lang = self.config_manager.get('General', 'language', 'en')
-        languages = ['en', 'de']
-        lang_choices = [LANGUAGE_NAMES.get(lang, lang) for lang in languages]
+        self.language_values = [SYSTEM_LANGUAGE] + get_i18n().get_available_languages()
+        lang_choices = [_("System language")] + [
+            LANGUAGE_NAMES.get(lang, lang) for lang in self.language_values[1:]
+        ]
 
         self.language_choice = wx.Choice(panel, choices=lang_choices)
         self.language_choice.SetName(_("Language"))
-        self.language_choice.SetSelection(languages.index(current_lang))
+        if current_lang in self.language_values:
+            self.language_choice.SetSelection(self.language_values.index(current_lang))
+        else:
+            self.language_choice.SetSelection(0)
         lang_sizer.Add(self.language_choice, 1, wx.EXPAND | wx.ALL, 5)
 
         sizer.Add(lang_sizer, 0, wx.EXPAND | wx.ALL, 5)
@@ -991,8 +997,11 @@ class OptionsDialog(wx.Dialog):
         old_language = self.config_manager.get('General', 'language', 'en')
         old_deck_count = self.config_manager.get('General', 'deck_count', '10')
 
-        languages = ['en', 'de']
-        self.config_manager.set('General', 'language', languages[self.language_choice.GetSelection()])
+        self.config_manager.set(
+            'General',
+            'language',
+            self.language_values[self.language_choice.GetSelection()]
+        )
         self.config_manager.set('General', 'deck_count', self.deck_count_spin.GetValue())
         self.config_manager.set('General', 'theme',
                                self.theme_values[self.theme_choice.GetSelection()])

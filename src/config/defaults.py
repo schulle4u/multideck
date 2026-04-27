@@ -4,7 +4,7 @@ Default configuration values for MultiDeck Audio Player
 
 DEFAULT_CONFIG = {
     'General': {
-        'language': 'en',
+        'language': 'system',
         'theme': 'system',
         'deck_count': 10,
     },
@@ -111,6 +111,13 @@ RECORDING_FORMATS = {
     'mp3': {'extension': '.mp3', 'name': 'MP3'},
     'ogg': {'extension': '.ogg', 'name': 'OGG Vorbis'},
     'flac': {'extension': '.flac', 'name': 'FLAC'},
+}
+
+# Language names for UI
+LANGUAGE_NAMES = {
+    'en': 'English',
+    'de': 'Deutsch',
+    'fr': 'Français',
 }
 
 # Valid deck range

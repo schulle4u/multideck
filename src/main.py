@@ -37,7 +37,9 @@ class MultiDeckApp(wx.App):
         config = ConfigManager()
 
         # Initialize internationalization
-        language = config.get('General', 'language', 'en')
+        language = config.get('General', 'language', 'system')
+        if language == 'system':
+            language = None
         initialize_i18n(language)
 
         # Create and show main frame
