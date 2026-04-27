@@ -207,7 +207,7 @@ class OptionsDialog(wx.Dialog):
         lang_label = wx.StaticText(panel, label=_("Language") + ":")
         lang_sizer.Add(lang_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        current_lang = self.config_manager.get('General', 'language', 'en')
+        current_lang = self.config_manager.get('General', 'language', 'system')
         self.language_values = [SYSTEM_LANGUAGE] + get_i18n().get_available_languages()
         lang_choices = [_("System language")] + [
             LANGUAGE_NAMES.get(lang, lang) for lang in self.language_values[1:]
@@ -994,7 +994,7 @@ class OptionsDialog(wx.Dialog):
 
     def _save_general(self):
         """Save general settings to config and return restart reasons"""
-        old_language = self.config_manager.get('General', 'language', 'en')
+        old_language = self.config_manager.get('General', 'language', 'system')
         old_deck_count = self.config_manager.get('General', 'deck_count', '10')
 
         self.config_manager.set(
@@ -1007,7 +1007,7 @@ class OptionsDialog(wx.Dialog):
                                self.theme_values[self.theme_choice.GetSelection()])
 
         restart_reasons = []
-        if self.config_manager.get('General', 'language', 'en') != old_language:
+        if self.config_manager.get('General', 'language', 'system') != old_language:
             restart_reasons.append(_("Language"))
         if self.config_manager.get('General', 'deck_count', '10') != old_deck_count:
             restart_reasons.append(_("Number of decks"))
