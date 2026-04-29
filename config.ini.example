@@ -2,7 +2,6 @@
 language = en
 theme = dark
 deck_count = 10
-deck_list_focus = True
 
 [Audio]
 # Use "null" for livestream-only operation without a physical sound device
@@ -22,10 +21,9 @@ level_hold_time = 3
 [UI]
 show_statusbar = true
 show_level_meter = true
+deck_list_focus = True
 window_width = 1936
 window_height = 1048
-window_x = 
-window_y = 
 
 [Recorder]
 format = wav

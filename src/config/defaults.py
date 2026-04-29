@@ -7,7 +7,6 @@ DEFAULT_CONFIG = {
         'language': 'system',
         'theme': 'system',
         'deck_count': 10,
-        'deck_list_focus': True,
     },
     'Audio': {
         'output_device': 'default',
@@ -26,6 +25,7 @@ DEFAULT_CONFIG = {
     'UI': {
         'show_statusbar': True,
         'show_level_meter': True,
+        'deck_list_focus': True,
         'window_width': 1200,
         'window_height': 800,
     },
