@@ -98,7 +98,9 @@ class MainFrame(wx.Frame):
         self._update_streaming_ui()
 
         # Set initial focus to deck list after UI is fully built
-        wx.CallAfter(self.deck_listbox.control.SetFocus)
+        deck_list_focus = self.config_manager.getboolean('General', 'deck_list_focus', True)
+        if deck_list_focus:
+            wx.CallAfter(self.deck_listbox.control.SetFocus)
 
         # Window settings
         self._apply_window_settings()

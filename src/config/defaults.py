@@ -7,6 +7,7 @@ DEFAULT_CONFIG = {
         'language': 'system',
         'theme': 'system',
         'deck_count': 10,
+        'deck_list_focus': True,
     },
     'Audio': {
         'output_device': 'default',
