@@ -28,8 +28,6 @@ DEFAULT_CONFIG = {
         'show_level_meter': True,
         'window_width': 1200,
         'window_height': 800,
-        'window_x': '',
-        'window_y': '',
     },
     'Recorder': {
         'format': 'wav',
