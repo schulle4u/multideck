@@ -124,13 +124,15 @@ See `docs` folder for complete keyboard reference.
 ```
 src/
 ├── main.py                    # Entry point
+├── cli.py                     # Command line interface
 ├── gui/                       # User interface components
 ├── audio/                     # Audio engine and deck logic
 ├── config/                    # Configuration management
 └── utils/                     # Utilities and i18n
 
-locale/                        # Translations (German, English)
+locale/                        # Translations
 docs/                          # Documentation
+tools/                         # Development helpers
 ```
 
 ## Requirements
