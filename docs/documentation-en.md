@@ -234,6 +234,30 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 * Rate: Words per minute, 0 for default.
 * Volume in percent, -1 for engine default.
 
+### Advanced configuration
+
+Some special options are only available in the file `config.ini` located in the program's directory or in MultiDeck's application data. 
+
+`[UI]`: 
+
+* `deck_list_focus`: Controls whether MultiDeck should set the keyboard focus on the deck list when it starts (Default: True). 
+* `window_width` and `window_height`: Saves window sizes on exit and ususaly don't need to be set manually. 
+
+Additional options in `[Streaming]` section:
+
+* `queue_blocks`: The size of the internal audio buffer for the live stream. Although a higher value can improve stability in the event of streaming issues, it also increases latency (Default: 128).
+* `writer_poll_ms`: This is how often the writer thread waits for new audio blocks. A lower value results in a more responsive behaviour, while a higher value results in slightly more lag (Default: 100).
+* `ffmpeg_close_timeout`: How long to wait for FFmpeg to terminate (Default: 5.0).
+* `ffmpeg_loglevel`: FFmpeg log level, e.g. quiet, error, warning, info. (Default: error).
+
+`[Recent]`: 
+
+* `max_recent_items`: Configures the maximum entries in recent files menu (Default: 10).
+
+`[Logging]`: 
+
+* `level`: The program's logging level, e.g. DEBUG, INFO, WARNING, ERROR, CRITICAL (Default: `INFO`).
+
 ## Audio Effects
 
 Some audio effects are available for the master mix or each deck individually, accessible via the Tools menu or with the keyboard shortcut Ctrl+Shift+E. First, select the desired deck or the master mix from the effect chain list. The effects are organized per deck across two pages: Built-in Effects and VST Plugins.

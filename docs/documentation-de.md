@@ -234,6 +234,30 @@ Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+Shift+O aufrufbar.
 * Sprechgeschwindigkeit: Wörter pro Minute, 0 für Sprachausgabenstandard.
 * Lautstärke in Prozent, -1 für Sprachausgabenstandard.
 
+### Erweiterte Konfiguration
+
+Einige spezielle Optionen können nur über die Datei `config.ini` im Programmverzeichnis oder in den Multideck-Anwendungsdaten angepasst werden. 
+
+Im bereich `[UI]`: 
+
+* `deck_list_focus`: Legt fest, ob MultiDeck beim Starten den Tastaturfokus auf die Deckliste legen soll (Standard: True). 
+* `window_width` und `window_height`: Speichert beim Beenden des Programms die aktuellen Fenstergrößen und muss normalerweise nicht manuell angepasst werden.
+
+Zusätzliche Optionen im Bereich `[Streaming]`:
+
+* `queue_blocks`: Größe des internen Audio-Puffers für den Livestream. Ein höherer Wert kann für mehr Robustheit bei Hhängenden Streams sorgen, erhöht aber auch die Latenz (Standard: 128).
+* `writer_poll_ms`: Wie oft der Writer-Thread auf neue Audioblöcke wartet. Kleiner  Wert sorgt für reaktiveres Verhalten, ein größerer Wert verursacht mehr Trägheit (Standard: 100).
+* `ffmpeg_close_timeout`: Wie lange beim Stoppen auf FFmpeg gewartet wird, bevor der Prozess hart beendet wird (Standard: 5.0).
+* `ffmpeg_loglevel`: FFmpeg-Protokollstufe, z. B. quiet, error, warning, info (Standard: error).
+
+`[Recent]`: 
+
+* `max_recent_items`: Legt die Anzahl der zuletzt geöffneten Dateien fest (Standard: 10).
+
+`[Logging]`: 
+
+* `level`: Die Protokollstufe des Programms, z. B. DEBUG, INFO, WARNING, ERROR, CRITICAL (Standard: `INFO`).
+
 ## Audioeffekte
 
 Über das Werkzeuge-Menü oder mit der Tastenkombination Ctrl+Shift+E sind einige Audioeffekte für den Mastermix oder jedes Deck einzeln verfügbar. Zunächst muss hierfür in der Effektkettenliste das gewünschte Deck oder der Mastermix gewählt werden. Die Effekte sind pro Deck in zwei Seiten unterteilt: Integrierte Effekte und VST-Plugins. 
