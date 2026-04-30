@@ -602,7 +602,8 @@ class OptionsDialog(wx.Dialog):
         credentials_label = wx.StaticText(panel, label=_("Username:Password") + ":")
         credentials_sizer.Add(credentials_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
         self.stream_credentials_text = wx.TextCtrl(
-            panel, value=self.config_manager.get('Streaming', 'credentials', 'source:hackme')
+            panel, value=self.config_manager.get('Streaming', 'credentials', ''),
+            style=wx.TE_PASSWORD
         )
         self.stream_credentials_text.SetName(_("Username:Password"))
         credentials_sizer.Add(self.stream_credentials_text, 1, wx.EXPAND | wx.ALL, 5)

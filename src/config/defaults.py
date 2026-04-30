@@ -40,7 +40,7 @@ DEFAULT_CONFIG = {
         'server': '',
         'port': 8000,
         'mountpoint': '/stream',
-        'credentials': 'source:hackme',
+        'credentials': '',
         'codec': 'mp3',
         'bitrate': 192,
         'name': 'MultiDeck Live',
