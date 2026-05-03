@@ -5,6 +5,7 @@ Internationalization (i18n) utilities using gettext
 import gettext
 import locale
 import os
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -52,15 +53,40 @@ class I18n:
     def _get_system_language(self) -> str:
         """Get system language code"""
         try:
-            # Try to get system locale
-            sys_locale, _ = locale.getdefaultlocale()
-            if sys_locale:
-                # Extract language code (first two characters)
-                return sys_locale[:2].lower()
-        except Exception:
-            pass
+            lang = None
 
-        return 'en'  # Default to English
+            # Check environment variables (common on Unix/macOS)
+            for var in ('LANGUAGE', 'LC_ALL', 'LC_MESSAGES', 'LANG'):
+                lang = os.environ.get(var)
+                if lang:
+                    break
+
+            # Windows Fallback: Use the Windows API via ctypes for reliable detection
+            if not lang and sys.platform == 'win32':
+                try:
+                    import ctypes
+                    # GetUserDefaultUILanguage returns the LCID (e.g., 1031 for de-DE)
+                    lcid = ctypes.windll.kernel32.GetUserDefaultUILanguage()
+                    lang = locale.windows_locale.get(lcid)
+                except Exception:
+                    pass
+
+            # Last Resort: Use getlocale()
+            if not lang:
+                # Note: Might return (None, None) if setlocale() wasn't called
+                lang, _ = locale.getlocale()
+
+            if lang:
+                # locale.normalize converts e.g. "German_Germany" to "de_DE.cp1252"
+                normalized = locale.normalize(lang)
+                # Return first two characters (e.g., 'de')
+                return normalized[:2].lower()
+
+        except Exception:
+            # Standard fallback if everything fails
+            pass
+        
+        return "en"
 
     def _load_translation(self):
         """Load translation for current language"""
