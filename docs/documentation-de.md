@@ -241,6 +241,7 @@ Einige spezielle Optionen können nur über die Datei `config.ini` im Programmve
 Im bereich `[UI]`: 
 
 * `deck_list_focus`: Legt fest, ob MultiDeck beim Starten den Tastaturfokus auf die Deckliste legen soll (Standard: True). 
+* `force_dataview`: Normalerweise nutzt MultiDeck abhängig vom Betriebssystem ein spezifisches Steuerelement zur darstellung der Deckliste, um die Barrierefreiheit zu gewährleisten. Diese Option Erzwingt die Verwendung eines Dataview-Steuerelementes zur Darstellung der Deckliste, sofern die Erkennung des Betriebssystems scheitert oder dies explizit gewünscht ist (Standard: False).
 * `window_width` und `window_height`: Speichert beim Beenden des Programms die aktuellen Fenstergrößen und muss normalerweise nicht manuell angepasst werden.
 
 Zusätzliche Optionen im Bereich `[Streaming]`:

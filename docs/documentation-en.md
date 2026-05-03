@@ -241,6 +241,7 @@ Some special options are only available in the file `config.ini` located in the 
 `[UI]`: 
 
 * `deck_list_focus`: Controls whether MultiDeck should set the keyboard focus on the deck list when it starts (Default: True). 
+* `force_dataview`: to ensure the best accessibility on all operating systems, MultiDeck uses a platform-specific control to display the deck list. This option forces the use of a DataView control to display the deck list if the operating system cannot be detected or if this is explicitly requested (default: False).
 * `window_width` and `window_height`: Saves window sizes on exit and ususaly don't need to be set manually. 
 
 Additional options in `[Streaming]` section:
