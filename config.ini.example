@@ -22,6 +22,7 @@ level_hold_time = 3
 show_statusbar = true
 show_level_meter = true
 deck_list_focus = True
+force_dataview = False
 window_width = 1936
 window_height = 1048
 

@@ -26,6 +26,7 @@ DEFAULT_CONFIG = {
         'show_statusbar': True,
         'show_level_meter': True,
         'deck_list_focus': True,
+        'force_dataview': False,
         'window_width': 1200,
         'window_height': 800,
     },
@@ -121,9 +122,6 @@ LANGUAGE_NAMES = {
 
 # Valid deck range
 VALID_DECK_RANGE = [1, 128]
-
-# Force data view list control for debugging purposes
-FORCE_DATAVIEW = False
 
 # Application info
 APP_NAME = 'MultiDeck Audio Player'
