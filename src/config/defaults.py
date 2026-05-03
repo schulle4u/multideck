@@ -122,6 +122,9 @@ LANGUAGE_NAMES = {
 # Valid deck range
 VALID_DECK_RANGE = [1, 128]
 
+# Force data view list control for debugging purposes
+FORCE_DATAVIEW = False
+
 # Application info
 APP_NAME = 'MultiDeck Audio Player'
 APP_VERSION = '0.7.0'

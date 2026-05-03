@@ -5,6 +5,8 @@ import wx
 import wx.dataview as dv
 import sys
 
+from config.defaults import FORCE_DATAVIEW
+
 
 class AccessibleSpinCtrl(wx.BoxSizer):
     def __init__(self, parent, label_text, initial_val, min_val, max_val, inc):
@@ -150,7 +152,7 @@ class CustomTextEntryDialog(wx.Dialog):
 class UniversalListCtrl:
     def __init__(self, parent, size=wx.DefaultSize, style=wx.LC_REPORT | wx.BORDER_SUNKEN):
         # We use DataViewListCtrl for Linux and macOS (better accessibility)
-        self.use_dataview = sys.platform.startswith('linux') or sys.platform == 'darwin'
+        self.use_dataview = sys.platform.startswith('linux') or sys.platform == 'darwin' or FORCE_DATAVIEW
 
         if self.use_dataview:
             self.control = dv.DataViewListCtrl(parent, style=style, size=size)
