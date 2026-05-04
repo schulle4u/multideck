@@ -39,7 +39,6 @@ class I18n:
         # Get project root directory
         if hasattr(__import__('sys'), 'frozen'):
             # Running as compiled executable
-            import sys
             root = Path(sys.executable).parent
         else:
             # Running as script
@@ -47,8 +46,12 @@ class I18n:
 
         locale_dir = root / 'locale'
 
-        # Create locale directory if it doesn't exist
-        locale_dir.mkdir(exist_ok=True)
+        try:
+            # Only attempt to create if it doesn't exist to avoid PermissionError on read-only FS
+            if not locale_dir.exists():
+                locale_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            print(f"Could not create locale directory at {locale_dir}: {e}")
 
         return locale_dir
 
