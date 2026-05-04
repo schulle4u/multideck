@@ -9,6 +9,12 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+from utils.logger import get_logger
+
+# Module logger
+logger = get_logger(__name__)
+
+
 
 class I18n:
     """Internationalization manager"""
@@ -51,7 +57,7 @@ class I18n:
             if not locale_dir.exists():
                 locale_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            print(f"Could not create locale directory at {locale_dir}: {e}")
+            logger.debug(f"Could not create locale directory at {locale_dir}: {e}")
 
         return locale_dir
 
@@ -87,9 +93,9 @@ class I18n:
                 # Return first two characters (e.g., 'de')
                 return normalized[:2].lower()
 
-        except Exception:
+        except Exception as e:
             # Standard fallback if everything fails
-            pass
+            logger.debug(f"Failed to detect system language: {e}")
         
         return "en"
 
@@ -103,7 +109,7 @@ class I18n:
                 fallback=True
             )
         except Exception as e:
-            print(f"Warning: Could not load translation for '{self.language}': {e}")
+            logger.warning(f"Critical failure loading translation for '{self.language}': {e}")
             # Use NullTranslations as fallback
             self.translation = gettext.NullTranslations()
 
