@@ -31,7 +31,7 @@ class I18n:
         self.domain = domain
         self.locale_dir = self._get_locale_dir()
         self.language = self._normalize_language(language)
-        self.translation = None
+        self.translation: gettext.NullTranslations = gettext.NullTranslations()
         self._load_translation()
 
     def _normalize_language(self, language: Optional[str]) -> str:
