@@ -40,7 +40,7 @@ class MultiDeckApp(wx.App):
         language = config.get('General', 'language', 'system')
         if language == 'system':
             language = None
-        initialize_i18n(language)
+        initialize_i18n('multideck', language)
 
         # Create and show main frame
         self.frame = MainFrame()

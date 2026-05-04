@@ -14,13 +14,15 @@ class I18n:
     """Internationalization manager"""
     SYSTEM_LANGUAGE = 'system'
 
-    def __init__(self, language: Optional[str] = None):
+    def __init__(self, domain: str = 'multideck', language: Optional[str] = None):
         """
         Initialize i18n manager.
 
         Args:
+            domain: The gettext domain (usually the project name)
             language: Language code (e.g., 'en', 'de') or None for system default
         """
+        self.domain = domain
         self.locale_dir = self._get_locale_dir()
         self.language = self._normalize_language(language)
         self.translation = None
@@ -92,7 +94,7 @@ class I18n:
         """Load translation for current language"""
         try:
             self.translation = gettext.translation(
-                'multideck',
+                self.domain,
                 localedir=str(self.locale_dir),
                 languages=[self.language],
                 fallback=True
@@ -142,39 +144,36 @@ class I18n:
             return self.translation.ngettext(singular, plural, n)
         return singular if n == 1 else plural
 
-    def get_available_languages(self) -> list:
+    def get_available_languages(self) -> List[str]:
         """
-        Get list of available languages.
-
-        Returns:
-            List of language codes
+        Get list of available languages by checking for compiled .mo files.
         """
-        languages = ['en']  # English is always available (fallback)
-
+        languages = ['en']  # English is default
         if self.locale_dir.exists():
             for item in self.locale_dir.iterdir():
-                if item.is_dir() and (item / 'LC_MESSAGES').exists():
+                # Check for structure: locale_dir/{lang}/LC_MESSAGES/{domain}.mo
+                mo_file = item / 'LC_MESSAGES' / f'{self.domain}.mo'
+                if item.is_dir() and mo_file.exists():
                     languages.append(item.name)
-
-        return sorted(set(languages))
-
+        return sorted(list(set(languages)))
 
 # Global i18n instance
 _i18n_instance: Optional[I18n] = None
 
 
-def initialize_i18n(language: Optional[str] = None) -> I18n:
+def initialize_i18n(domain: str = 'multideck', language: Optional[str] = None) -> I18n:
     """
     Initialize global i18n instance.
 
     Args:
+        domain: The gettext domain (usually the project name)
         language: Language code or None for system default
 
     Returns:
         I18n instance
     """
     global _i18n_instance
-    _i18n_instance = I18n(language)
+    _i18n_instance = I18n(domain, language)
     return _i18n_instance
 
 
