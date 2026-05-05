@@ -153,7 +153,7 @@ class I18n:
             return self.translation.ngettext(singular, plural, n)
         return singular if n == 1 else plural
 
-    def get_available_languages(self) -> List[str]:
+    def get_available_languages(self) -> list[str]:
         """
         Get list of available languages by checking for compiled .mo files.
         """
