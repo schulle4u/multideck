@@ -2,7 +2,7 @@
 ; Requires Inno Setup 6.x
 
 #define AppName "MultiDeck Audio Player"
-#define AppVersion "0.7.0"
+#define AppVersion "0.7.1"
 #define AppPublisher "Steffen Schultz"
 #define AppExeName "MultiDeck.exe"
 #define AppCliName "multideck-cli.exe"
