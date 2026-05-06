@@ -4,13 +4,18 @@ Audio Effects - Real-time effect chain using pedalboard (Spotify)
 
 import json
 import os
+import platform
 import numpy as np
+import sys
 import threading
 from typing import Optional
 
 from utils.logger import get_logger
 
 logger = get_logger('effects')
+
+PLUGIN_BUNDLE_EXTENSIONS = ('.vst3', '.component')
+PLUGIN_FILE_EXTENSIONS = PLUGIN_BUNDLE_EXTENSIONS
 
 # Lazy import pedalboard to allow graceful fallback
 _pedalboard_available = None
@@ -255,20 +260,148 @@ class EffectChain:
 
     # --- VST plugin management ---
 
-    def add_vst(self, path: str):
+    @staticmethod
+    def _normalize_plugin_path(path: str) -> str:
+        """Return an absolute plugin path suitable for pedalboard."""
+        return os.path.abspath(os.path.expanduser(path or ''))
+
+    @staticmethod
+    def _plugin_display_name(path: str, plugin=None, plugin_name: Optional[str] = None) -> str:
+        """Build a stable display name for files and bundle directories."""
+        if plugin_name:
+            return plugin_name
+        if plugin is not None:
+            name = getattr(plugin, 'name', None)
+            if name:
+                return name
+        return os.path.splitext(os.path.basename(path.rstrip(os.sep)))[0]
+
+    @staticmethod
+    def _vst3_arch_dir_preferences() -> list:
+        """Return likely VST3 Contents architecture directories for this host."""
+        machine = platform.machine().lower()
+        is_64_bit = sys.maxsize > 2 ** 32
+        if sys.platform == 'win32':
+            if machine in ('arm64', 'aarch64'):
+                return ['arm64-win', 'x86_64-win']
+            return ['x86_64-win', 'x64-win'] if is_64_bit else ['i386-win', 'x86-win']
+        if sys.platform == 'darwin':
+            return ['MacOS']
+        if machine in ('arm64', 'aarch64'):
+            return ['aarch64-linux', 'arm64-linux', 'x86_64-linux']
+        return ['x86_64-linux'] if is_64_bit else ['i386-linux', 'x86-linux']
+
+    @staticmethod
+    def _find_vst3_bundle_binaries(bundle_path: str) -> list:
+        """Find loadable binaries inside a VST3 bundle directory."""
+        contents_path = os.path.join(bundle_path, 'Contents')
+        if not os.path.isdir(contents_path):
+            return []
+
+        search_dirs = []
+        for dirname in EffectChain._vst3_arch_dir_preferences():
+            candidate = os.path.join(contents_path, dirname)
+            if os.path.isdir(candidate):
+                search_dirs.append(candidate)
+
+        for entry in sorted(os.scandir(contents_path), key=lambda item: item.name.lower()):
+            if entry.is_dir() and entry.name != 'Resources' and entry.path not in search_dirs:
+                search_dirs.append(entry.path)
+
+        binaries = []
+        for search_dir in search_dirs:
+            try:
+                direct_files = [
+                    os.path.join(search_dir, name)
+                    for name in sorted(os.listdir(search_dir))
+                    if name.lower().endswith('.vst3')
+                    and os.path.isfile(os.path.join(search_dir, name))
+                ]
+                binaries.extend(direct_files)
+                if direct_files:
+                    continue
+                for root, _dirs, files in os.walk(search_dir):
+                    for name in sorted(files):
+                        if name.lower().endswith('.vst3'):
+                            binaries.append(os.path.join(root, name))
+            except OSError as e:
+                logger.debug(f"Could not inspect VST3 bundle directory {search_dir!r}: {e}")
+
+        seen = set()
+        unique = []
+        for binary in binaries:
+            normalized = os.path.normcase(os.path.abspath(binary))
+            if normalized not in seen:
+                seen.add(normalized)
+                unique.append(binary)
+        return unique
+
+    @staticmethod
+    def _resolve_plugin_load_path(path: str) -> str:
+        """Resolve bundle roots to the plugin binary path pedalboard can scan."""
+        normalized = EffectChain._normalize_plugin_path(path)
+        ext = os.path.splitext(normalized.rstrip(os.sep))[1].lower()
+        if os.path.isdir(normalized) and ext == '.vst3':
+            binaries = EffectChain._find_vst3_bundle_binaries(normalized)
+            if binaries:
+                return binaries[0]
+        return normalized
+
+    @staticmethod
+    def is_supported_plugin_path(path: str) -> bool:
+        """Return True for supported VST3/AU plugin files or bundle directories."""
+        if not path:
+            return False
+        normalized = EffectChain._normalize_plugin_path(path)
+        if not os.path.exists(normalized):
+            return False
+        ext = os.path.splitext(normalized.rstrip(os.sep))[1].lower()
+        if os.path.isdir(normalized):
+            return ext in PLUGIN_BUNDLE_EXTENSIONS
+        return ext in PLUGIN_FILE_EXTENSIONS
+
+    @staticmethod
+    def get_plugin_names(path: str) -> list:
+        """Return plugin names exposed by a VST3 bundle/file when pedalboard can list them."""
+        if not _check_pedalboard():
+            return []
+        normalized = EffectChain._normalize_plugin_path(path)
+        ext = os.path.splitext(normalized.rstrip(os.sep))[1].lower()
+        if ext != '.vst3' or not os.path.exists(normalized):
+            return []
+        load_path = EffectChain._resolve_plugin_load_path(normalized)
+        try:
+            from pedalboard import VST3Plugin
+            return list(VST3Plugin.get_plugin_names_for_file(load_path))
+        except Exception as e:
+            logger.debug(f"Could not enumerate plugins in {normalized!r}: {e}")
+            return []
+
+    def add_vst(self, path: str, plugin_name: Optional[str] = None):
         """Load and append a VST3/AU plugin to the chain.
 
         Returns an error string on failure, or None on success.
         """
         if not _check_pedalboard():
             return "pedalboard not available"
+        path = self._normalize_plugin_path(path)
+        if not os.path.exists(path):
+            return f"Plugin path not found: {path}"
+        if not self.is_supported_plugin_path(path):
+            return "Unsupported plugin path. Choose a .vst3/.component file or bundle."
+        load_path = self._resolve_plugin_load_path(path)
+        path_ext = os.path.splitext(path.rstrip(os.sep))[1].lower()
+        if sys.platform == 'win32' and os.path.isdir(path) and path_ext == '.vst3' and load_path == path:
+            return f"No loadable plugin binary found in bundle: {path}"
         try:
             from pedalboard import load_plugin
-            plugin = load_plugin(path)
-            name = getattr(plugin, 'name', None) or os.path.splitext(os.path.basename(path))[0]
+            plugin = load_plugin(load_path, plugin_name=plugin_name)
+            name = self._plugin_display_name(path, plugin, plugin_name)
             with self._lock:
                 self.vst_slots.append({
                     'path': path,
+                    'load_path': load_path,
+                    'plugin_name': plugin_name,
                     'plugin': plugin,
                     'enabled': True,
                     'name': name,
@@ -398,6 +531,7 @@ class EffectChain:
         d['vst_count'] = len(self.vst_slots)
         for i, slot in enumerate(self.vst_slots):
             d[f'vst_{i}_path'] = slot['path']
+            d[f'vst_{i}_plugin_name'] = slot.get('plugin_name') or ''
             d[f'vst_{i}_enabled'] = slot['enabled']
             d[f'vst_{i}_name'] = slot['name']
             params = {}
@@ -492,9 +626,10 @@ class EffectChain:
         for i in range(vst_count):
             path = data.get(f'vst_{i}_path', '')
             if not path or not os.path.exists(path):
-                logger.warning(f"VST plugin file not found, skipping: {path!r}")
+                logger.warning(f"VST plugin path not found, skipping: {path!r}")
                 continue
-            error = self.add_vst(path)
+            plugin_name = data.get(f'vst_{i}_plugin_name', '') or None
+            error = self.add_vst(path, plugin_name=plugin_name)
             if error:
                 logger.error(f"Could not restore VST plugin {path!r}: {error}")
                 continue

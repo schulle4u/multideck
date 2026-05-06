@@ -237,12 +237,13 @@ class EffectsDialog(wx.Dialog):
         mgmt_box.Add(enable_cb, 0, wx.LEFT | wx.BOTTOM, 5)
 
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        add_btn = wx.Button(mgmt_sb, label=_("&Add VST") + "...")
+        add_btn = wx.Button(mgmt_sb, label=_("&Add VST File") + "...")
+        add_bundle_btn = wx.Button(mgmt_sb, label=_("Add VST &Bundle") + "...")
         remove_btn = wx.Button(mgmt_sb, label=_("&Remove"))
         up_btn = wx.Button(mgmt_sb, label=_("Move &Up"))
         down_btn = wx.Button(mgmt_sb, label=_("Move &Down"))
         editor_btn = wx.Button(mgmt_sb, label=_("Open &Editor"))
-        for b in (add_btn, remove_btn, up_btn, down_btn, editor_btn):
+        for b in (add_btn, add_bundle_btn, remove_btn, up_btn, down_btn, editor_btn):
             btn_sizer.Add(b, 0, wx.RIGHT, 5)
         mgmt_box.Add(btn_sizer, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
@@ -278,6 +279,7 @@ class EffectsDialog(wx.Dialog):
             'listbox': vst_lb,
             'enable_cb': enable_cb,
             'add_btn': add_btn,
+            'add_bundle_btn': add_bundle_btn,
             'remove_btn': remove_btn,
             'up_btn': up_btn,
             'down_btn': down_btn,
@@ -305,7 +307,10 @@ class EffectsDialog(wx.Dialog):
                 vst_lb.SetSelection(idx)
 
         def on_add(event):
-            self._on_vst_add(state, effect_chain, chain_name, panel)
+            self._on_vst_add_file(state, effect_chain, chain_name)
+
+        def on_add_bundle(event):
+            self._on_vst_add_bundle(state, effect_chain, chain_name)
 
         def on_remove(event):
             self._on_vst_remove(state, effect_chain, chain_name)
@@ -348,6 +353,7 @@ class EffectsDialog(wx.Dialog):
         vst_lb.Bind(wx.EVT_LISTBOX, on_select)
         enable_cb.Bind(wx.EVT_CHECKBOX, on_enable)
         add_btn.Bind(wx.EVT_BUTTON, on_add)
+        add_bundle_btn.Bind(wx.EVT_BUTTON, on_add_bundle)
         remove_btn.Bind(wx.EVT_BUTTON, on_remove)
         up_btn.Bind(wx.EVT_BUTTON, on_up)
         down_btn.Bind(wx.EVT_BUTTON, on_down)
@@ -391,6 +397,92 @@ class EffectsDialog(wx.Dialog):
         self._rebuild_vst_param_panel(
             state['param_scroll'], state['param_inner'],
             effect_chain, idx, chain_name, slot['name'])
+
+    def _on_vst_add_file(self, state, effect_chain, chain_name):
+        wildcard = (
+            "VST3 Plugin Files (*.vst3)|*.vst3"
+            "|AU Plugin Files (*.component)|*.component"
+            "|All Files (*.*)|*.*"
+        )
+        dlg = wx.FileDialog(
+            self, _("Load VST Plugin File"),
+            wildcard=wildcard,
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+        )
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return
+        path = dlg.GetPath()
+        dlg.Destroy()
+        self._load_vst_path(state, effect_chain, chain_name, path)
+
+    def _on_vst_add_bundle(self, state, effect_chain, chain_name):
+        dlg = wx.DirDialog(
+            self,
+            _("Load VST Plugin Bundle"),
+            style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST,
+        )
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return
+        path = dlg.GetPath()
+        dlg.Destroy()
+        self._load_vst_path(state, effect_chain, chain_name, path)
+
+    def _choose_vst_plugin_name(self, effect_chain, path):
+        plugin_names = effect_chain.get_plugin_names(path)
+        if len(plugin_names) <= 1:
+            return plugin_names[0] if plugin_names else None
+
+        dlg = wx.SingleChoiceDialog(
+            self,
+            _("This VST3 bundle contains multiple plugins. Select the one to load."),
+            _("Select VST Plugin"),
+            plugin_names,
+        )
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return False
+        plugin_name = dlg.GetStringSelection()
+        dlg.Destroy()
+        return plugin_name
+
+    def _load_vst_path(self, state, effect_chain, chain_name, path):
+        plugin_name = self._choose_vst_plugin_name(effect_chain, path)
+        if plugin_name is False:
+            return
+
+        plugin_filename = plugin_name or os.path.basename(path.rstrip(os.sep))
+        state['load_status'].SetLabel(_("Loading {}...").format(plugin_filename))
+        state['load_status'].Show(True)
+        state['mgmt_panel'].Layout()
+        state['add_btn'].Disable()
+        state['add_bundle_btn'].Disable()
+        wx.BeginBusyCursor()
+        wx.SafeYield(None, True)
+
+        try:
+            error = effect_chain.add_vst(path, plugin_name=plugin_name)
+        finally:
+            wx.EndBusyCursor()
+            state['load_status'].SetLabel("")
+            state['load_status'].Show(False)
+            state['mgmt_panel'].Layout()
+            state['add_btn'].Enable()
+            state['add_bundle_btn'].Enable()
+            self._update_vst_buttons(state, effect_chain)
+
+        if error:
+            wx.MessageBox(
+                _("Failed to load VST plugin:\n{}").format(error),
+                _("VST Load Error"),
+                wx.OK | wx.ICON_ERROR,
+            )
+        else:
+            self._refresh_vst_list(state, effect_chain)
+            new_idx = len(effect_chain.vst_slots) - 1
+            state['listbox'].SetSelection(new_idx)
+            self._on_vst_selected(state, effect_chain, chain_name)
 
     def _on_vst_add(self, state, effect_chain, chain_name, parent):
         wildcard = (
@@ -957,4 +1049,3 @@ class EffectsDialog(wx.Dialog):
             collect.append(slider)
 
         return sizer
-
