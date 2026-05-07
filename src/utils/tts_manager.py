@@ -301,7 +301,9 @@ class TTSManager:
             backend_name '' means 'use Prism's best backend'.
         """
         if self._use_worker_process():
-            return [tuple(engine) for engine in self._run_worker_json("list-engines")]
+            if PRISM_AVAILABLE:
+                return [("Prism best backend", '')]
+            return []
 
         engines = []
         context = self._get_context()
@@ -342,11 +344,7 @@ class TTSManager:
         if not PRISM_AVAILABLE:
             return []
         if self._use_worker_process():
-            return [tuple(voice) for voice in self._run_worker_json(
-                "list-voices",
-                "--engine",
-                engine_name,
-            )]
+            return []
         try:
             backend = self._create_backend(engine_name)
             if backend is None or not self._backend_is_available(backend):
