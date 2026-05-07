@@ -76,9 +76,12 @@ def list_engines():
     try:
         backend = _create_backend(context, '')
         if backend is not None and _backend_is_available(backend):
-            engines.append(["Prism best backend", ""])
+            label = backend.name or "Prism best backend"
+            engines.append([label, ""])
     except Exception:
         pass
+    if sys.platform.startswith("linux"):
+        return engines
     for idx in range(context.backends_count):
         backend_id = context.id_of(idx)
         name = context.name_of(backend_id)
@@ -92,6 +95,8 @@ def list_engines():
 
 
 def list_voices(engine_name: str):
+    if sys.platform.startswith("linux") and not engine_name:
+        return []
     Context, PrismError = _load_prism()
     context = Context()
     try:
