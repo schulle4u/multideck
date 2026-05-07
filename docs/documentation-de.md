@@ -276,9 +276,7 @@ Zusätzliche Optionen im Bereich `[Streaming]`:
 
 ### VST-Plugins
 
-**Warnung**: Die Verwendung von VST-Effekten ist noch sehr fehleranfällig und sollte daher mit Vorsicht verwendet werden. 
-
-Auf dieser Seite können VST-Plug-ins geladen werden. Sie sind in einer Liste aufgeführt und lassen sich beliebig in der Effektkette verschieben. Es werden nur VST3-Effekte unterstützt. Die Parameter des gewählten Plug-ins lassen sich im Panel in der unteren Bildschirmhälfte anpassen. Um das native GUI des Plugins aufzurufen, kann die Schaltfläche „Editor öffnen” verwendet werden. 
+Auf dieser Seite können VST-Plug-ins als einzelne Datei oder als Bundle-Ordner geladen werden. Sie sind in einer Liste aufgeführt und lassen sich beliebig in der Effektkette verschieben. Es werden nur VST3-Effekte unterstützt. Die Parameter des gewählten Plug-ins lassen sich im Panel in der unteren Bildschirmhälfte anpassen. Um das native GUI des Plugins aufzurufen, kann die Schaltfläche „Editor öffnen” verwendet werden. 
 
 ## Projektdateien
 

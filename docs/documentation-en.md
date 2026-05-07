@@ -276,9 +276,7 @@ Some audio effects are available for the master mix or each deck individually, a
 
 ### VST Plugins
 
-**Warning**: The use of VST effects is still very error-prone and should therefore be used with caution.
-
-VST plugins can be loaded on this page. They are listed and can be freely rearranged within the effect chain. Only VST3 effects are supported. The parameters of the selected plugin can be adjusted in the panel in the lower half of the screen. To open the plugin's native GUI, use the "Open Editor" button.
+VST plugins can be loaded on this page, either as single file or as folder bundle. They can be freely rearranged within the effect chain once loaded. Only VST3 effects are supported. The parameters of the selected plugin can be adjusted in the panel in the lower half of the screen. To open the plugin's native GUI, use the "Open Editor" button.
 
 ## Project Files
 
