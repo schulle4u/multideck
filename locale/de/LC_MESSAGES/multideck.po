@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-07 01:13+0200\n"
-"PO-Revision-Date: 2026-05-07 01:16+0200\n"
+"POT-Creation-Date: 2026-05-07 16:51+0200\n"
+"PO-Revision-Date: 2026-05-07 16:53+0200\n"
 "Last-Translator: Steffen Schultz\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -359,7 +359,7 @@ msgid "&Apply"
 msgstr "Ü&bernehmen"
 
 #: gui/dialogs/options.py:207 gui/dialogs/options.py:217
-#: gui/dialogs/options.py:1012
+#: gui/dialogs/options.py:1015
 msgid "Language"
 msgstr "Sprache"
 
@@ -368,7 +368,7 @@ msgid "System language"
 msgstr "Systemsprache"
 
 #: gui/dialogs/options.py:228 gui/dialogs/options.py:235
-#: gui/dialogs/options.py:1014
+#: gui/dialogs/options.py:1017
 msgid "Number of decks"
 msgstr "Anzahl der Decks"
 
@@ -401,12 +401,12 @@ msgid "No Output (Livestream Only)"
 msgstr "Keine Ausgabe (nur Livestream)"
 
 #: gui/dialogs/options.py:296 gui/dialogs/options.py:303
-#: gui/dialogs/options.py:1035
+#: gui/dialogs/options.py:1038
 msgid "Buffer size"
 msgstr "Puffergröße"
 
 #: gui/dialogs/options.py:312 gui/dialogs/options.py:319
-#: gui/dialogs/options.py:1037
+#: gui/dialogs/options.py:1040
 msgid "Sample rate"
 msgstr "Abtastrate"
 
@@ -538,43 +538,47 @@ msgstr "Wartezeit für Neuverbindung (Sekunden)"
 msgid "Enable text-to-speech announcements"
 msgstr "Sprachausgabenansagen einschalten"
 
-#: gui/dialogs/options.py:724 gui/dialogs/options.py:732
+#: gui/dialogs/options.py:724 gui/dialogs/options.py:734
 msgid "Engine"
 msgstr "Treiber"
 
-#: gui/dialogs/options.py:743 gui/dialogs/options.py:753
+#: gui/dialogs/options.py:729
+msgid "(none available)"
+msgstr "(Keine verfügbar)"
+
+#: gui/dialogs/options.py:745 gui/dialogs/options.py:755
 msgid "Voice"
 msgstr "Stimme"
 
-#: gui/dialogs/options.py:750 gui/dialogs/options.py:805
-#: gui/dialogs/options.py:817 gui/dialogs/options.py:1097
+#: gui/dialogs/options.py:752 gui/dialogs/options.py:808
+#: gui/dialogs/options.py:820 gui/dialogs/options.py:1100
 msgid "(default)"
 msgstr "(Standard)"
 
-#: gui/dialogs/options.py:764 gui/dialogs/options.py:770
-msgid "Rate (WPM, 0=default)"
-msgstr "Geschwindigkeit (WPM, 0=Standard)"
+#: gui/dialogs/options.py:766 gui/dialogs/options.py:773
+msgid "Rate (%, 0=default)"
+msgstr "Geschwindigkeit (%, 0=Standard)"
 
-#: gui/dialogs/options.py:776 gui/dialogs/options.py:782
+#: gui/dialogs/options.py:779 gui/dialogs/options.py:785
 msgid "Volume (%, -1=default)"
 msgstr "Lautstärke (%, -1=Standard)"
 
-#: gui/dialogs/options.py:787 gui/dialogs/options.py:788
+#: gui/dialogs/options.py:790 gui/dialogs/options.py:791
 msgid "Test voice"
 msgstr "Stimme testen"
 
-#: gui/dialogs/options.py:825
+#: gui/dialogs/options.py:828
 msgid "Test announcement: Deck 1"
 msgstr "Testansage: Deck 1"
 
-#: gui/dialogs/options.py:1108
+#: gui/dialogs/options.py:1111
 msgid ""
 "The following settings require restarting the application to take effect:"
 msgstr ""
 "Die folgenden Einstellungen werden erst nach einem Neustart der Anwendung "
 "aktiv:"
 
-#: gui/dialogs/options.py:1109
+#: gui/dialogs/options.py:1112
 msgid "Restart Required"
 msgstr "Neustart notwendig"
 

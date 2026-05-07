@@ -39,7 +39,7 @@ setup(
         'numpy>=1.24.0',
         'configparser>=6.0.0',
         'pedalboard>=0.9.0',
-        'pyttsx3>=2.99',
+        'prismatoid>=0.14.4',
     ],
 
     python_requires='>=3.10',

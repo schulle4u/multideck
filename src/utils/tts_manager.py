@@ -1,38 +1,43 @@
 """
-TTS Manager - pyttsx3 wrapper for text-to-speech announcements
+TTS Manager - Prism wrapper for text-to-speech and screen reader announcements.
 """
 
-import sys
 import threading
+import time
 
 from utils.logger import get_logger
 
 logger = get_logger('tts_manager')
 
 try:
-    import pyttsx3
-    PYTTSX3_AVAILABLE = True
+    from prism import Context, PrismError
+    PRISM_AVAILABLE = True
 except ImportError:
-    PYTTSX3_AVAILABLE = False
-    logger.warning("pyttsx3 not available - TTS features disabled")
+    Context = None
+    PrismError = Exception
+    PRISM_AVAILABLE = False
+    logger.warning("prismatoid not available - TTS features disabled")
 
 
 class TTSManager:
     """
-    Thread-safe, non-blocking wrapper around pyttsx3.
+    Thread-safe, non-blocking wrapper around Prism.
 
-    Each call to speak() launches a daemon thread that creates a fresh engine
-    instance, speaks the text, and exits.  This sidesteps pyttsx3's awkward
-    cross-thread behaviour while keeping the calling thread (including the
-    audio callback) completely unblocked.
+    Each call to speak() launches a daemon thread that creates the configured
+    Prism backend, speaks or outputs the text, and exits.  This keeps the
+    calling thread, including the audio callback, completely unblocked.
     """
 
     def __init__(self):
         self.tts_enabled = False
-        self._engine_name = ''   # pyttsx3 driver name; '' = platform default
-        self._voice_name = ''    # human-readable voice name; '' = engine default
-        self._rate = 0           # words per minute; 0 = engine default
-        self._volume = -1        # 0-100 %; -1 = engine default
+        self._engine_name = ''   # Prism backend name; '' = best backend
+        self._voice_name = ''    # human-readable voice name; '' = backend default
+        self._rate = 0           # 1-100 % normalized Prism rate; 0 = backend default
+        self._volume = -1        # 0-100 %; -1 = backend default
+        self._lock = threading.RLock()
+        self._backend_lock = threading.RLock()
+        self._context = None
+        self._active_backend = None
 
     def configure(self, engine_name: str = '', voice_name: str = '',
                   rate: int = 0, volume: int = -1):
@@ -40,52 +45,159 @@ class TTSManager:
         Store TTS parameters.  Takes effect on the next speak() call.
 
         Args:
-            engine_name: pyttsx3 driver name ('sapi5', 'nsss', 'espeak', '').
-                         Empty string uses the platform default.
-            voice_name:  Human-readable voice name as returned by get_available_voices()
-                         (e.g. ``'Microsoft Hedda Desktop'``).
-                         Empty string uses the engine default.
-            rate:        Speech rate in words per minute.  0 = engine default.
-            volume:      Volume as integer percent 0-100.  -1 = engine default.
+            engine_name: Prism backend name (e.g. 'NVDA', 'OneCore', 'SAPI', '').
+                         Empty string uses Prism's best backend.
+            voice_name:  Human-readable voice name as returned by
+                         get_available_voices(). Empty string uses the backend
+                         default. Screen reader backends may not expose voices.
+            rate:        Speech rate as integer percent 1-100.
+                         0 = backend default; Prism treats 50% as neutral.
+            volume:      Volume as integer percent 0-100. -1 = backend default.
         """
-        self._engine_name = engine_name
-        self._voice_name = voice_name
-        self._rate = rate
-        self._volume = volume
+        with self._lock:
+            self._engine_name = engine_name
+            self._voice_name = voice_name
+            self._rate = rate
+            self._volume = volume
+
+    def _get_context(self):
+        """Return the lazily-created Prism context, or None on failure."""
+        if not PRISM_AVAILABLE:
+            return None
+        with self._lock:
+            if self._context is None:
+                try:
+                    self._context = Context()
+                except Exception as e:
+                    logger.error("Could not initialize Prism TTS context: %s", e)
+                    return None
+            return self._context
+
+    def _create_backend(self, engine_name: str = ''):
+        """Create the requested Prism backend, or Prism's best backend."""
+        context = self._get_context()
+        if context is None:
+            return None
+        with self._lock:
+            if engine_name:
+                backend_id = context.id_of(engine_name)
+                return context.create(backend_id)
+            return context.create_best()
+
+    def _backend_can_announce(self, backend) -> bool:
+        """Return True if a Prism backend can produce user-facing output."""
+        features = backend.features
+        return features.supports_speak or features.supports_output
+
+    def _backend_is_available(self, backend) -> bool:
+        """Return True if a created Prism backend is usable for announcements."""
+        features = backend.features
+        return features.is_supported_at_runtime and self._backend_can_announce(backend)
+
+    def _find_voice_index(self, backend, voice_name: str):
+        """Return the Prism voice index for voice_name, or None if unavailable."""
+        features = backend.features
+        if not voice_name or not (
+            features.supports_count_voices and
+            features.supports_get_voice_name and
+            features.supports_set_voice
+        ):
+            return None
+        try:
+            backend.refresh_voices()
+        except PrismError:
+            pass
+        for idx in range(backend.voices_count):
+            if backend.get_voice_name(idx) == voice_name:
+                return idx
+        return None
+
+    def _wait_for_backend_to_finish(self, backend, text: str):
+        """
+        Keep the Prism backend alive until playback/output finishes.
+
+        Some TTS backends return from speak() once playback has merely started.
+        Freeing the backend immediately can then cancel the announcement.
+        """
+        features = backend.features
+        if features.supports_is_speaking:
+            deadline = time.monotonic() + 60.0
+            startup_deadline = time.monotonic() + 2.0
+            observed_speaking = False
+            while time.monotonic() < deadline:
+                try:
+                    with self._backend_lock:
+                        speaking = backend.speaking
+                        observed_speaking = observed_speaking or speaking
+                        if not speaking and (observed_speaking or time.monotonic() >= startup_deadline):
+                            return
+                except PrismError:
+                    return
+                time.sleep(0.05)
+            logger.warning("Timed out waiting for Prism backend '%s' to finish", backend.name)
+            return
+
+        # Screen reader backends often cannot report speaking state. Give them
+        # a short lifetime buffer so asynchronous delivery can complete.
+        time.sleep(min(10.0, max(1.0, len(text) * 0.08)))
 
     def speak(self, text: str):
         """
         Speak *text* asynchronously.  Returns immediately.
-        Does nothing if tts_enabled is False or pyttsx3 is unavailable.
+        Does nothing if tts_enabled is False or Prism is unavailable.
         """
-        if not self.tts_enabled or not PYTTSX3_AVAILABLE or not text:
+        if not self.tts_enabled or not PRISM_AVAILABLE or not text:
             return
 
-        engine_name = self._engine_name
-        voice_name = self._voice_name
-        rate = self._rate
-        volume = self._volume
+        self.stop()
+
+        with self._lock:
+            engine_name = self._engine_name
+            voice_name = self._voice_name
+            rate = self._rate
+            volume = self._volume
 
         def _do_speak():
+            backend = None
             try:
-                driver = engine_name if engine_name else None
-                engine = pyttsx3.init(driverName=driver)
-                if rate > 0:
-                    engine.setProperty('rate', rate)
-                if volume >= 0:
-                    engine.setProperty('volume', volume / 100.0)
+                backend = self._create_backend(engine_name)
+                if backend is None:
+                    return
+                features = backend.features
+
+                if rate != 0 and features.supports_set_rate:
+                    backend.rate = max(0.0, min(1.0, rate / 100.0))
+                if volume >= 0 and features.supports_set_volume:
+                    backend.volume = volume / 100.0
                 if voice_name:
-                    voices = engine.getProperty('voices') or []
-                    for v in voices:
-                        if v.name == voice_name:
-                            engine.setProperty('voice', v.id)
-                            break
-                    else:
+                    voice_idx = self._find_voice_index(backend, voice_name)
+                    if voice_idx is None:
                         logger.warning("TTS voice not found: '%s'", voice_name)
-                engine.say(text)
-                engine.runAndWait()
+                    else:
+                        backend.voice = voice_idx
+
+                with self._lock:
+                    self._active_backend = backend
+
+                if features.supports_braille and features.supports_output:
+                    with self._backend_lock:
+                        backend.output(text, interrupt=True)
+                elif features.supports_speak:
+                    with self._backend_lock:
+                        backend.speak(text, interrupt=True)
+                elif features.supports_output:
+                    with self._backend_lock:
+                        backend.output(text, interrupt=True)
+                else:
+                    logger.warning("Prism backend '%s' cannot speak or output text", backend.name)
+                    return
+                self._wait_for_backend_to_finish(backend, text)
             except Exception as e:
                 logger.error("TTS speak error: %s", e)
+            finally:
+                with self._lock:
+                    if self._active_backend is backend:
+                        self._active_backend = None
 
         thread = threading.Thread(target=_do_speak, daemon=True)
         thread.start()
@@ -94,27 +206,51 @@ class TTSManager:
         """
         Best-effort stop of any ongoing speech.
 
-        pyttsx3 does not provide reliable cross-platform interruption, so this
-        is a no-op.  Deck-name announcements are short enough that overlap is
-        not a practical concern.
+        Some Prism backends, especially screen readers, may not support stop.
         """
+        with self._lock:
+            backend = self._active_backend
+        if backend is None:
+            return
+        try:
+            with self._backend_lock:
+                if backend.features.supports_stop:
+                    backend.stop()
+        except Exception as e:
+            logger.warning("TTS stop error: %s", e)
 
     def get_available_engines(self) -> list:
         """
-        Return platform-appropriate TTS engine choices.
+        Return Prism backend choices.
 
         Returns:
-            List of (display_label, driver_name) tuples.
-            driver_name '' means 'use platform default'.
+            List of (display_label, backend_name) tuples.
+            backend_name '' means 'use Prism's best backend'.
         """
-        engines = [("Platform default", '')]
-        if sys.platform == 'win32':
-            engines.append(('SAPI5', 'sapi5'))
-        elif sys.platform == 'darwin':
-            engines.append(('NSSpeechSynthesizer', 'nsss'))
-            engines.append(('eSpeak', 'espeak'))
-        else:
-            engines.append(('eSpeak', 'espeak'))
+        engines = []
+        context = self._get_context()
+        if context is None:
+            return engines
+        try:
+            backend = self._create_backend('')
+            if backend is not None and self._backend_is_available(backend):
+                engines.append(("Prism best backend", ''))
+        except Exception as e:
+            logger.debug("Prism best backend is not available: %s", e)
+        try:
+            for idx in range(context.backends_count):
+                backend_id = context.id_of(idx)
+                name = context.name_of(backend_id)
+                try:
+                    backend = context.create(backend_id)
+                    if self._backend_is_available(backend):
+                        engines.append((name, name))
+                    else:
+                        logger.debug("Skipping unavailable Prism backend '%s'", name)
+                except Exception as e:
+                    logger.debug("Skipping unavailable Prism backend '%s': %s", name, e)
+        except Exception as e:
+            logger.debug("Could not retrieve Prism backends: %s", e)
         return engines
 
     def get_available_voices(self, engine_name: str = '') -> list:
@@ -122,25 +258,38 @@ class TTSManager:
         Return available voices for *engine_name*.
 
         Args:
-            engine_name: pyttsx3 driver name, or '' for platform default.
+            engine_name: Prism backend name, or '' for Prism's best backend.
 
         Returns:
-            List of (display_name, voice_id) tuples, or [] on failure.
+            List of (display_name, voice_index) tuples, or [] on failure.
         """
-        if not PYTTSX3_AVAILABLE:
+        if not PRISM_AVAILABLE:
             return []
         try:
-            driver = engine_name if engine_name else None
-            engine = pyttsx3.init(driverName=driver)
-            voices = engine.getProperty('voices') or []
-            result = [(v.name, v.id) for v in voices]
-            engine.runAndWait()
-            engine.stop()
+            backend = self._create_backend(engine_name)
+            if backend is None or not self._backend_is_available(backend):
+                return []
+            features = backend.features
+            if not (
+                features.supports_count_voices and
+                features.supports_get_voice_name
+            ):
+                return []
+            try:
+                backend.refresh_voices()
+            except PrismError:
+                pass
+            result = []
+            for idx in range(backend.voices_count):
+                result.append((backend.get_voice_name(idx), str(idx)))
             return result
         except Exception as e:
-            logger.warning("Could not retrieve TTS voices for engine '%s': %s", engine_name, e)
+            logger.debug("Could not retrieve TTS voices for engine '%s': %s", engine_name, e)
             return []
 
     def shutdown(self):
         """Release resources.  Call when the application closes."""
-        # No persistent engine to clean up in this implementation.
+        self.stop()
+        with self._lock:
+            self._active_backend = None
+            self._context = None

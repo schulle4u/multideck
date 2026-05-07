@@ -231,7 +231,7 @@ Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+Shift+O aufrufbar.
 * Sprachausgabenansagen einschalten: Aktiviert durch Tastenkombinationen ausgelöste Statusereignisse sowie die Ansage des aktiven Decks im Automatikmodus.
 * Treiber: Die zu verwendende TTS-Engine.
 * Stimme: Stimme der Sprachausgabe, abhängig von der TTS-Engine.
-* Sprechgeschwindigkeit: Wörter pro Minute, 0 für Sprachausgabenstandard.
+* Sprechgeschwindigkeit: Angabe in Prozent, 0 für Sprachausgabenstandard.
 * Lautstärke in Prozent, -1 für Sprachausgabenstandard.
 
 ### Erweiterte Konfiguration

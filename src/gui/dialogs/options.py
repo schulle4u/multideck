@@ -725,6 +725,8 @@ class OptionsDialog(wx.Dialog):
         engine_sizer.Add(engine_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         engine_entries = tts_mgr.get_available_engines()
+        if not engine_entries:
+            engine_entries = [(_("(none available)"), '')]
         self._tts_engine_values = [e[1] for e in engine_entries]
         engine_labels = [e[0] for e in engine_entries]
 
@@ -761,13 +763,14 @@ class OptionsDialog(wx.Dialog):
 
         # Rate
         rate_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        rate_label = wx.StaticText(panel, label=_("Rate (WPM, 0=default)") + ":")
+        rate_label = wx.StaticText(panel, label=_("Rate (%, 0=default)") + ":")
         rate_sizer.Add(rate_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_rate = self.config_manager.getint('TTS', 'tts_rate', 0)
+        current_rate = max(0, min(100, current_rate))
         self.tts_rate_spin = wx.SpinCtrl(panel, value=str(current_rate),
-                                         min=0, max=400, initial=current_rate)
-        self.tts_rate_spin.SetName(_("Rate (WPM, 0=default)"))
+                                         min=0, max=100, initial=current_rate)
+        self.tts_rate_spin.SetName(_("Rate (%, 0=default)"))
         rate_sizer.Add(self.tts_rate_spin, 1, wx.EXPAND | wx.ALL, 5)
         sizer.Add(rate_sizer, 0, wx.EXPAND | wx.ALL, 5)
 

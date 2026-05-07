@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-07 01:13+0200\n"
+"POT-Creation-Date: 2026-05-07 16:51+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -351,7 +351,7 @@ msgid "&Apply"
 msgstr ""
 
 #: gui/dialogs/options.py:207 gui/dialogs/options.py:217
-#: gui/dialogs/options.py:1012
+#: gui/dialogs/options.py:1015
 msgid "Language"
 msgstr ""
 
@@ -360,7 +360,7 @@ msgid "System language"
 msgstr ""
 
 #: gui/dialogs/options.py:228 gui/dialogs/options.py:235
-#: gui/dialogs/options.py:1014
+#: gui/dialogs/options.py:1017
 msgid "Number of decks"
 msgstr ""
 
@@ -393,12 +393,12 @@ msgid "No Output (Livestream Only)"
 msgstr ""
 
 #: gui/dialogs/options.py:296 gui/dialogs/options.py:303
-#: gui/dialogs/options.py:1035
+#: gui/dialogs/options.py:1038
 msgid "Buffer size"
 msgstr ""
 
 #: gui/dialogs/options.py:312 gui/dialogs/options.py:319
-#: gui/dialogs/options.py:1037
+#: gui/dialogs/options.py:1040
 msgid "Sample rate"
 msgstr ""
 
@@ -530,40 +530,44 @@ msgstr ""
 msgid "Enable text-to-speech announcements"
 msgstr ""
 
-#: gui/dialogs/options.py:724 gui/dialogs/options.py:732
+#: gui/dialogs/options.py:724 gui/dialogs/options.py:734
 msgid "Engine"
 msgstr ""
 
-#: gui/dialogs/options.py:743 gui/dialogs/options.py:753
+#: gui/dialogs/options.py:729
+msgid "(none available)"
+msgstr ""
+
+#: gui/dialogs/options.py:745 gui/dialogs/options.py:755
 msgid "Voice"
 msgstr ""
 
-#: gui/dialogs/options.py:750 gui/dialogs/options.py:805
-#: gui/dialogs/options.py:817 gui/dialogs/options.py:1097
+#: gui/dialogs/options.py:752 gui/dialogs/options.py:808
+#: gui/dialogs/options.py:820 gui/dialogs/options.py:1100
 msgid "(default)"
 msgstr ""
 
-#: gui/dialogs/options.py:764 gui/dialogs/options.py:770
-msgid "Rate (WPM, 0=default)"
+#: gui/dialogs/options.py:766 gui/dialogs/options.py:773
+msgid "Rate (%, 0=default)"
 msgstr ""
 
-#: gui/dialogs/options.py:776 gui/dialogs/options.py:782
+#: gui/dialogs/options.py:779 gui/dialogs/options.py:785
 msgid "Volume (%, -1=default)"
 msgstr ""
 
-#: gui/dialogs/options.py:787 gui/dialogs/options.py:788
+#: gui/dialogs/options.py:790 gui/dialogs/options.py:791
 msgid "Test voice"
 msgstr ""
 
-#: gui/dialogs/options.py:825
+#: gui/dialogs/options.py:828
 msgid "Test announcement: Deck 1"
 msgstr ""
 
-#: gui/dialogs/options.py:1108
+#: gui/dialogs/options.py:1111
 msgid "The following settings require restarting the application to take effect:"
 msgstr ""
 
-#: gui/dialogs/options.py:1109
+#: gui/dialogs/options.py:1112
 msgid "Restart Required"
 msgstr ""
 

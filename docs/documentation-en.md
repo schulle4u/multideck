@@ -231,7 +231,7 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 * Enable text-to-speech announcements: Enables speaking keyboard-triggered status events, and deck announcement in automatic mode.
 * Engine: TTS engine to use.
 * Voice: TTS voice, depends on selected engine.
-* Rate: Words per minute, 0 for default.
+* Rate in percent, 0 for default.
 * Volume in percent, -1 for engine default.
 
 ### Advanced configuration
