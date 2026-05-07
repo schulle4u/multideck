@@ -4,18 +4,30 @@ TTS Manager - Prism wrapper for text-to-speech and screen reader announcements.
 
 import threading
 import time
+import json
+import subprocess
+import sys
+import importlib.util
+from pathlib import Path
 
 from utils.logger import get_logger
 
 logger = get_logger('tts_manager')
 
-try:
-    from prism import Context, PrismError
-    PRISM_AVAILABLE = True
-except ImportError:
+if sys.platform.startswith('linux'):
     Context = None
     PrismError = Exception
-    PRISM_AVAILABLE = False
+    PRISM_AVAILABLE = importlib.util.find_spec("prism") is not None
+else:
+    try:
+        from prism import Context, PrismError
+        PRISM_AVAILABLE = True
+    except ImportError:
+        Context = None
+        PrismError = Exception
+        PRISM_AVAILABLE = False
+
+if not PRISM_AVAILABLE:
     logger.warning("prismatoid not available - TTS features disabled")
 
 
@@ -38,6 +50,7 @@ class TTSManager:
         self._backend_lock = threading.RLock()
         self._context = None
         self._active_backend = None
+        self._active_process = None
 
     def configure(self, engine_name: str = '', voice_name: str = '',
                   rate: int = 0, volume: int = -1):
@@ -62,6 +75,8 @@ class TTSManager:
 
     def _get_context(self):
         """Return the lazily-created Prism context, or None on failure."""
+        if self._use_worker_process():
+            return None
         if not PRISM_AVAILABLE:
             return None
         with self._lock:
@@ -72,6 +87,54 @@ class TTSManager:
                     logger.error("Could not initialize Prism TTS context: %s", e)
                     return None
             return self._context
+
+    def _use_worker_process(self) -> bool:
+        """Keep Prism out of the wx/GTK process on Linux."""
+        return sys.platform.startswith('linux')
+
+    def _worker_script(self) -> str:
+        return str(Path(__file__).with_name('prism_tts_worker.py'))
+
+    def _run_worker_json(self, *args, timeout: float = 5.0):
+        try:
+            result = subprocess.run(
+                [sys.executable, self._worker_script(), *args],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                check=True,
+            )
+            return json.loads(result.stdout or "[]")
+        except Exception as e:
+            logger.debug("Prism worker command failed: %s", e)
+            return []
+
+    def _speak_with_worker(self, text: str, engine_name: str, voice_name: str,
+                           rate: int, volume: int):
+        self.stop()
+        config = {
+            "text": text,
+            "engine_name": engine_name,
+            "voice_name": voice_name,
+            "rate": rate,
+            "volume": volume,
+        }
+        try:
+            process = subprocess.Popen(
+                [
+                    sys.executable,
+                    self._worker_script(),
+                    "speak",
+                    "--config",
+                    json.dumps(config, ensure_ascii=False),
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            with self._lock:
+                self._active_process = process
+        except Exception as e:
+            logger.error("TTS worker speak error: %s", e)
 
     def _create_backend(self, engine_name: str = ''):
         """Create the requested Prism backend, or Prism's best backend."""
@@ -149,13 +212,17 @@ class TTSManager:
         if not self.tts_enabled or not PRISM_AVAILABLE or not text:
             return
 
-        self.stop()
-
         with self._lock:
             engine_name = self._engine_name
             voice_name = self._voice_name
             rate = self._rate
             volume = self._volume
+
+        if self._use_worker_process():
+            self._speak_with_worker(text, engine_name, voice_name, rate, volume)
+            return
+
+        self.stop()
 
         def _do_speak():
             backend = None
@@ -210,6 +277,13 @@ class TTSManager:
         """
         with self._lock:
             backend = self._active_backend
+            process = self._active_process
+            self._active_process = None
+        if process is not None and process.poll() is None:
+            try:
+                process.terminate()
+            except Exception as e:
+                logger.warning("TTS worker stop error: %s", e)
         if backend is None:
             return
         try:
@@ -227,6 +301,9 @@ class TTSManager:
             List of (display_label, backend_name) tuples.
             backend_name '' means 'use Prism's best backend'.
         """
+        if self._use_worker_process():
+            return [tuple(engine) for engine in self._run_worker_json("list-engines")]
+
         engines = []
         context = self._get_context()
         if context is None:
@@ -265,6 +342,12 @@ class TTSManager:
         """
         if not PRISM_AVAILABLE:
             return []
+        if self._use_worker_process():
+            return [tuple(voice) for voice in self._run_worker_json(
+                "list-voices",
+                "--engine",
+                engine_name,
+            )]
         try:
             backend = self._create_backend(engine_name)
             if backend is None or not self._backend_is_available(backend):
@@ -293,3 +376,4 @@ class TTSManager:
         with self._lock:
             self._active_backend = None
             self._context = None
+            self._active_process = None
