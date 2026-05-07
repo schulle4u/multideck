@@ -154,8 +154,7 @@ class TTSManager:
 
     def _backend_is_available(self, backend) -> bool:
         """Return True if a created Prism backend is usable for announcements."""
-        features = backend.features
-        return features.is_supported_at_runtime and self._backend_can_announce(backend)
+        return self._backend_can_announce(backend)
 
     def _find_voice_index(self, backend, voice_name: str):
         """Return the Prism voice index for voice_name, or None if unavailable."""

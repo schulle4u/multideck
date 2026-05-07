@@ -23,8 +23,7 @@ def _backend_can_announce(backend) -> bool:
 
 
 def _backend_is_available(backend) -> bool:
-    features = backend.features
-    return features.is_supported_at_runtime and _backend_can_announce(backend)
+    return _backend_can_announce(backend)
 
 
 def _create_backend(context, engine_name: str = ''):
