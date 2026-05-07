@@ -3,6 +3,7 @@ Audio Effects - Real-time effect chain using pedalboard (Spotify)
 """
 
 import json
+import gc
 import os
 import platform
 import numpy as np
@@ -160,6 +161,9 @@ class EffectChain:
             active.append(self.gain)
         for slot in self.vst_slots:
             if slot['enabled'] and slot['plugin'] is not None:
+                if self._plugin_is_instrument(slot['plugin']):
+                    logger.warning(f"Skipping instrument plugin in effect chain: {slot['name']}")
+                    continue
                 active.append(slot['plugin'])
 
         self._board = Pedalboard(active)
@@ -348,6 +352,18 @@ class EffectChain:
         return normalized
 
     @staticmethod
+    def _plugin_is_instrument(plugin) -> bool:
+        """Return True when a pedalboard external plugin is an instrument."""
+        try:
+            is_instrument = getattr(plugin, 'is_instrument', False)
+            if callable(is_instrument):
+                is_instrument = is_instrument()
+            return bool(is_instrument)
+        except Exception as e:
+            logger.debug(f"Could not determine whether plugin is an instrument: {e}")
+            return False
+
+    @staticmethod
     def is_supported_plugin_path(path: str) -> bool:
         """Return True for supported VST3/AU plugin files or bundle directories."""
         if not path:
@@ -397,18 +413,28 @@ class EffectChain:
             from pedalboard import load_plugin
             plugin = load_plugin(load_path, plugin_name=plugin_name)
             name = self._plugin_display_name(path, plugin, plugin_name)
+            if self._plugin_is_instrument(plugin):
+                del plugin
+                gc.collect()
+                return f"Instrument plugins are not supported in effect chains: {name}"
+            slot = {
+                'path': path,
+                'load_path': load_path,
+                'plugin_name': plugin_name,
+                'plugin': plugin,
+                'enabled': True,
+                'name': name,
+            }
             with self._lock:
-                self.vst_slots.append({
-                    'path': path,
-                    'load_path': load_path,
-                    'plugin_name': plugin_name,
-                    'plugin': plugin,
-                    'enabled': True,
-                    'name': name,
-                })
-                self._rebuild_board()
+                self.vst_slots.append(slot)
+                try:
+                    self._rebuild_board()
+                except Exception:
+                    self.vst_slots.remove(slot)
+                    raise
             return None
         except Exception as e:
+            gc.collect()
             logger.error(f"Failed to load VST plugin {path}: {e}")
             return str(e)
 
