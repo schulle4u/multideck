@@ -20,7 +20,7 @@ IS_LINUX = platform.system() == 'Linux'
 
 # Application info
 APP_NAME = 'MultiDeck Audio Player'
-APP_VERSION = '0.7.1'
+APP_VERSION = '0.7.2'
 APP_BUNDLE_ID = 'com.multideck.audioplayer'
 
 # Platform-specific icon
@@ -47,14 +47,26 @@ hiddenimports = [
     '_sounddevice_data',
 ]
 
-# Collect sounddevice and soundfile data
-from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
+# Collect dependency data
+from PyInstaller.utils.hooks import collect_all, collect_data_files, collect_dynamic_libs
 
 # Collect PortAudio library for sounddevice
 datas += collect_data_files('sounddevice')
 datas += collect_data_files('soundfile')
 binaries = collect_dynamic_libs('sounddevice')
 binaries += collect_dynamic_libs('soundfile')
+
+# Collect Prismatoid's Python modules and native Prism libraries.
+# The distribution is named "prismatoid", but the import package is "prism".
+prism_datas, prism_binaries, prism_hiddenimports = collect_all('prism')
+datas += prism_datas
+binaries += prism_binaries
+hiddenimports += prism_hiddenimports
+hiddenimports += [
+    'prism',
+    'prism.core',
+    'prism.lib',
+]
 
 a = Analysis(
     [os.path.join(PROJECT_ROOT, 'src', 'main.py')],
@@ -157,6 +169,56 @@ exe_cli = EXE(
     icon=APP_ICON,
 )
 
+a_prism_worker = Analysis(
+    [os.path.join(PROJECT_ROOT, 'src', 'utils', 'prism_tts_worker.py')],
+    pathex=[os.path.join(PROJECT_ROOT, 'src')],
+    binaries=binaries,
+    datas=datas,
+    hiddenimports=hiddenimports,
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[
+        'tkinter',
+        'unittest',
+        'html',
+        'http',
+        'xml',
+        'pydoc',
+        'doctest',
+        'difflib',
+        'calendar',
+        'wx',
+    ],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
+    noarchive=False,
+)
+
+pyz_prism_worker = PYZ(
+    a_prism_worker.pure,
+    a_prism_worker.zipped_data,
+    cipher=block_cipher,
+)
+
+exe_prism_worker = EXE(
+    pyz_prism_worker,
+    a_prism_worker.scripts,
+    [],
+    exclude_binaries=True,
+    name='prism_tts_worker',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    console=True,
+    disable_windowed_traceback=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+)
+
 coll = COLLECT(
     exe,
     a.binaries,
@@ -166,6 +228,10 @@ coll = COLLECT(
     a_cli.binaries,
     a_cli.zipfiles,
     a_cli.datas,
+    exe_prism_worker,
+    a_prism_worker.binaries,
+    a_prism_worker.zipfiles,
+    a_prism_worker.datas,
     strip=False,
     upx=True,
     upx_exclude=[],

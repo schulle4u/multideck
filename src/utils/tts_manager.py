@@ -95,10 +95,17 @@ class TTSManager:
     def _worker_script(self) -> str:
         return str(Path(__file__).with_name('prism_tts_worker.py'))
 
+    def _worker_command(self, *args) -> list:
+        if getattr(sys, 'frozen', False):
+            worker_name = 'prism_tts_worker.exe' if sys.platform == 'win32' else 'prism_tts_worker'
+            worker_path = Path(sys.executable).with_name(worker_name)
+            return [str(worker_path), *args]
+        return [sys.executable, self._worker_script(), *args]
+
     def _run_worker_json(self, *args, timeout: float = 5.0):
         try:
             result = subprocess.run(
-                [sys.executable, self._worker_script(), *args],
+                self._worker_command(*args),
                 capture_output=True,
                 text=True,
                 timeout=timeout,
@@ -121,13 +128,11 @@ class TTSManager:
         }
         try:
             process = subprocess.Popen(
-                [
-                    sys.executable,
-                    self._worker_script(),
+                self._worker_command(
                     "speak",
                     "--config",
                     json.dumps(config, ensure_ascii=False),
-                ],
+                ),
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )

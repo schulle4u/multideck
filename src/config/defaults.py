@@ -125,7 +125,7 @@ VALID_DECK_RANGE = [1, 128]
 
 # Application info
 APP_NAME = 'MultiDeck Audio Player'
-APP_VERSION = '0.7.1'
+APP_VERSION = '0.7.2'
 APP_AUTHOR = 'Steffen Schultz'
 APP_WEBSITE = 'https://m45.dev'
 APP_LICENSE = 'MIT License'
