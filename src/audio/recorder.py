@@ -13,8 +13,11 @@ from pathlib import Path
 from datetime import datetime
 from typing import Optional, Callable
 
+from utils.logger import get_logger
 from utils.helpers import check_ffmpeg, generate_recording_filename
 
+# Module logger
+logger = get_logger('recorder')
 
 FFMPEG_AVAILABLE = check_ffmpeg()
 
@@ -171,7 +174,7 @@ class Recorder:
                 self._pre_roll_frames_count -= len(removed)
 
         except Exception as e:
-            print(f"Error buffering frames: {e}")
+            logger.error(f"Error buffering frames: {e}")
 
     def _write_pre_roll_buffer(self):
         """Write buffered pre-roll data to the recording file."""
@@ -188,7 +191,7 @@ class Recorder:
             self._pre_roll_frames_count = 0
 
         except Exception as e:
-            print(f"Error writing pre-roll buffer: {e}")
+            logger.error(f"Error writing pre-roll buffer: {e}")
 
     def _write_chunk_internal(self, audio_data: np.ndarray):
         """
@@ -249,7 +252,7 @@ class Recorder:
         # Check if format requires FFmpeg
         format_info = self.FORMATS.get(self.format, self.FORMATS['wav'])
         if not format_info['native'] and not FFMPEG_AVAILABLE:
-            print(f"FFmpeg not available, falling back to WAV format")
+            logger.info(f"FFmpeg not available, falling back to WAV format")
             self.format = 'wav'
             format_info = self.FORMATS['wav']
 
@@ -295,7 +298,7 @@ class Recorder:
                 return True
 
         except Exception as e:
-            print(f"Error starting recording: {e}")
+            logger.error(f"Error starting recording: {e}")
             if self.on_error:
                 self.on_error(f"Failed to start recording: {e}")
             return False
@@ -363,7 +366,7 @@ class Recorder:
                         self._ffmpeg_process.stdin.close()
                         self._ffmpeg_process.wait(timeout=10)
                     except Exception as e:
-                        print(f"Error closing FFmpeg: {e}")
+                        logger.error(f"Error closing FFmpeg: {e}")
                         self._ffmpeg_process.kill()
                     self._ffmpeg_process = None
 
@@ -377,7 +380,7 @@ class Recorder:
                 return True
 
         except Exception as e:
-            print(f"Error stopping recording: {e}")
+            logger.error(f"Error stopping recording: {e}")
             if self.on_error:
                 self.on_error(f"Failed to stop recording: {e}")
             return False
@@ -398,11 +401,11 @@ class Recorder:
                     self._write_chunk_internal(audio_data)
                     self.frames_recorded += len(audio_data)
                 except BrokenPipeError:
-                    print("FFmpeg pipe broken, stopping recording")
+                    logger.error("FFmpeg pipe broken, stopping recording")
                     self.is_recording = False
 
         except Exception as e:
-            print(f"Error writing frames: {e}")
+            logger.error(f"Error writing frames: {e}")
             if self.on_error:
                 self.on_error(f"Error during recording: {e}")
 

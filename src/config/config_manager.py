@@ -10,6 +10,10 @@ from pathlib import Path
 from typing import Any, Dict
 
 from config.defaults import DEFAULT_CONFIG, VALID_DECK_RANGE
+from utils.logger import get_logger
+
+# Module logger
+logger = get_logger('config_manager')
 
 
 class ConfigManager:
@@ -60,7 +64,7 @@ class ConfigManager:
             try:
                 self.config.read(self.config_path, encoding='utf-8')
             except Exception as e:
-                print(f"Error loading config: {e}. Using defaults.")
+                logger.error(f"Error loading config: {e}. Using defaults.")
                 self._set_defaults()
         else:
             self._set_defaults()
@@ -80,7 +84,7 @@ class ConfigManager:
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 self.config.write(f)
         except Exception as e:
-            print(f"Error saving config: {e}")
+            logger.error(f"Error saving config: {e}")
 
     def get(self, section: str, option: str, fallback: Any = None) -> str:
         """Get configuration value"""
