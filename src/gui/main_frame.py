@@ -479,7 +479,9 @@ class MainFrame(wx.Frame):
                     self.deck_listbox.SetChecked(deck_index, False)
                 finally:
                     self._updating_deck_listbox = False
-                self.SetStatusText(_("Deck is empty"), 0)
+                message = _("Deck is empty")
+                self.SetStatusText(message, 0)
+                self.tts_manager.speak(message)
                 return
             if not deck.is_playing:
                 self.mixer.ensure_deck_loaded(deck)
