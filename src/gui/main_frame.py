@@ -412,40 +412,44 @@ class MainFrame(wx.Frame):
 
     def _update_deck_listbox(self):
         current_selection = self.deck_listbox.GetSelectedRow()
-        self.deck_listbox.control.DeleteAllItems()
-        for i, deck in enumerate(self.mixer.decks):
-            deck_name = deck.name
-            if deck.file_path:
-                if deck.is_soundcard_input:
-                    file_info = _("[Input] {}").format(deck.soundcard_device_name)
-                elif deck.is_stream:
-                    file_info = deck.file_path
+        self._updating_deck_listbox = True
+        try:
+            self.deck_listbox.control.DeleteAllItems()
+            for i, deck in enumerate(self.mixer.decks):
+                deck_name = deck.name
+                if deck.file_path:
+                    if deck.is_soundcard_input:
+                        file_info = _("[Input] {}").format(deck.soundcard_device_name)
+                    elif deck.is_stream:
+                        file_info = deck.file_path
+                    else:
+                        file_info = os.path.basename(deck.file_path)
                 else:
-                    file_info = os.path.basename(deck.file_path)
-            else:
-                file_info = ""
+                    file_info = ""
 
-            output_label = (
-                deck.output_device_name
-                if deck.output_device_id is not None
-                else _("Main device")
-            )
+                output_label = (
+                    deck.output_device_name
+                    if deck.output_device_id is not None
+                    else _("Main device")
+                )
 
-            status = ""
-            if deck.is_playing:
-                status = "▶"
-                if self.mixer.is_deck_recording(deck.deck_id):
-                    status = f"{status} ⏺"
-            elif deck.is_paused:
-                status = "⏸"
-            elif deck.state != DECK_STATE_EMPTY:
-                status = "⏹"
+                status = ""
+                if deck.is_playing:
+                    status = "▶"
+                    if self.mixer.is_deck_recording(deck.deck_id):
+                        status = f"{status} ⏺"
+                elif deck.is_paused:
+                    status = "⏸"
+                elif deck.state != DECK_STATE_EMPTY:
+                    status = "⏹"
 
-            row_data = [status, deck_name, file_info, output_label]
-            self.deck_listbox.Append(row_data)
+                row_data = [deck.is_playing, status, deck_name, file_info, output_label]
+                self.deck_listbox.Append(row_data)
 
-        if current_selection != -1 and current_selection < self.deck_listbox.GetItemCount():
-            self.deck_listbox.SelectRow(current_selection)
+            if current_selection != -1 and current_selection < self.deck_listbox.GetItemCount():
+                self.deck_listbox.SelectRow(current_selection)
+        finally:
+            self._updating_deck_listbox = False
 
     def _on_deck_listbox_select(self, event):
         """Handle deck listbox selection"""
@@ -455,6 +459,36 @@ class MainFrame(wx.Frame):
             self.mixer.set_active_deck(deck_index, trigger_switch_event=True)
             # Update controls to show selected deck
             self._update_active_deck_controls()
+
+    def _on_deck_play_checked(self, event):
+        """Start or stop the deck whose list checkbox/toggle changed."""
+        if getattr(self, '_updating_deck_listbox', False):
+            return
+
+        deck_index = event.GetIndex()
+        if deck_index == wx.NOT_FOUND or deck_index >= len(self.mixer.decks):
+            return
+
+        deck = self.mixer.decks[deck_index]
+        checked = event.IsChecked()
+
+        if checked:
+            if deck.state == DECK_STATE_EMPTY:
+                self._updating_deck_listbox = True
+                try:
+                    self.deck_listbox.SetChecked(deck_index, False)
+                finally:
+                    self._updating_deck_listbox = False
+                self.SetStatusText(_("Deck is empty"), 0)
+                return
+            if not deck.is_playing:
+                self.mixer.ensure_deck_loaded(deck)
+                deck.play()
+        else:
+            deck.stop()
+
+        self._update_global_play_button()
+        self._update_deck_panel(deck.deck_id)
 
     def _update_active_deck_controls(self):
         """Update the active deck control panel to reflect selected deck"""

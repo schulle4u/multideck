@@ -45,13 +45,16 @@ def _create_deck_listbox(owner, parent):
     """Create the configured deck listbox implementation."""
     owner.deck_listbox = UniversalListCtrl(
         parent,
-        style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_SUNKEN
+        style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_SUNKEN,
+        checkboxes=True
     )
-    owner.deck_listbox.InsertColumn(0, _("Status"), width=80)
-    owner.deck_listbox.InsertColumn(1, _("Deck"), width=wx.LIST_AUTOSIZE)
-    owner.deck_listbox.InsertColumn(2, _("File"), width=wx.LIST_AUTOSIZE)
-    owner.deck_listbox.InsertColumn(3, _("Output"), width=wx.LIST_AUTOSIZE)
+    owner.deck_listbox.InsertColumn(0, _("Play"), width=80, checkbox=True)
+    owner.deck_listbox.InsertColumn(1, _("Status"), width=80)
+    owner.deck_listbox.InsertColumn(2, _("Deck"), width=wx.LIST_AUTOSIZE)
+    owner.deck_listbox.InsertColumn(3, _("File"), width=wx.LIST_AUTOSIZE)
+    owner.deck_listbox.InsertColumn(4, _("Output"), width=wx.LIST_AUTOSIZE)
     owner.deck_listbox.Bind(wx.EVT_LIST_ITEM_SELECTED, owner._on_deck_listbox_select)
+    owner.deck_listbox.Bind(UniversalListCtrl.EVT_ITEM_CHECKED, owner._on_deck_play_checked)
     owner.deck_listbox.control.SetName(_("Deck Selection"))
     owner.deck_listbox.control.SetLabel(_("Deck Selection"))
     owner.deck_listbox.Bind(wx.EVT_CONTEXT_MENU, owner._on_deck_context_menu)
