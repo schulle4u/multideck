@@ -258,6 +258,8 @@ Additional options in `[Streaming]` section:
 `[Logging]`: 
 
 * `level`: The program's logging level, e.g. DEBUG, INFO, WARNING, ERROR, CRITICAL (Default: `INFO`).
+* `file_logging`: Write log messages to file (Default: `True`)
+* `console_logging`: Print terminal messages (Default: `False`). 
 
 ## Audio Effects
 

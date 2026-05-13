@@ -64,6 +64,8 @@ max_recent_items = 10
 [Logging]
 # Log levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
 level = INFO
+file_logging = True
+console_logging = False
 
 [TTS]
 tts_enabled = False

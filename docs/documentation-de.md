@@ -258,6 +258,8 @@ Zusätzliche Optionen im Bereich `[Streaming]`:
 `[Logging]`: 
 
 * `level`: Die Protokollstufe des Programms, z. B. DEBUG, INFO, WARNING, ERROR, CRITICAL (Standard: `INFO`).
+* `file_logging`: Protokollmeldungen in eine Datei schreiben (Standard: `True`)
+* `console_logging`: Meldungen im Terminal ausgeben (Standard: `False`). 
 
 ## Audioeffekte
 
