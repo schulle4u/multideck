@@ -5,7 +5,28 @@ import wx
 
 
 class AccessibleSpinCtrl(wx.BoxSizer):
+    """
+    Accessible floating-point spin control composed of wx widgets.
+
+    The control exposes a labeled text field as the primary interaction point
+    and keeps a wx.SpinButton in sync for mouse users. Arrow keys on the text
+    field adjust the value directly, which makes the widget easier to use with
+    screen readers.
+    """
+
     def __init__(self, parent, label_text, initial_val, min_val, max_val, inc):
+        """
+        Initialize accessible spin control.
+
+        Args:
+            parent: Parent wx window that owns the child controls.
+            label_text: Label shown next to the text field and used as its
+                accessible name.
+            initial_val: Initial numeric value displayed in the control.
+            min_val: Minimum allowed value.
+            max_val: Maximum allowed value.
+            inc: Increment used by the spin button and Up/Down arrow keys.
+        """
         super().__init__(wx.HORIZONTAL)
         
         self.min_val = min_val
@@ -39,13 +60,24 @@ class AccessibleSpinCtrl(wx.BoxSizer):
         """
         Proxy method to allow the dialog to bind to changes.
         We map any binding attempt to our internal controls.
+
+        Args:
+            event_type: Ignored wx event binder supplied by the caller.
+            handler: Callable to bind to text and spin changes.
+            *args: Additional positional arguments forwarded to wx.Bind.
+            **kwargs: Additional keyword arguments forwarded to wx.Bind.
         """
         # We bind to both text changes and spin changes
         self.text_ctrl.Bind(wx.EVT_TEXT, handler, *args, **kwargs)
         self.spin_btn.Bind(wx.EVT_SPIN, handler, *args, **kwargs)
 
     def _adjust_value(self, steps):
-        """Internal helper to increment/decrement the value."""
+        """
+        Internal helper to increment/decrement the value.
+
+        Args:
+            steps: Number of increments to apply. Negative values decrement.
+        """
         try:
             current = float(self.text_ctrl.GetValue())
             new_val = current + (steps * self.inc)
@@ -62,11 +94,23 @@ class AccessibleSpinCtrl(wx.BoxSizer):
             pass
 
     def on_spin(self, event):
+        """
+        Handle spin button changes and mirror the value into the text field.
+
+        Args:
+            event: wx spin event containing the current spin position.
+        """
         new_val = event.GetPosition() * self.inc
         self.text_ctrl.ChangeValue(f"{new_val:.1f}")
         event.Skip() # CRITICAL: Allows the event to propagate to the dialog
 
     def on_text_entry(self, event):
+        """
+        Handle manual text edits and keep the spin button position in sync.
+
+        Args:
+            event: wx text event emitted by the internal text control.
+        """
         try:
             val = float(self.text_ctrl.GetValue())
             self.spin_btn.SetValue(int(val / self.inc))
@@ -75,6 +119,13 @@ class AccessibleSpinCtrl(wx.BoxSizer):
         event.Skip() # CRITICAL: Allows the event to propagate to the dialog
 
     def on_key_down(self, event):
+        """
+        Handle keyboard increments from the internal text control.
+
+        Args:
+            event: wx key event. Up and Down adjust the value; all other keys
+                are passed through.
+        """
         key = event.GetKeyCode()
         if key in (wx.WXK_UP, wx.WXK_DOWN):
             steps = 1 if key == wx.WXK_UP else -1
@@ -89,9 +140,14 @@ class AccessibleSpinCtrl(wx.BoxSizer):
             event.Skip()
 
     def GetValue(self):
+        """
+        Return the current numeric value.
+
+        Returns:
+            float: Parsed text control value, or 2.0 if the text is not a
+            valid number.
+        """
         try:
             return float(self.text_ctrl.GetValue())
         except ValueError:
             return 2.0
-
-

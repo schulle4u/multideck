@@ -3,7 +3,12 @@ import wx
 
 
 class CustomTextEntryDialog(wx.Dialog):
-    """Custom text entry dialog with translatable button labels"""
+    """
+    Custom text entry dialog with translatable button labels.
+
+    The dialog mirrors the simple wx.TextEntryDialog workflow while allowing
+    callers to provide localized OK and Cancel labels.
+    """
 
     def __init__(self, parent, message, caption, default_value="", ok_label="&OK", cancel_label="&Cancel"):
         """
@@ -48,5 +53,10 @@ class CustomTextEntryDialog(wx.Dialog):
         self.text_ctrl.SetFocus()
 
     def GetValue(self):
-        """Return value from custom text entry dialog"""
+        """
+        Return value from custom text entry dialog.
+
+        Returns:
+            str: Current text entered by the user.
+        """
         return self.text_ctrl.GetValue()

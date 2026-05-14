@@ -8,6 +8,14 @@ import sys
 
 
 class UniversalListCtrl:
+    """
+    Cross-platform list wrapper with optional checkbox support.
+
+    wx.ListCtrl is used on Windows, while wx.dataview.DataViewListCtrl is used
+    on Linux and macOS for better accessibility. The wrapper normalizes the
+    small subset of list operations used by the application.
+    """
+
     EVT_ITEM_CHECKED = wx.NewEventType()
 
     def __init__(
@@ -18,6 +26,17 @@ class UniversalListCtrl:
         checkboxes=False,
         force_dataview=False
     ):
+        """
+        Initialize universal list control.
+
+        Args:
+            parent: Parent wx window.
+            size: Initial control size.
+            style: wx style flags applied to the underlying list control.
+            checkboxes: Whether rows should support checked/unchecked state.
+            force_dataview: Force DataViewListCtrl even on platforms that would
+                normally use wx.ListCtrl.
+        """
         # We use DataViewListCtrl for Linux and macOS unless forced (better accessibility)
         self.use_dataview = sys.platform.startswith('linux') or sys.platform == 'darwin' or force_dataview
         self.checkboxes = checkboxes
@@ -31,6 +50,15 @@ class UniversalListCtrl:
                 self.control.EnableCheckBoxes()
 
     def InsertColumn(self, col, heading, width=wx.LIST_AUTOSIZE, checkbox=False):
+        """
+        Insert a column in the underlying control.
+
+        Args:
+            col: Zero-based column index.
+            heading: Text shown in the column header.
+            width: Column width or wx autosize constant.
+            checkbox: Whether this column stores checkbox/toggle values.
+        """
         if self.use_dataview:
             if checkbox:
                 self.control.AppendToggleColumn(
@@ -50,6 +78,10 @@ class UniversalListCtrl:
         """
         Adds a row to the list.
         'entry' must be a list or tuple of values matching the column count.
+
+        Args:
+            entry: Sequence of row values. Checkbox columns should contain
+                truthy or falsy values; text columns are converted to strings.
         """
         if self.use_dataview:
             # DataViewListCtrl.AppendItem expects exactly one argument: a sequence
@@ -75,6 +107,10 @@ class UniversalListCtrl:
     def Bind(self, event_type, handler):
         """
         Unifies binding for common list events.
+
+        Args:
+            event_type: wx event binder or UniversalListCtrl event type.
+            handler: Callable that receives the normalized event.
         """
         if event_type == wx.EVT_LIST_ITEM_SELECTED:
             if self.use_dataview:
@@ -112,6 +148,10 @@ class UniversalListCtrl:
         """
         Internal helper to normalize DataViewEvent so it feels 
         closer to a ListEvent for the handler.
+
+        Args:
+            evt: Native DataView selection event.
+            user_handler: Original event handler supplied by the caller.
         """
         # Accessibility: Ensure screen reader focus remains stable 
         # while processing selection logic.
@@ -125,7 +165,13 @@ class UniversalListCtrl:
         user_handler(evt)
 
     def _handle_check(self, evt, user_handler):
-        """Normalize checkbox/toggle events across ListCtrl and DataViewListCtrl."""
+        """
+        Normalize checkbox/toggle events across ListCtrl and DataViewListCtrl.
+
+        Args:
+            evt: Native checkbox or DataView value-changed event.
+            user_handler: Original event handler supplied by the caller.
+        """
         row = -1
         checked = False
 
@@ -146,6 +192,12 @@ class UniversalListCtrl:
         user_handler(evt)
 
     def GetSelectedRow(self):
+        """
+        Return the currently selected row index.
+
+        Returns:
+            int: Selected row index, or -1 when no row is selected.
+        """
         if self.use_dataview:
             item = self.control.GetSelection()
             return self.control.ItemToRow(item) if item.IsOk() else -1
@@ -153,12 +205,20 @@ class UniversalListCtrl:
             return self.control.GetFirstSelected()
 
     def GetItemCount(self):
-        """Returns the total number of items in the list."""
+        """
+        Return the total number of items in the list.
+
+        Returns:
+            int: Number of rows in the underlying control.
+        """
         return self.control.GetItemCount()
 
     def SelectRow(self, index):
         """
         Selects and focuses a row by index.
+
+        Args:
+            index: Zero-based row index to select.
         """
         if index < 0 or index >= self.GetItemCount():
             return
@@ -175,7 +235,13 @@ class UniversalListCtrl:
             self.control.Focus(index)
 
     def SetChecked(self, index, checked):
-        """Set a row checkbox/toggle value without changing selection."""
+        """
+        Set a row checkbox/toggle value without changing selection.
+
+        Args:
+            index: Zero-based row index to update.
+            checked: New checked state.
+        """
         if self._checkbox_column is None or index < 0 or index >= self.GetItemCount():
             return
 
@@ -185,7 +251,15 @@ class UniversalListCtrl:
             self.control.CheckItem(index, bool(checked))
 
     def IsChecked(self, index):
-        """Return the row checkbox/toggle state."""
+        """
+        Return the row checkbox/toggle state.
+
+        Args:
+            index: Zero-based row index to inspect.
+
+        Returns:
+            bool: True when the row is checked, otherwise False.
+        """
         if self._checkbox_column is None or index < 0 or index >= self.GetItemCount():
             return False
 
@@ -194,4 +268,10 @@ class UniversalListCtrl:
         return self.control.IsItemChecked(index)
 
     def GetControl(self):
+        """
+        Return the wrapped wx control.
+
+        Returns:
+            wx.Window: Underlying wx.ListCtrl or DataViewListCtrl instance.
+        """
         return self.control
