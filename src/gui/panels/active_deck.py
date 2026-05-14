@@ -2,7 +2,7 @@
 
 import wx
 
-from gui.dialogs.custom import UniversalListCtrl
+from gui.controls.universal_list import UniversalListCtrl
 from utils.i18n import _
 
 

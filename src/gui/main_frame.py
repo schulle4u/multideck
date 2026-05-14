@@ -7,7 +7,7 @@ import wx.adv
 import os
 from pathlib import Path
 
-from gui.dialogs.custom import CustomTextEntryDialog
+from gui.controls.custom_text_entry import CustomTextEntryDialog
 from gui.menus import create_menu_bar
 from gui.panels import create_active_deck_panel, create_mixer_panel
 from gui.playlist_service import M3UPlaylistService

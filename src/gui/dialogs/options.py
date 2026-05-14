@@ -8,7 +8,7 @@ import sounddevice as sd
 from utils.i18n import _, I18n, get_i18n
 from config.defaults import LANGUAGE_NAMES, VALID_DECK_RANGE
 from utils.helpers import check_ffmpeg
-from gui.dialogs.custom import AccessibleSpinCtrl
+from gui.controls.accessible_spin import AccessibleSpinCtrl
 
 
 FFMPEG_AVAILABLE = check_ffmpeg()
