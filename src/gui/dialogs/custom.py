@@ -5,7 +5,6 @@ import wx
 import wx.dataview as dv
 import sys
 
-from config.config_manager import ConfigManager
 
 
 class AccessibleSpinCtrl(wx.BoxSizer):
@@ -157,10 +156,10 @@ class UniversalListCtrl:
         parent,
         size=wx.DefaultSize,
         style=wx.LC_REPORT | wx.BORDER_SUNKEN,
-        checkboxes=False
+        checkboxes=False,
+        force_dataview=False
     ):
         # We use DataViewListCtrl for Linux and macOS unless forced (better accessibility)
-        force_dataview = ConfigManager().getboolean('UI', 'force_dataview', False)
         self.use_dataview = sys.platform.startswith('linux') or sys.platform == 'darwin' or force_dataview
         self.checkboxes = checkboxes
         self._checkbox_column = None
