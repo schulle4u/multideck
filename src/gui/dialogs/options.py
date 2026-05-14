@@ -6,7 +6,7 @@ import wx
 import sys
 import sounddevice as sd
 from utils.i18n import _, I18n, get_i18n
-from config.defaults import LANGUAGE_NAMES, VALID_DECK_RANGE
+from config.defaults import LANGUAGE_NAMES, VALID_DECK_RANGE, RECORDING_FORMATS
 from utils.helpers import check_ffmpeg
 from gui.controls.accessible_spin import AccessibleSpinCtrl
 
@@ -465,11 +465,13 @@ class OptionsDialog(wx.Dialog):
         current_format = self.config_manager.get('Recorder', 'format', 'wav')
 
         # Build format choices based on FFmpeg availability
-        format_choices = ['WAV']
-        format_values = ['wav']
-        if FFMPEG_AVAILABLE:
-            format_choices.extend(['MP3', 'OGG Vorbis', 'FLAC'])
-            format_values.extend(['mp3', 'ogg', 'flac'])
+        available_formats = [
+            (format_key, format_info)
+            for format_key, format_info in RECORDING_FORMATS.items()
+            if FFMPEG_AVAILABLE or format_info.get('native', False)
+        ]
+        format_choices = [format_info['name'] for _, format_info in available_formats]
+        format_values = [format_key for format_key, _ in available_formats]
 
         self.format_choice = wx.Choice(panel, choices=format_choices)
         self.format_choice.SetName(_("Format"))
@@ -482,9 +484,9 @@ class OptionsDialog(wx.Dialog):
 
         sizer.Add(format_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
-        # Bitrate (for MP3/OGG)
+        # Bitrate (for compressed formats)
         bitrate_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        bitrate_label = wx.StaticText(panel, label=_("Bitrate (MP3/OGG)") + ":")
+        bitrate_label = wx.StaticText(panel, label=_("Bitrate (compressed formats)") + ":")
         bitrate_sizer.Add(bitrate_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_bitrate = self.config_manager.getint('Recorder', 'bitrate', 192)
@@ -492,7 +494,7 @@ class OptionsDialog(wx.Dialog):
         bitrate_labels = [f'{b} kbps' for b in bitrate_choices]
 
         self.bitrate_choice = wx.Choice(panel, choices=bitrate_labels)
-        self.bitrate_choice.SetName(_("Bitrate (MP3/OGG)"))
+        self.bitrate_choice.SetName(_("Bitrate (compressed formats)"))
         if str(current_bitrate) in bitrate_choices:
             self.bitrate_choice.SetSelection(bitrate_choices.index(str(current_bitrate)))
         else:
@@ -504,9 +506,16 @@ class OptionsDialog(wx.Dialog):
 
         # FFmpeg status info
         if not FFMPEG_AVAILABLE:
+            ffmpeg_format_names = [
+                format_info['name']
+                for format_info in RECORDING_FORMATS.values()
+                if not format_info.get('native', False)
+            ]
             ffmpeg_info = wx.StaticText(
                 panel,
-                label=_("Note: Install FFmpeg for MP3, OGG, and FLAC support.")
+                label=_("Note: Install FFmpeg for {formats} support.").format(
+                    formats=", ".join(ffmpeg_format_names)
+                )
             )
             ffmpeg_info.SetForegroundColour(wx.Colour(128, 128, 128))
             sizer.Add(ffmpeg_info, 0, wx.ALL, 10)

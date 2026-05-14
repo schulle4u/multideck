@@ -1,6 +1,6 @@
 """
 Recorder - Master output recording functionality
-Supports WAV, MP3, OGG, and FLAC formats via FFmpeg
+Supports recording formats from config defaults
 Includes pre-roll buffer for retrospective recording
 """
 
@@ -13,6 +13,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Optional, Callable
 
+from config.defaults import RECORDING_FORMATS
 from utils.logger import get_logger
 from utils.helpers import check_ffmpeg, generate_recording_filename
 
@@ -25,16 +26,11 @@ FFMPEG_AVAILABLE = check_ffmpeg()
 class Recorder:
     """
     Records master audio output to audio files.
-    Supports WAV (native), MP3, OGG, and FLAC (via FFmpeg).
+    Supports native formats and FFmpeg-backed formats from config defaults.
     """
 
     # Supported formats and their FFmpeg codec settings
-    FORMATS = {
-        'wav': {'extension': '.wav', 'codec': None, 'native': True},
-        'mp3': {'extension': '.mp3', 'codec': 'libmp3lame', 'native': False},
-        'ogg': {'extension': '.ogg', 'codec': 'libvorbis', 'native': False},
-        'flac': {'extension': '.flac', 'codec': 'flac', 'native': False},
-    }
+    FORMATS = RECORDING_FORMATS
 
     def __init__(self, sample_rate: int = 44100, channels: int = 2,
                  bit_depth: int = 16, format: str = 'wav', bitrate: int = 192,
@@ -46,7 +42,7 @@ class Recorder:
             sample_rate: Sample rate in Hz
             channels: Number of channels (1=mono, 2=stereo)
             bit_depth: Bit depth (16, 24, or 32)
-            format: Output format ('wav', 'mp3', 'ogg', 'flac')
+            format: Output format key from RECORDING_FORMATS
             bitrate: Bitrate in kbps for compressed formats (64-320)
             pre_roll_seconds: Pre-roll buffer duration in seconds (0 to disable)
         """
@@ -85,7 +81,7 @@ class Recorder:
         Set recording format.
 
         Args:
-            format: Output format ('wav', 'mp3', 'ogg', 'flac')
+            format: Output format key from RECORDING_FORMATS
         """
         if not self.is_recording:
             self.format = format if format in self.FORMATS else 'wav'
@@ -229,10 +225,11 @@ class Recorder:
         Returns:
             List of available format names
         """
-        formats = ['wav']  # WAV is always available
-        if FFMPEG_AVAILABLE:
-            formats.extend(['mp3', 'ogg', 'flac'])
-        return formats
+        return [
+            format_key
+            for format_key, format_info in self.FORMATS.items()
+            if FFMPEG_AVAILABLE or format_info.get('native', False)
+        ]
 
     def start_recording(self, output_file: Optional[str] = None,
                        output_directory: Optional[str] = None) -> bool:
@@ -325,13 +322,10 @@ class Recorder:
             '-acodec', codec,
         ]
 
-        # Add format-specific options with bitrate
-        if codec == 'libmp3lame':
+        # Add format-specific options
+        if format_info.get('uses_bitrate', False):
             cmd.extend(['-b:a', f'{self.bitrate}k'])
-        elif codec == 'libvorbis':
-            cmd.extend(['-b:a', f'{self.bitrate}k'])
-        elif codec == 'flac':
-            cmd.extend(['-compression_level', '5'])  # FLAC is lossless, no bitrate
+        cmd.extend(format_info.get('ffmpeg_options', []))
 
         cmd.append(self.output_file)
 

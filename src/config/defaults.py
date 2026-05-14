@@ -107,10 +107,40 @@ SUPPORTED_FILE_FORMATS = [
 
 # Recording formats
 RECORDING_FORMATS = {
-    'wav': {'extension': '.wav', 'name': 'WAV'},
-    'mp3': {'extension': '.mp3', 'name': 'MP3'},
-    'ogg': {'extension': '.ogg', 'name': 'OGG Vorbis'},
-    'flac': {'extension': '.flac', 'name': 'FLAC'},
+    'wav': {
+        'extension': '.wav',
+        'name': 'WAV',
+        'codec': None,
+        'native': True,
+    },
+    'mp3': {
+        'extension': '.mp3',
+        'name': 'MP3',
+        'codec': 'libmp3lame',
+        'native': False,
+        'uses_bitrate': True,
+    },
+    'ogg': {
+        'extension': '.ogg',
+        'name': 'OGG Vorbis',
+        'codec': 'libvorbis',
+        'native': False,
+        'uses_bitrate': True,
+    },
+    'opus': {
+        'extension': '.opus',
+        'name': 'Opus',
+        'codec': 'libopus',
+        'native': False,
+        'uses_bitrate': True,
+    },
+    'flac': {
+        'extension': '.flac',
+        'name': 'FLAC',
+        'codec': 'flac',
+        'native': False,
+        'ffmpeg_options': ['-compression_level', '5'],
+    },
 }
 
 # Language names for UI

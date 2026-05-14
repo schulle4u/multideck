@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-13 22:54+0200\n"
-"PO-Revision-Date: 2026-05-13 22:55+0200\n"
+"POT-Creation-Date: 2026-05-15 00:46+0200\n"
+"PO-Revision-Date: 2026-05-15 00:48+0200\n"
 "Last-Translator: Steffen Schultz\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -306,7 +306,7 @@ msgid "Enable Gain"
 msgstr "Verstärkung einschalten"
 
 # Dialogs
-#: gui/dialogs/options.py:30 gui/panels/active_deck.py:189
+#: gui/dialogs/options.py:30 gui/panels/active_deck.py:191
 msgid "Options"
 msgstr "Optionen"
 
@@ -359,7 +359,7 @@ msgid "&Apply"
 msgstr "Ü&bernehmen"
 
 #: gui/dialogs/options.py:207 gui/dialogs/options.py:217
-#: gui/dialogs/options.py:1015
+#: gui/dialogs/options.py:1024
 msgid "Language"
 msgstr "Sprache"
 
@@ -368,7 +368,7 @@ msgid "System language"
 msgstr "Systemsprache"
 
 #: gui/dialogs/options.py:228 gui/dialogs/options.py:235
-#: gui/dialogs/options.py:1017
+#: gui/dialogs/options.py:1026
 msgid "Number of decks"
 msgstr "Anzahl der Decks"
 
@@ -401,12 +401,12 @@ msgid "No Output (Livestream Only)"
 msgstr "Keine Ausgabe (nur Livestream)"
 
 #: gui/dialogs/options.py:296 gui/dialogs/options.py:303
-#: gui/dialogs/options.py:1038
+#: gui/dialogs/options.py:1047
 msgid "Buffer size"
 msgstr "Puffergröße"
 
 #: gui/dialogs/options.py:312 gui/dialogs/options.py:319
-#: gui/dialogs/options.py:1040
+#: gui/dialogs/options.py:1049
 msgid "Sample rate"
 msgstr "Abtastrate"
 
@@ -442,143 +442,144 @@ msgstr "Hysterese (dB)"
 msgid "Hold Time (seconds)"
 msgstr "Haltezeit (Sekunden)"
 
-#: gui/dialogs/options.py:462 gui/dialogs/options.py:475
+#: gui/dialogs/options.py:462 gui/dialogs/options.py:477
 msgid "Format"
 msgstr "Format"
 
-#: gui/dialogs/options.py:487 gui/dialogs/options.py:495
-msgid "Bitrate (MP3/OGG)"
-msgstr "Bitrate (MP3/OGG)"
+#: gui/dialogs/options.py:489 gui/dialogs/options.py:497
+msgid "Bitrate (compressed formats)"
+msgstr "Bitrate (komprimierte Formate)"
 
-#: gui/dialogs/options.py:509
-msgid "Note: Install FFmpeg for MP3, OGG, and FLAC support."
-msgstr "Hinweis: Installiere FFmpeg für MP3-, OGG- und FLAC-Support."
+#: gui/dialogs/options.py:516
+#, python-brace-format
+msgid "Note: Install FFmpeg for {formats} support."
+msgstr "Hinweis: Installiere FFmpeg für {formats}."
 
-#: gui/dialogs/options.py:516 gui/dialogs/options.py:523
+#: gui/dialogs/options.py:525 gui/dialogs/options.py:532
 msgid "Bit Depth (WAV only)"
 msgstr "Bittiefe (nur WAV)"
 
-#: gui/dialogs/options.py:532 gui/dialogs/options.py:538
+#: gui/dialogs/options.py:541 gui/dialogs/options.py:547
 msgid "Pre-Roll (seconds)"
 msgstr "Vorabpuffer (Sekunden)"
 
-#: gui/dialogs/options.py:539
+#: gui/dialogs/options.py:548
 msgid "Buffer audio before recording starts (0 to disable)"
 msgstr "Audio vor der Aufnahme puffern (0 zum Ausschalten)"
 
-#: gui/dialogs/options.py:546 gui/dialogs/options.py:551
+#: gui/dialogs/options.py:555 gui/dialogs/options.py:560
 msgid "Output Directory"
 msgstr "Ausgabeverzeichnis"
 
-#: gui/dialogs/options.py:554 gui/dialogs/options.py:555
+#: gui/dialogs/options.py:563 gui/dialogs/options.py:564
 msgid "Browse"
 msgstr "Durchsuchen"
 
-#: gui/dialogs/options.py:566 gui/main_frame.py:1812 gui/main_frame.py:1964
+#: gui/dialogs/options.py:575 gui/main_frame.py:1812 gui/main_frame.py:1964
 msgid "Choose recording output directory"
 msgstr "Aufnahme-Ausgabeverzeichnis wählen"
 
-#: gui/dialogs/options.py:577 gui/dialogs/options.py:580
+#: gui/dialogs/options.py:586 gui/dialogs/options.py:589
 msgid "Server"
 msgstr "Server"
 
-#: gui/dialogs/options.py:585 gui/dialogs/options.py:589
+#: gui/dialogs/options.py:594 gui/dialogs/options.py:598
 msgid "Port"
 msgstr "Port"
 
-#: gui/dialogs/options.py:594 gui/dialogs/options.py:597
+#: gui/dialogs/options.py:603 gui/dialogs/options.py:606
 msgid "Mountpoint"
 msgstr "Einhängepunkt"
 
-#: gui/dialogs/options.py:602 gui/dialogs/options.py:608
+#: gui/dialogs/options.py:611 gui/dialogs/options.py:617
 msgid "Username:Password"
 msgstr "Benutzername:Passwort"
 
-#: gui/dialogs/options.py:613 gui/dialogs/options.py:617
+#: gui/dialogs/options.py:622 gui/dialogs/options.py:626
 msgid "Codec"
 msgstr "Codec"
 
-#: gui/dialogs/options.py:626 gui/dialogs/options.py:630
+#: gui/dialogs/options.py:635 gui/dialogs/options.py:639
 msgid "Bitrate"
 msgstr "Bitrate"
 
-#: gui/dialogs/options.py:640 gui/dialogs/options.py:643
+#: gui/dialogs/options.py:649 gui/dialogs/options.py:652
 msgid "Stream Name"
 msgstr "Stream-Name"
 
-#: gui/dialogs/options.py:648 gui/dialogs/options.py:651
+#: gui/dialogs/options.py:657 gui/dialogs/options.py:660
 msgid "Description"
 msgstr "Beschreibung"
 
-#: gui/dialogs/options.py:656 gui/dialogs/options.py:659
+#: gui/dialogs/options.py:665 gui/dialogs/options.py:668
 msgid "Genre"
 msgstr "Genre"
 
-#: gui/dialogs/options.py:664 gui/dialogs/options.py:667
+#: gui/dialogs/options.py:673 gui/dialogs/options.py:676
 msgid "Website URL"
 msgstr "Website-URL"
 
-#: gui/dialogs/options.py:671 gui/dialogs/options.py:672
+#: gui/dialogs/options.py:680 gui/dialogs/options.py:681
 msgid "List stream as public"
 msgstr "Öffentlicher Stream"
 
-#: gui/dialogs/options.py:676 gui/dialogs/options.py:677
+#: gui/dialogs/options.py:685 gui/dialogs/options.py:686
 msgid "Connect livestream at startup"
 msgstr "Verbindung bei Programmstart"
 
-#: gui/dialogs/options.py:684 gui/dialogs/options.py:685
+#: gui/dialogs/options.py:693 gui/dialogs/options.py:694
 msgid "Auto-reconnect on connection loss"
 msgstr "Automatisch neu verbinden bei Verbindungsabbruch"
 
-#: gui/dialogs/options.py:693 gui/dialogs/options.py:699
+#: gui/dialogs/options.py:702 gui/dialogs/options.py:708
 msgid "Reconnect Wait (seconds)"
 msgstr "Wartezeit für Neuverbindung (Sekunden)"
 
-#: gui/dialogs/options.py:715 gui/dialogs/options.py:716
+#: gui/dialogs/options.py:724 gui/dialogs/options.py:725
 msgid "Enable text-to-speech announcements"
 msgstr "Sprachausgabenansagen einschalten"
 
-#: gui/dialogs/options.py:724 gui/dialogs/options.py:734
+#: gui/dialogs/options.py:733 gui/dialogs/options.py:743
 msgid "Engine"
 msgstr "Treiber"
 
-#: gui/dialogs/options.py:729
+#: gui/dialogs/options.py:738
 msgid "(none available)"
 msgstr "(Keine verfügbar)"
 
-#: gui/dialogs/options.py:745 gui/dialogs/options.py:755
+#: gui/dialogs/options.py:754 gui/dialogs/options.py:764
 msgid "Voice"
 msgstr "Stimme"
 
-#: gui/dialogs/options.py:752 gui/dialogs/options.py:808
-#: gui/dialogs/options.py:820 gui/dialogs/options.py:1100
+#: gui/dialogs/options.py:761 gui/dialogs/options.py:817
+#: gui/dialogs/options.py:829 gui/dialogs/options.py:1109
 msgid "(default)"
 msgstr "(Standard)"
 
-#: gui/dialogs/options.py:766 gui/dialogs/options.py:773
+#: gui/dialogs/options.py:775 gui/dialogs/options.py:782
 msgid "Rate (%, 0=default)"
 msgstr "Geschwindigkeit (%, 0=Standard)"
 
-#: gui/dialogs/options.py:779 gui/dialogs/options.py:785
+#: gui/dialogs/options.py:788 gui/dialogs/options.py:794
 msgid "Volume (%, -1=default)"
 msgstr "Lautstärke (%, -1=Standard)"
 
-#: gui/dialogs/options.py:790 gui/dialogs/options.py:791
+#: gui/dialogs/options.py:799 gui/dialogs/options.py:800
 msgid "Test voice"
 msgstr "Stimme testen"
 
-#: gui/dialogs/options.py:828
+#: gui/dialogs/options.py:837
 msgid "Test announcement: Deck 1"
 msgstr "Testansage: Deck 1"
 
-#: gui/dialogs/options.py:1111
+#: gui/dialogs/options.py:1120
 msgid ""
 "The following settings require restarting the application to take effect:"
 msgstr ""
 "Die folgenden Einstellungen werden erst nach einem Neustart der Anwendung "
 "aktiv:"
 
-#: gui/dialogs/options.py:1112
+#: gui/dialogs/options.py:1121
 msgid "Restart Required"
 msgstr "Neustart notwendig"
 
@@ -608,7 +609,7 @@ msgstr "{n} Kanal"
 msgid "{n} channels"
 msgstr "{n} Kanäle"
 
-#: gui/main_frame.py:165 gui/main_frame.py:1790 gui/panels/active_deck.py:169
+#: gui/main_frame.py:165 gui/main_frame.py:1790 gui/panels/active_deck.py:171
 msgid "Center"
 msgstr "Mitte"
 
@@ -741,7 +742,7 @@ msgstr "Hauptgerät"
 msgid "Deck is empty"
 msgstr "Deck ist leer"
 
-#: gui/main_frame.py:499 gui/panels/active_deck.py:88
+#: gui/main_frame.py:499 gui/panels/active_deck.py:90
 msgid "No deck selected"
 msgstr "Kein Deck ausgewählt"
 
@@ -771,8 +772,8 @@ msgid "Pause"
 msgstr "Pausieren"
 
 # Buttons and controls
-#: gui/main_frame.py:554 gui/main_frame.py:555 gui/panels/active_deck.py:51
-#: gui/panels/active_deck.py:104 gui/panels/active_deck.py:105
+#: gui/main_frame.py:554 gui/main_frame.py:555 gui/panels/active_deck.py:53
+#: gui/panels/active_deck.py:106 gui/panels/active_deck.py:107
 msgid "Play"
 msgstr "Abspielen"
 
@@ -1177,83 +1178,83 @@ msgid "&About"
 msgstr "Ü&ber"
 
 #: gui/panels/active_deck.py:27 gui/panels/active_deck.py:28
-#: gui/panels/active_deck.py:32 gui/panels/active_deck.py:58
-#: gui/panels/active_deck.py:59
+#: gui/panels/active_deck.py:32 gui/panels/active_deck.py:60
+#: gui/panels/active_deck.py:61
 msgid "Deck Selection"
 msgstr "Deckauswahl"
 
-#: gui/panels/active_deck.py:52
+#: gui/panels/active_deck.py:54
 msgid "Status"
 msgstr "Status"
 
-#: gui/panels/active_deck.py:53
+#: gui/panels/active_deck.py:55
 msgid "Deck"
 msgstr "Deck"
 
 # Menu items
-#: gui/panels/active_deck.py:54
+#: gui/panels/active_deck.py:56
 msgid "File"
 msgstr "Datei"
 
-#: gui/panels/active_deck.py:55
+#: gui/panels/active_deck.py:57
 msgid "Output"
 msgstr "Ausgabe"
 
-#: gui/panels/active_deck.py:69
+#: gui/panels/active_deck.py:71
 msgid "Active Deck Controls"
 msgstr "Steuerung für aktives Deck"
 
-#: gui/panels/active_deck.py:109 gui/panels/active_deck.py:110
+#: gui/panels/active_deck.py:111 gui/panels/active_deck.py:112
 msgid "Stop"
 msgstr "Stopp"
 
-#: gui/panels/active_deck.py:114 gui/panels/active_deck.py:115
+#: gui/panels/active_deck.py:116 gui/panels/active_deck.py:117
 msgid "Menu"
 msgstr "Menü"
 
-#: gui/panels/active_deck.py:137 gui/panels/active_deck.py:151
+#: gui/panels/active_deck.py:139 gui/panels/active_deck.py:153
 msgid "Volume"
 msgstr "Lautstärke"
 
-#: gui/panels/active_deck.py:140
+#: gui/panels/active_deck.py:142
 msgid "Deck volume"
 msgstr "Decklautstärke"
 
-#: gui/panels/active_deck.py:163 gui/panels/active_deck.py:177
+#: gui/panels/active_deck.py:165 gui/panels/active_deck.py:179
 msgid "Balance"
 msgstr "Balance"
 
-#: gui/panels/active_deck.py:166
+#: gui/panels/active_deck.py:168
 msgid "Left / Right"
 msgstr "Links / Rechts"
 
-#: gui/panels/active_deck.py:192 gui/panels/active_deck.py:193
+#: gui/panels/active_deck.py:194 gui/panels/active_deck.py:195
 msgid "Mute"
 msgstr "Stumm"
 
-#: gui/panels/active_deck.py:197 gui/panels/active_deck.py:198
+#: gui/panels/active_deck.py:199 gui/panels/active_deck.py:200
 msgid "Loop"
 msgstr "Wiederholen"
 
-#: gui/panels/active_deck.py:210 gui/panels/active_deck.py:211
-#: gui/panels/active_deck.py:213
+#: gui/panels/active_deck.py:212 gui/panels/active_deck.py:213
+#: gui/panels/active_deck.py:215
 msgid "Position"
 msgstr "Position"
 
-#: gui/panels/active_deck.py:218
+#: gui/panels/active_deck.py:220
 msgid "Current position"
 msgstr "Aktuelle Position"
 
-#: gui/panels/active_deck.py:222
+#: gui/panels/active_deck.py:224
 msgid "Total duration"
 msgstr "Gesamtdauer"
 
-#: gui/panels/active_deck.py:230
+#: gui/panels/active_deck.py:232
 msgid "Playback position"
 msgstr "Wiedergabeposition"
 
-#: gui/panels/active_deck.py:244 gui/panels/active_deck.py:245
-#: gui/panels/active_deck.py:247
+#: gui/panels/active_deck.py:246 gui/panels/active_deck.py:247
+#: gui/panels/active_deck.py:249
 msgid "Level"
 msgstr "Pegel"
 
@@ -1363,6 +1364,9 @@ msgid ""
 msgstr ""
 "Ungültiges Projektdateiformat: {}\n"
 ".mdap-Datei erwartet."
+
+#~ msgid "Bitrate (MP3/OGG)"
+#~ msgstr "Bitrate (MP3/OGG)"
 
 #~ msgid "Compact"
 #~ msgstr "Kompakt"
