@@ -206,8 +206,8 @@ Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+Shift+O aufrufbar.
 
 ### Aufnahme
 
-* Format: Das bevorzugte Audioformat für Aufnahmen Wav. MP3, OGG oder FLAC. 
-* Bitrate (nur MP3 und OGG): Die zu verwendende Komprimierungsbitrate. 
+* Format: Das bevorzugte Audioformat für Aufnahmen. 
+* Bitrate (nur für komprimierte Formate): Die zu verwendende Komprimierungsbitrate. 
 * Bittiefe (nur WAV): Die für WAV-Dateien zu verwendende Bittiefe.
 * Vorabpuffer (Sekunden): Ermöglicht es, die Aufnahme vor dem eigentlichen Start für bis zu 2 Minuten (120 Sekunden) vorab im Arbeitsspeicher zu halten. Die so gepufferte Aufnahme wird beim Starten der Aufnahme vorangestellt. 
 * Ausgabeverzeichnis: Legt den Standardordner für Aufnahmen fest.

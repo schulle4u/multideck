@@ -206,8 +206,8 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 
 ### Recording
 
-* Format: The preferred audio format for recordings: WAV, MP3, OGG, or FLAC.
-* Bit Rate (MP3 and OGG only): The compression bit rate to use.
+* Format: The preferred audio format for recordings.
+* Bit Rate (compressed formats only): The compression bit rate to use.
 * Bit Depth (WAV only): The bit depth to use for WAV files.
 * Pre-Roll Buffer (seconds): Allows the recording to be buffered in RAM for up to 2 minutes (120 seconds) before the actual recording starts. This buffered audio is prepended when recording begins.
 * Output Directory: Sets the default folder for recordings.
