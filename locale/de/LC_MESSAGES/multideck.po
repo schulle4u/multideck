@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-05-18 22:42+0200\n"
-"PO-Revision-Date: 2026-05-18 22:43+0200\n"
+"PO-Revision-Date: 2026-05-18 22:52+0200\n"
 "Last-Translator: Steffen Schultz\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -1396,79 +1396,3 @@ msgid ""
 msgstr ""
 "Ungültiges Projektdateiformat: {}\n"
 ".mdap-Datei erwartet."
-
-#~ msgid "Bitrate (MP3/OGG)"
-#~ msgstr "Bitrate (MP3/OGG)"
-
-#~ msgid "Compact"
-#~ msgstr "Kompakt"
-
-#~ msgid "Detailed"
-#~ msgstr "Detailiert"
-
-#~ msgid "Recording"
-#~ msgstr "Aufnahme"
-
-#~ msgid ""
-#~ "Please complete the streaming settings in Options before starting the "
-#~ "livestream."
-#~ msgstr "Bitte zuerst die Streaming-Einstellungen in den Optionen ausfüllen."
-
-#~ msgid "Global Output"
-#~ msgstr "Globale Ausgabe"
-
-#~ msgid "&Keyboard Shortcuts"
-#~ msgstr "&Tastaturkürzel"
-
-#~ msgid "&Open Project..."
-#~ msgstr "Projekt ö&ffnen..."
-
-#~ msgid "Save Project &As..."
-#~ msgstr "Projekt speichern &unter..."
-
-#~ msgid "&Import M3U Playlist..."
-#~ msgstr "M3U-Playliste &importieren..."
-
-#~ msgid "&Export M3U Playlist..."
-#~ msgstr "M3U-Playliste &exportieren..."
-
-#~ msgid "Audio &Effects..."
-#~ msgstr "Audio&effekte..."
-
-# Dialogs
-#~ msgid "&Options..."
-#~ msgstr "&Optionen..."
-
-#~ msgid "Number of Decks"
-#~ msgstr "Anzahl der Decks"
-
-#~ msgid "Buffer Size"
-#~ msgstr "Puffergröße"
-
-#~ msgid "Sample Rate"
-#~ msgstr "Abtastrate"
-
-#~ msgid "Browse for Output Directory"
-#~ msgstr "Aufnahme-Ausgabeverzeichnis wählen"
-
-#~ msgid "Choose Recording Output Directory"
-#~ msgstr "Aufnahme-Ausgabeverzeichnis wählen"
-
-#~ msgid "Volume:"
-#~ msgstr "Lautstärke:"
-
-#~ msgid "Balance:"
-#~ msgstr "Balance:"
-
-#~ msgid "Rename Deck..."
-#~ msgstr "Deck umbenennen..."
-
-#~ msgid "Audio Level"
-#~ msgstr "Audiopegel"
-
-#, python-brace-format
-#~ msgid "Audio Level: {}"
-#~ msgstr "Audiopegel: {}"
-
-#~ msgid "Audio Level: -inf dB"
-#~ msgstr "Audiopegel: -inf dB"
