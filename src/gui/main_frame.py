@@ -21,7 +21,7 @@ from config.config_manager import ConfigManager, ProjectManager
 from config.defaults import (
     APP_NAME, APP_VERSION, APP_AUTHOR, APP_WEBSITE, APP_LICENSE,
     SUPPORTED_FILE_FORMATS, PROJECT_FILE_FILTER, MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC, MODE_MULTIROOM,
-    DECK_STATE_EMPTY, DECK_STATE_PLAYING, DECK_STATE_PAUSED
+    DECK_STATE_EMPTY, DECK_STATE_PLAYING, DECK_STATE_PAUSED, DECK_STATE_ERROR
 )
 from utils.i18n import _, get_i18n
 from utils.helpers import format_time, parse_time
@@ -182,6 +182,64 @@ class MainFrame(wx.Frame):
         """Keep the active deck status readable while the panel is resized."""
         self._wrap_active_deck_status()
         event.Skip()
+
+    def _is_missing_local_deck_file(self, deck):
+        """Return True when a deck points to a local file that no longer exists."""
+        return (
+            bool(deck.file_path)
+            and not deck.is_stream
+            and not deck.is_soundcard_input
+            and not os.path.exists(deck.file_path)
+        )
+
+    def _mark_deck_file_missing(self, deck):
+        """Move a deck with a missing local file into an error state."""
+        if not self._is_missing_local_deck_file(deck):
+            return False
+
+        deck.is_playing = False
+        deck.is_paused = False
+        deck.audio_data = None
+        if hasattr(self.mixer, '_loaded_audio_cache'):
+            self.mixer._loaded_audio_cache.pop(deck.deck_id, None)
+        if deck.state != DECK_STATE_ERROR:
+            deck._set_state(DECK_STATE_ERROR)
+        return True
+
+    def _get_missing_file_status_message(self, deck):
+        """Create a user-facing status message for a missing deck file."""
+        filename = os.path.basename(deck.file_path) if deck.file_path else _("Unknown file")
+        return _("Cannot play '{}': file not found ({})").format(deck.name, filename)
+
+    def _show_deck_playback_error(self, deck, message):
+        """Update all visible deck UI after a playback request fails."""
+        self.SetStatusText(message, 0)
+        self.tts_manager.speak(message)
+        self._update_global_play_button()
+        self._update_deck_panel(deck.deck_id)
+
+    def _ensure_deck_ready_for_playback(self, deck):
+        """Validate and preload a deck before starting playback."""
+        if deck.state == DECK_STATE_EMPTY:
+            self._show_deck_playback_error(deck, _("Deck is empty"))
+            return False
+
+        if self._mark_deck_file_missing(deck):
+            self._show_deck_playback_error(deck, self._get_missing_file_status_message(deck))
+            return False
+
+        if not deck.is_playing and not self.mixer.ensure_deck_loaded(deck):
+            if self._mark_deck_file_missing(deck):
+                message = self._get_missing_file_status_message(deck)
+            else:
+                deck.is_playing = False
+                deck.is_paused = False
+                deck._set_state(DECK_STATE_ERROR)
+                message = _("Cannot play '{}': audio could not be loaded").format(deck.name)
+            self._show_deck_playback_error(deck, message)
+            return False
+
+        return True
 
     def _create_status_bar(self):
         """Create status bar"""
@@ -345,7 +403,7 @@ class MainFrame(wx.Frame):
 
     def _on_deck_play(self, deck):
         """Handle deck play request - preload audio to prevent underflow"""
-        self.mixer.ensure_deck_loaded(deck)
+        self._ensure_deck_ready_for_playback(deck)
 
     def _on_deck_load_file(self, deck):
         """Handle deck file loading"""
@@ -465,6 +523,7 @@ class MainFrame(wx.Frame):
             self.deck_listbox.control.DeleteAllItems()
             for i, deck in enumerate(self.mixer.decks):
                 deck_name = deck.name
+                missing_file = self._mark_deck_file_missing(deck)
                 if deck.file_path:
                     if deck.is_soundcard_input:
                         file_info = _("[Input] {}").format(deck.soundcard_device_name)
@@ -472,6 +531,8 @@ class MainFrame(wx.Frame):
                         file_info = deck.file_path
                     else:
                         file_info = os.path.basename(deck.file_path)
+                        if missing_file:
+                            file_info = "{} ({})".format(file_info, _("File missing"))
                 else:
                     file_info = ""
 
@@ -482,7 +543,11 @@ class MainFrame(wx.Frame):
                 )
 
                 status = ""
-                if deck.is_playing:
+                if missing_file:
+                    status = _("missing")
+                elif deck.state == DECK_STATE_ERROR:
+                    status = _("Error")
+                elif deck.is_playing:
                     status = "▶"
                     if self.mixer.is_deck_recording(deck.deck_id):
                         status = f"{status} ⏺"
@@ -521,18 +586,14 @@ class MainFrame(wx.Frame):
         checked = event.IsChecked()
 
         if checked:
-            if deck.state == DECK_STATE_EMPTY:
+            if not self._ensure_deck_ready_for_playback(deck):
                 self._updating_deck_listbox = True
                 try:
                     self.deck_listbox.SetChecked(deck_index, False)
                 finally:
                     self._updating_deck_listbox = False
-                message = _("Deck is empty")
-                self.SetStatusText(message, 0)
-                self.tts_manager.speak(message)
                 return
             if not deck.is_playing:
-                self.mixer.ensure_deck_loaded(deck)
                 deck.play()
         else:
             deck.stop()
@@ -572,12 +633,13 @@ class MainFrame(wx.Frame):
         self.active_deck_label.SetLabel(deck.name)
 
         # Update status
+        missing_file = self._mark_deck_file_missing(deck)
         status_text = {
             DECK_STATE_EMPTY: _("Empty"),
             "loaded": _("Loaded"),
             DECK_STATE_PLAYING: _("Playing"),
             DECK_STATE_PAUSED: _("Paused"),
-            "error": _("Error"),
+            DECK_STATE_ERROR: _("Error"),
         }.get(deck.state, deck.state)
 
         file_info = ""
@@ -587,6 +649,11 @@ class MainFrame(wx.Frame):
             else:
                 file_info = os.path.basename(deck.file_path)
             status_text = f"{status_text} - {file_info}"
+
+        if missing_file:
+            status_text = _("Error - file not found: {}").format(file_info or _("Unknown file"))
+            if deck.file_path:
+                status_text = f"{status_text}\n{deck.file_path}"
 
         if deck.intro_file:
             status_text = f"{status_text}\n{_('Intro')}: {os.path.basename(deck.intro_file)}"
@@ -603,7 +670,7 @@ class MainFrame(wx.Frame):
             self.active_play_btn.SetName(_("Play"))
 
         # Enable/disable controls based on state
-        is_loaded = deck.state != DECK_STATE_EMPTY
+        is_loaded = deck.state != DECK_STATE_EMPTY and not missing_file
         self.active_play_btn.Enable(is_loaded)
         self.active_stop_btn.Enable(is_loaded)
         self.active_volume_slider.Enable(True)
@@ -644,6 +711,7 @@ class MainFrame(wx.Frame):
         deck = self._get_selected_deck()
         has_deck = deck is not None
         is_loaded = has_deck and deck.state != DECK_STATE_EMPTY
+        can_record = is_loaded and not self._is_missing_local_deck_file(deck)
         is_recording = has_deck and self.mixer.is_deck_recording(deck.deck_id)
 
         self.load_file_item.Enable(has_deck)
@@ -653,7 +721,7 @@ class MainFrame(wx.Frame):
         self.clear_intro_item.Enable(has_deck and bool(deck.intro_file))
         self.rename_item.Enable(has_deck)
         self.unload_item.Enable(is_loaded)
-        self.record_deck_menu_item.Enable(is_loaded)
+        self.record_deck_menu_item.Enable(can_record)
         self._update_deck_output_device_menu_items()
         if is_recording:
             self.record_deck_menu_item.SetItemLabel(_("Stop Recording Deck") + "\tCtrl+Shift+R")
@@ -731,8 +799,8 @@ class MainFrame(wx.Frame):
         deck = self._get_selected_deck()
         if deck and deck.state != "empty":
             # Preload audio before starting playback
-            if not deck.is_playing:
-                self.mixer.ensure_deck_loaded(deck)
+            if not deck.is_playing and not self._ensure_deck_ready_for_playback(deck):
+                return
             deck.toggle_play_pause()
             self._update_active_deck_controls()
             self._update_deck_panel(deck.deck_id)
@@ -795,13 +863,14 @@ class MainFrame(wx.Frame):
         rename_item = menu.Append(wx.ID_ANY, _("Rename Deck") + "...\tF2")
         unload_item = menu.Append(wx.ID_ANY, _("Unload Deck") + "\tDel")
         unload_item.Enable(deck.state != DECK_STATE_EMPTY)
+        can_record = deck.state != DECK_STATE_EMPTY and not self._is_missing_local_deck_file(deck)
 
         menu.AppendSeparator()
         if self.mixer.is_deck_recording(deck.deck_id):
             record_deck_item = menu.Append(wx.ID_ANY, _("Stop Recording Deck") + "\tCtrl+Shift+R")
         else:
             record_deck_item = menu.Append(wx.ID_ANY, _("Start Recording Deck") + "\tCtrl+Shift+R")
-        record_deck_item.Enable(deck.state != DECK_STATE_EMPTY)
+        record_deck_item.Enable(can_record)
 
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_file(deck), load_file_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_url(deck), load_url_item)
@@ -1336,7 +1405,14 @@ class MainFrame(wx.Frame):
         if 'decks' in project_data:
             for i, deck_data in enumerate(project_data['decks']):
                 if i < len(self.mixer.decks) and deck_data:
-                    self.mixer.decks[i].from_dict(deck_data)
+                    deck = self.mixer.decks[i]
+                    loaded = deck.from_dict(deck_data)
+                    missing_file = deck_data.get('file')
+                    if not loaded and missing_file and not missing_file.startswith(('http://', 'https://')):
+                        deck.file_path = missing_file
+                        deck.is_stream = False
+                        deck.is_soundcard_input = False
+                        self._mark_deck_file_missing(deck)
                     self._update_deck_panel(i + 1)
 
         # Load effects settings
