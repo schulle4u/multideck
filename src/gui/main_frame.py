@@ -19,7 +19,7 @@ from audio.mixer import Mixer
 from audio.recorder import Recorder
 from config.config_manager import ConfigManager, ProjectManager
 from config.defaults import (
-    APP_NAME, APP_VERSION, APP_AUTHOR, APP_WEBSITE, APP_LICENSE,
+    APP_NAME, APP_VERSION, APP_CODE_NAME, APP_AUTHOR, APP_WEBSITE, APP_LICENSE,
     SUPPORTED_FILE_FORMATS, PROJECT_FILE_FILTER, MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC, MODE_MULTIROOM,
     DECK_STATE_EMPTY, DECK_STATE_PLAYING, DECK_STATE_PAUSED, DECK_STATE_ERROR
 )
@@ -1781,7 +1781,7 @@ class MainFrame(wx.Frame):
         """Show about dialog"""
         info = wx.adv.AboutDialogInfo()
         info.SetName(APP_NAME)
-        info.SetVersion(APP_VERSION)
+        info.SetVersion(APP_VERSION + " (" + _("Code name") + ": " + APP_CODE_NAME + ")")
         info.SetDescription(_("Accessible cross-platform audio player for simultaneous playback"))
         info.SetWebSite(APP_WEBSITE, desc="M45.dev")
         info.SetCopyright("Copyright (C) " + APP_AUTHOR)

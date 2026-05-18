@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MultiDeck Audio Player\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 13:30+0200\n"
+"POT-Creation-Date: 2026-05-18 22:42+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -49,7 +49,7 @@ msgid "Effect Chains"
 msgstr ""
 
 #: gui/dialogs/effects.py:124 gui/dialogs/effects.py:130 gui/main_frame.py:250
-#: gui/main_frame.py:373 gui/main_frame.py:1452 gui/main_frame.py:1909
+#: gui/main_frame.py:373 gui/main_frame.py:1452 gui/main_frame.py:1911
 msgid "Master"
 msgstr ""
 
@@ -302,274 +302,274 @@ msgstr ""
 msgid "Options"
 msgstr ""
 
-#: gui/dialogs/options.py:79
+#: gui/dialogs/options.py:81
 msgid "General"
 msgstr ""
 
-#: gui/dialogs/options.py:79
+#: gui/dialogs/options.py:81
 msgid "Audio"
 msgstr ""
 
-#: gui/dialogs/options.py:79
+#: gui/dialogs/options.py:81
 msgid "Automation"
 msgstr ""
 
-#: gui/dialogs/options.py:80
+#: gui/dialogs/options.py:82
 msgid "Recorder"
 msgstr ""
 
-#: gui/dialogs/options.py:80
+#: gui/dialogs/options.py:82
 msgid "Streaming"
 msgstr ""
 
-#: gui/dialogs/options.py:80
+#: gui/dialogs/options.py:82
 msgid "Text-to-Speech"
 msgstr ""
 
-#: gui/dialogs/options.py:82
+#: gui/dialogs/options.py:84
 msgid "Cate&gories"
 msgstr ""
 
-#: gui/dialogs/options.py:85 gui/dialogs/options.py:86
+#: gui/dialogs/options.py:87 gui/dialogs/options.py:88
 msgid "Categories"
 msgstr ""
 
-#: gui/dialogs/options.py:139 gui/dialogs/options.py:140
+#: gui/dialogs/options.py:141 gui/dialogs/options.py:142
 #: gui/dialogs/sound_card_input.py:33 gui/main_frame.py:441
 #: gui/main_frame.py:893 gui/main_frame.py:1154
 msgid "&OK"
 msgstr ""
 
-#: gui/dialogs/options.py:141 gui/dialogs/options.py:142
+#: gui/dialogs/options.py:143 gui/dialogs/options.py:144
 #: gui/dialogs/sound_card_input.py:34 gui/main_frame.py:441
 #: gui/main_frame.py:893 gui/main_frame.py:1154 gui/main_frame.py:1258
 msgid "&Cancel"
 msgstr ""
 
-#: gui/dialogs/options.py:143 gui/dialogs/options.py:144
+#: gui/dialogs/options.py:145 gui/dialogs/options.py:146
 msgid "&Apply"
 msgstr ""
 
-#: gui/dialogs/options.py:207 gui/dialogs/options.py:217
-#: gui/dialogs/options.py:1024
+#: gui/dialogs/options.py:211 gui/dialogs/options.py:221
+#: gui/dialogs/options.py:1074
 msgid "Language"
 msgstr ""
 
-#: gui/dialogs/options.py:212
+#: gui/dialogs/options.py:216
 msgid "System language"
 msgstr ""
 
-#: gui/dialogs/options.py:228 gui/dialogs/options.py:235
-#: gui/dialogs/options.py:1026
+#: gui/dialogs/options.py:232 gui/dialogs/options.py:239
+#: gui/dialogs/options.py:1076
 msgid "Number of decks"
 msgstr ""
 
-#: gui/dialogs/options.py:242 gui/dialogs/options.py:250
+#: gui/dialogs/options.py:246 gui/dialogs/options.py:254
 msgid "Theme"
 msgstr ""
 
-#: gui/dialogs/options.py:246
+#: gui/dialogs/options.py:250
 msgid "System"
 msgstr ""
 
-#: gui/dialogs/options.py:246
+#: gui/dialogs/options.py:250
 msgid "Light"
 msgstr ""
 
-#: gui/dialogs/options.py:246
+#: gui/dialogs/options.py:250
 msgid "Dark"
 msgstr ""
 
-#: gui/dialogs/options.py:269 gui/dialogs/options.py:284 gui/main_frame.py:860
+#: gui/dialogs/options.py:273 gui/dialogs/options.py:288 gui/main_frame.py:860
 #: gui/menus.py:55
 msgid "Output Device"
 msgstr ""
 
-#: gui/dialogs/options.py:274
+#: gui/dialogs/options.py:278
 msgid "System Default"
 msgstr ""
 
-#: gui/dialogs/options.py:274
+#: gui/dialogs/options.py:278
 msgid "No Output (Livestream Only)"
 msgstr ""
 
-#: gui/dialogs/options.py:296 gui/dialogs/options.py:303
-#: gui/dialogs/options.py:1047
+#: gui/dialogs/options.py:300 gui/dialogs/options.py:307
+#: gui/dialogs/options.py:1097
 msgid "Buffer size"
 msgstr ""
 
-#: gui/dialogs/options.py:312 gui/dialogs/options.py:319
-#: gui/dialogs/options.py:1049
+#: gui/dialogs/options.py:316 gui/dialogs/options.py:323
+#: gui/dialogs/options.py:1099
 msgid "Sample rate"
 msgstr ""
 
-#: gui/dialogs/options.py:362 gui/dialogs/options.py:368
+#: gui/dialogs/options.py:366 gui/dialogs/options.py:372
 msgid "Switch Interval (seconds)"
 msgstr ""
 
-#: gui/dialogs/options.py:374 gui/dialogs/options.py:375
+#: gui/dialogs/options.py:378 gui/dialogs/options.py:379
 msgid "Enable Crossfade"
 msgstr ""
 
-#: gui/dialogs/options.py:381
+#: gui/dialogs/options.py:385
 msgid "Crossfade Duration (seconds)"
 msgstr ""
 
-#: gui/dialogs/options.py:400
+#: gui/dialogs/options.py:404
 msgid "Level-Based Switching"
 msgstr ""
 
-#: gui/dialogs/options.py:407 gui/dialogs/options.py:408
+#: gui/dialogs/options.py:411 gui/dialogs/options.py:412
 msgid "Enable level-based switching"
 msgstr ""
 
-#: gui/dialogs/options.py:415 gui/dialogs/options.py:421
+#: gui/dialogs/options.py:419 gui/dialogs/options.py:425
 msgid "Threshold (dB)"
 msgstr ""
 
-#: gui/dialogs/options.py:428 gui/dialogs/options.py:434
+#: gui/dialogs/options.py:432 gui/dialogs/options.py:438
 msgid "Hysteresis (dB)"
 msgstr ""
 
-#: gui/dialogs/options.py:441 gui/dialogs/options.py:447
+#: gui/dialogs/options.py:445 gui/dialogs/options.py:451
 msgid "Hold Time (seconds)"
 msgstr ""
 
-#: gui/dialogs/options.py:462 gui/dialogs/options.py:477
+#: gui/dialogs/options.py:466 gui/dialogs/options.py:481
 msgid "Format"
 msgstr ""
 
-#: gui/dialogs/options.py:489 gui/dialogs/options.py:497
+#: gui/dialogs/options.py:493 gui/dialogs/options.py:501
 msgid "Bitrate (compressed formats)"
 msgstr ""
 
-#: gui/dialogs/options.py:516
+#: gui/dialogs/options.py:520
 #, python-brace-format
 msgid "Note: Install FFmpeg for {formats} support."
 msgstr ""
 
-#: gui/dialogs/options.py:525 gui/dialogs/options.py:532
+#: gui/dialogs/options.py:529 gui/dialogs/options.py:536
 msgid "Bit Depth (WAV only)"
 msgstr ""
 
-#: gui/dialogs/options.py:541 gui/dialogs/options.py:547
+#: gui/dialogs/options.py:545 gui/dialogs/options.py:551
 msgid "Pre-Roll (seconds)"
 msgstr ""
 
-#: gui/dialogs/options.py:548
+#: gui/dialogs/options.py:552
 msgid "Buffer audio before recording starts (0 to disable)"
 msgstr ""
 
-#: gui/dialogs/options.py:555 gui/dialogs/options.py:560
+#: gui/dialogs/options.py:559 gui/dialogs/options.py:564
 msgid "Output Directory"
 msgstr ""
 
-#: gui/dialogs/options.py:563 gui/dialogs/options.py:564
+#: gui/dialogs/options.py:567 gui/dialogs/options.py:568
 msgid "Browse"
 msgstr ""
 
-#: gui/dialogs/options.py:575 gui/main_frame.py:1919 gui/main_frame.py:2071
+#: gui/dialogs/options.py:579 gui/main_frame.py:1921 gui/main_frame.py:2073
 msgid "Choose recording output directory"
 msgstr ""
 
-#: gui/dialogs/options.py:586 gui/dialogs/options.py:589
+#: gui/dialogs/options.py:590 gui/dialogs/options.py:593
 msgid "Server"
 msgstr ""
 
-#: gui/dialogs/options.py:594 gui/dialogs/options.py:598
+#: gui/dialogs/options.py:598 gui/dialogs/options.py:602
 msgid "Port"
 msgstr ""
 
-#: gui/dialogs/options.py:603 gui/dialogs/options.py:606
+#: gui/dialogs/options.py:607 gui/dialogs/options.py:610
 msgid "Mountpoint"
 msgstr ""
 
-#: gui/dialogs/options.py:611 gui/dialogs/options.py:617
+#: gui/dialogs/options.py:615 gui/dialogs/options.py:621
 msgid "Username:Password"
 msgstr ""
 
-#: gui/dialogs/options.py:622 gui/dialogs/options.py:626
+#: gui/dialogs/options.py:626 gui/dialogs/options.py:630
 msgid "Codec"
 msgstr ""
 
-#: gui/dialogs/options.py:635 gui/dialogs/options.py:639
+#: gui/dialogs/options.py:639 gui/dialogs/options.py:643
 msgid "Bitrate"
 msgstr ""
 
-#: gui/dialogs/options.py:649 gui/dialogs/options.py:652
+#: gui/dialogs/options.py:653 gui/dialogs/options.py:656
 msgid "Stream Name"
 msgstr ""
 
-#: gui/dialogs/options.py:657 gui/dialogs/options.py:660
+#: gui/dialogs/options.py:661 gui/dialogs/options.py:664
 msgid "Description"
 msgstr ""
 
-#: gui/dialogs/options.py:665 gui/dialogs/options.py:668
+#: gui/dialogs/options.py:669 gui/dialogs/options.py:672
 msgid "Genre"
 msgstr ""
 
-#: gui/dialogs/options.py:673 gui/dialogs/options.py:676
+#: gui/dialogs/options.py:677 gui/dialogs/options.py:680
 msgid "Website URL"
 msgstr ""
 
-#: gui/dialogs/options.py:680 gui/dialogs/options.py:681
+#: gui/dialogs/options.py:684 gui/dialogs/options.py:685
 msgid "List stream as public"
 msgstr ""
 
-#: gui/dialogs/options.py:685 gui/dialogs/options.py:686
+#: gui/dialogs/options.py:689 gui/dialogs/options.py:690
 msgid "Connect livestream at startup"
 msgstr ""
 
-#: gui/dialogs/options.py:693 gui/dialogs/options.py:694
+#: gui/dialogs/options.py:697 gui/dialogs/options.py:698
 msgid "Auto-reconnect on connection loss"
 msgstr ""
 
-#: gui/dialogs/options.py:702 gui/dialogs/options.py:708
+#: gui/dialogs/options.py:706 gui/dialogs/options.py:712
 msgid "Reconnect Wait (seconds)"
 msgstr ""
 
-#: gui/dialogs/options.py:724 gui/dialogs/options.py:725
+#: gui/dialogs/options.py:728 gui/dialogs/options.py:729
 msgid "Enable text-to-speech announcements"
 msgstr ""
 
-#: gui/dialogs/options.py:733 gui/dialogs/options.py:743
+#: gui/dialogs/options.py:737 gui/dialogs/options.py:747
 msgid "Engine"
 msgstr ""
 
-#: gui/dialogs/options.py:738
+#: gui/dialogs/options.py:742
 msgid "(none available)"
 msgstr ""
 
-#: gui/dialogs/options.py:754 gui/dialogs/options.py:764
+#: gui/dialogs/options.py:758 gui/dialogs/options.py:768
 msgid "Voice"
 msgstr ""
 
-#: gui/dialogs/options.py:761 gui/dialogs/options.py:817
-#: gui/dialogs/options.py:829 gui/dialogs/options.py:1109
+#: gui/dialogs/options.py:765 gui/dialogs/options.py:821
+#: gui/dialogs/options.py:834 gui/dialogs/options.py:1159
 msgid "(default)"
 msgstr ""
 
-#: gui/dialogs/options.py:775 gui/dialogs/options.py:782
+#: gui/dialogs/options.py:779 gui/dialogs/options.py:786
 msgid "Rate (%, 0=default)"
 msgstr ""
 
-#: gui/dialogs/options.py:788 gui/dialogs/options.py:794
+#: gui/dialogs/options.py:792 gui/dialogs/options.py:798
 msgid "Volume (%, -1=default)"
 msgstr ""
 
-#: gui/dialogs/options.py:799 gui/dialogs/options.py:800
+#: gui/dialogs/options.py:803 gui/dialogs/options.py:804
 msgid "Test voice"
 msgstr ""
 
-#: gui/dialogs/options.py:837
+#: gui/dialogs/options.py:842
 msgid "Test announcement: Deck 1"
 msgstr ""
 
-#: gui/dialogs/options.py:1120
+#: gui/dialogs/options.py:1170
 msgid "The following settings require restarting the application to take effect:"
 msgstr ""
 
-#: gui/dialogs/options.py:1121
+#: gui/dialogs/options.py:1171
 msgid "Restart Required"
 msgstr ""
 
@@ -599,16 +599,16 @@ msgstr ""
 msgid "{n} channels"
 msgstr ""
 
-#: gui/main_frame.py:165 gui/main_frame.py:1897 gui/panels/active_deck.py:171
+#: gui/main_frame.py:165 gui/main_frame.py:1899 gui/panels/active_deck.py:171
 msgid "Center"
 msgstr ""
 
-#: gui/main_frame.py:167 gui/main_frame.py:1898
+#: gui/main_frame.py:167 gui/main_frame.py:1900
 #, python-brace-format
 msgid "Left {}%"
 msgstr ""
 
-#: gui/main_frame.py:169 gui/main_frame.py:1898
+#: gui/main_frame.py:169 gui/main_frame.py:1900
 #, python-brace-format
 msgid "Right {}%"
 msgstr ""
@@ -659,8 +659,8 @@ msgstr ""
 msgid "Multiroom"
 msgstr ""
 
-#: gui/main_frame.py:365 gui/main_frame.py:1804 gui/main_frame.py:1817
-#: gui/main_frame.py:1828
+#: gui/main_frame.py:365 gui/main_frame.py:1806 gui/main_frame.py:1819
+#: gui/main_frame.py:1830
 #, python-brace-format
 msgid "Active deck: {}"
 msgstr ""
@@ -689,8 +689,8 @@ msgstr ""
 #: gui/main_frame.py:430 gui/main_frame.py:456 gui/main_frame.py:476
 #: gui/main_frame.py:549 gui/main_frame.py:642 gui/main_frame.py:1174
 #: gui/main_frame.py:1348 gui/main_frame.py:1386 gui/main_frame.py:1543
-#: gui/main_frame.py:1556 gui/main_frame.py:1561 gui/main_frame.py:1731
-#: gui/main_frame.py:1775 gui/main_frame.py:2083 gui/playlist_service.py:151
+#: gui/main_frame.py:1556 gui/main_frame.py:1561 gui/main_frame.py:1733
+#: gui/main_frame.py:1777 gui/main_frame.py:2085 gui/playlist_service.py:151
 #: main.py:63 main.py:71 main.py:84
 msgid "Error"
 msgstr ""
@@ -885,11 +885,11 @@ msgstr ""
 msgid "Unsaved Changes"
 msgstr ""
 
-#: gui/main_frame.py:1258 gui/main_frame.py:1759
+#: gui/main_frame.py:1258 gui/main_frame.py:1761
 msgid "&Yes"
 msgstr ""
 
-#: gui/main_frame.py:1258 gui/main_frame.py:1759
+#: gui/main_frame.py:1258 gui/main_frame.py:1761
 msgid "&No"
 msgstr ""
 
@@ -937,128 +937,132 @@ msgstr ""
 msgid "Recent files cleared"
 msgstr ""
 
-#: gui/main_frame.py:1675
+#: gui/main_frame.py:1677
 msgid "Livestream could not be restarted with the new settings."
 msgstr ""
 
-#: gui/main_frame.py:1676 gui/main_frame.py:2030 gui/main_frame.py:2045
+#: gui/main_frame.py:1678 gui/main_frame.py:2032 gui/main_frame.py:2047
 msgid "Streaming Error"
 msgstr ""
 
-#: gui/main_frame.py:1711
+#: gui/main_frame.py:1713
 msgid "Changing audio device..."
 msgstr ""
 
-#: gui/main_frame.py:1716
+#: gui/main_frame.py:1718
 msgid "Audio device changed successfully"
 msgstr ""
 
-#: gui/main_frame.py:1719
+#: gui/main_frame.py:1721
 msgid "Audio device change failed"
 msgstr ""
 
-#: gui/main_frame.py:1721
+#: gui/main_frame.py:1723
 msgid "Failed to change audio device. The application will use the previous device."
 msgstr ""
 
-#: gui/main_frame.py:1722
+#: gui/main_frame.py:1724
 msgid "Warning"
 msgstr ""
 
-#: gui/main_frame.py:1728
+#: gui/main_frame.py:1730
 msgid "Audio device error"
 msgstr ""
 
-#: gui/main_frame.py:1730
+#: gui/main_frame.py:1732
 #, python-brace-format
 msgid "Error changing audio device: {}"
 msgstr ""
 
-#: gui/main_frame.py:1755
+#: gui/main_frame.py:1757
 msgid "Documentation file not found. Open developer's website instead?"
 msgstr ""
 
-#: gui/main_frame.py:1756
+#: gui/main_frame.py:1758
 msgid "Documentation not found"
 msgstr ""
 
-#: gui/main_frame.py:1775
+#: gui/main_frame.py:1777
 msgid "Error opening website"
 msgstr ""
 
-#: gui/main_frame.py:1783
+#: gui/main_frame.py:1784
+msgid "Code name"
+msgstr ""
+
+#: gui/main_frame.py:1785
 msgid "Accessible cross-platform audio player for simultaneous playback"
 msgstr ""
 
-#: gui/main_frame.py:1838
+#: gui/main_frame.py:1840
 #, python-brace-format
 msgid "Toggle Mute {}"
 msgstr ""
 
-#: gui/main_frame.py:1846
+#: gui/main_frame.py:1848
 #, python-brace-format
 msgid "Toggle Loop {}"
 msgstr ""
 
-#: gui/main_frame.py:1886
+#: gui/main_frame.py:1888
 #, python-brace-format
 msgid "{}: Volume {}%"
 msgstr ""
 
-#: gui/main_frame.py:1900
+#: gui/main_frame.py:1902
 #, python-brace-format
 msgid "{}: Balance {}"
 msgstr ""
 
-#: gui/main_frame.py:1931
+#: gui/main_frame.py:1933
 #, python-brace-format
 msgid "Recording: {}"
 msgstr ""
 
-#: gui/main_frame.py:1935
+#: gui/main_frame.py:1937
 msgid "Stop &Recording"
 msgstr ""
 
-#: gui/main_frame.py:1939 gui/main_frame.py:2117
+#: gui/main_frame.py:1941 gui/main_frame.py:2119
 #, python-brace-format
 msgid "Recording stopped: {}"
 msgstr ""
 
-#: gui/main_frame.py:1943 gui/menus.py:94
+#: gui/main_frame.py:1945 gui/menus.py:94
 msgid "Start &Recording"
 msgstr ""
 
-#: gui/main_frame.py:1947
+#: gui/main_frame.py:1949
 msgid "Livestream started"
 msgstr ""
 
-#: gui/main_frame.py:1949
+#: gui/main_frame.py:1951
 #, python-brace-format
 msgid "Livestream started: {}"
 msgstr ""
 
-#: gui/main_frame.py:1964 gui/main_frame.py:1965
+#: gui/main_frame.py:1966 gui/main_frame.py:1967
 msgid "Livestream stopped"
 msgstr ""
 
-#: gui/main_frame.py:2024
+#: gui/main_frame.py:2026
 msgid "Streaming Settings Incomplete"
 msgstr ""
 
-#: gui/main_frame.py:2029
+#: gui/main_frame.py:2031
 msgid "FFmpeg is required to start the livestream."
 msgstr ""
 
-#: gui/main_frame.py:2044
+#: gui/main_frame.py:2046
 msgid "Failed to start livestream."
 msgstr ""
 
-#: gui/main_frame.py:2082
+#: gui/main_frame.py:2084
 #, python-brace-format
 msgid "Failed to start recording for {}"
 msgstr ""
 
-#: gui/main_frame.py:2101
+#: gui/main_frame.py:2103
 #, python-brace-format
 msgid "Recording started: {}"
 msgstr ""
