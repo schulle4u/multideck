@@ -35,6 +35,8 @@ class OptionsDialog(wx.Dialog):
         self.main_frame = parent
         self._applied_sections = set()  # Track which sections were applied via Apply buttons
         self._initial_device = config_manager.get('Audio', 'output_device', 'default')
+        self._initial_theme = config_manager.get('General', 'theme', 'system')
+        self._initial_tts_state = self._get_tts_manager_state()
         self._create_ui()
         self._fit_to_pages()
         self.SetMinSize(self.GetSize())
@@ -157,7 +159,9 @@ class OptionsDialog(wx.Dialog):
 
         # Bind buttons
         ok_button.Bind(wx.EVT_BUTTON, self._on_ok)
+        cancel_button.Bind(wx.EVT_BUTTON, self._on_cancel)
         self.apply_button.Bind(wx.EVT_BUTTON, self._on_apply)
+        self.Bind(wx.EVT_CLOSE, self._on_close)
 
         # Bind category selection to switch pages and update Apply button
         self.category_list.Bind(wx.EVT_LISTBOX, self._on_page_changed)
@@ -822,6 +826,7 @@ class OptionsDialog(wx.Dialog):
     def _on_tts_test(self, event):
         """Speak a short test phrase using current settings"""
         tts_mgr = self.main_frame.tts_manager
+        previous_state = self._get_tts_manager_state()
         engine_idx = self.tts_engine_choice.GetSelection()
         engine_name = self._tts_engine_values[engine_idx] if 0 <= engine_idx < len(self._tts_engine_values) else ''
         voice_idx = self.tts_voice_choice.GetSelection()
@@ -831,20 +836,62 @@ class OptionsDialog(wx.Dialog):
         rate = self.tts_rate_spin.GetValue()
         volume = self.tts_volume_spin.GetValue()
 
-        tts_mgr.configure(engine_name, voice_name, rate, volume)
-        old_enabled = tts_mgr.tts_enabled
-        tts_mgr.tts_enabled = True
-        tts_mgr.speak(_("Test announcement: Deck 1"))
-        tts_mgr.tts_enabled = old_enabled
+        try:
+            tts_mgr.configure(engine_name, voice_name, rate, volume)
+            tts_mgr.tts_enabled = True
+            tts_mgr.speak(_("Test announcement: Deck 1"))
+        finally:
+            self._restore_tts_manager_state(previous_state)
 
     def _on_theme_change(self, event):
-        """Handle theme selection change - apply immediately"""
+        """Handle theme selection change as a temporary live preview"""
         if self.theme_manager:
             selected_theme = self.theme_values[self.theme_choice.GetSelection()]
-            self.theme_manager.set_theme(selected_theme)
+            self.theme_manager.set_theme(selected_theme, save=False)
             # Re-apply theme to this dialog
             self.theme_manager.apply_theme(self)
+        if self._has_tab_changes('general'):
+            self._applied_sections.discard('general')
         self._update_apply_state()
+
+    def _get_tts_manager_state(self):
+        """Return the current runtime TTS manager settings."""
+        tts_mgr = self.main_frame.tts_manager
+        with tts_mgr._lock:
+            return (
+                tts_mgr.tts_enabled,
+                tts_mgr._engine_name,
+                tts_mgr._voice_name,
+                tts_mgr._rate,
+                tts_mgr._volume,
+            )
+
+    def _restore_tts_manager_state(self, state):
+        """Restore runtime TTS settings without touching persisted config."""
+        enabled, engine_name, voice_name, rate, volume = state
+        tts_mgr = self.main_frame.tts_manager
+        tts_mgr.configure(engine_name, voice_name, rate, volume)
+        tts_mgr.tts_enabled = enabled
+
+    def _restore_unsaved_live_settings(self):
+        """Revert temporary live previews for sections that were not applied."""
+        if 'general' not in self._applied_sections and self.theme_manager:
+            self.theme_manager.set_theme(self._initial_theme, save=False)
+        if 'tts' not in self._applied_sections:
+            self._restore_tts_manager_state(self._initial_tts_state)
+
+    def _on_cancel(self, event):
+        """Handle Cancel/Escape - discard unsaved live preview settings."""
+        self._restore_unsaved_live_settings()
+        self.EndModal(wx.ID_CANCEL)
+
+    def _on_close(self, event):
+        """Handle window close - discard unsaved live preview settings."""
+        self._restore_unsaved_live_settings()
+        if self.IsModal():
+            self.EndModal(wx.ID_CANCEL)
+        else:
+            self.Destroy()
 
     # --- Change detection ---
 
@@ -1001,6 +1048,9 @@ class OptionsDialog(wx.Dialog):
     def _on_control_changed(self, event):
         """Handle any control value change - update Apply button state"""
         event.Skip()
+        tab_name = self._get_active_tab_name()
+        if tab_name and self._has_tab_changes(tab_name):
+            self._applied_sections.discard(tab_name)
         self._update_apply_state()
 
     # --- Per-section save methods ---
@@ -1156,6 +1206,10 @@ class OptionsDialog(wx.Dialog):
         self._applied_sections.add(tab_name)
         # Update baseline so Apply disables after applying
         self._initial_values[tab_name] = self._get_current_values(tab_name)
+        if tab_name == 'general':
+            self._initial_theme = self.config_manager.get('General', 'theme', 'system')
+        elif tab_name == 'tts':
+            self._initial_tts_state = self._get_tts_manager_state()
         self._update_apply_state()
         return restart_reasons
 

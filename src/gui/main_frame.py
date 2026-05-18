@@ -1623,6 +1623,8 @@ class MainFrame(wx.Frame):
                 self.apply_recorder_settings()
             if 'streaming' not in applied:
                 self.apply_streaming_settings()
+            if 'tts' not in applied:
+                self.apply_tts_settings()
 
         dlg.Destroy()
 
