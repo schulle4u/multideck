@@ -51,6 +51,8 @@ def _create_deck_menu(owner):
     owner.deck_menu.AppendSeparator()
     owner.set_intro_item = owner.deck_menu.Append(wx.ID_ANY, _("Set Intro File") + "...")
     owner.clear_intro_item = owner.deck_menu.Append(wx.ID_ANY, _("Clear Intro File"))
+    owner.deck_output_device_menu = owner._create_deck_output_device_menu(store_attr='deck_output_device_items')
+    owner.deck_menu.AppendSubMenu(owner.deck_output_device_menu, _("Output Device"))
     owner.deck_menu.AppendSeparator()
     owner.rename_item = owner.deck_menu.Append(wx.ID_ANY, _("Rename Deck") + "...\tF2")
     owner.unload_item = owner.deck_menu.Append(wx.ID_ANY, _("Unload Deck") + "\tDel")

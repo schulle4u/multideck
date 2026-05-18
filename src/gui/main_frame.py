@@ -215,6 +215,54 @@ class MainFrame(wx.Frame):
             values.append(device['index'])
         return labels, values, devices
 
+    def _create_deck_output_device_menu(self, deck_getter=None, store_attr=None):
+        """Create a deck output-device submenu."""
+        deck_getter = deck_getter or self._get_selected_deck
+        output_menu = wx.Menu()
+        output_labels, output_values, output_devices = self._get_output_device_choices()
+        deck = deck_getter()
+        current_device_id = deck.output_device_id if deck else None
+        output_device_items = []
+
+        for idx, label in enumerate(output_labels):
+            output_device_item = output_menu.AppendRadioItem(wx.ID_ANY, label)
+            selected_device_id = output_values[idx]
+            if selected_device_id == current_device_id or (selected_device_id is None and current_device_id is None):
+                output_device_item.Check(True)
+
+            def handle_output_change(event, device_id=selected_device_id):
+                deck = deck_getter()
+                if not deck:
+                    return
+                if device_id is None:
+                    device_name = 'default'
+                else:
+                    matching = next((item for item in output_devices if item['index'] == device_id), None)
+                    device_name = matching['name'] if matching else str(device_id)
+                self._apply_deck_output_device(deck, device_id, device_name)
+
+            self.Bind(wx.EVT_MENU, handle_output_change, output_device_item)
+            output_device_items.append((output_device_item, selected_device_id))
+
+        if store_attr:
+            setattr(self, store_attr, output_device_items)
+
+        return output_menu
+
+    def _update_deck_output_device_menu_items(self):
+        """Update main-menu output-device choices for the selected deck."""
+        if not hasattr(self, 'deck_output_device_items'):
+            return
+
+        deck = self._get_selected_deck()
+        has_deck = deck is not None
+        current_device_id = deck.output_device_id if deck else None
+
+        for item, device_id in self.deck_output_device_items:
+            item.Enable(has_deck)
+            if device_id == current_device_id or (device_id is None and current_device_id is None):
+                item.Check(True)
+
     def _set_mode(self, mode):
         """Set mixer operating mode"""
         self.mixer.set_mode(mode)
@@ -606,6 +654,7 @@ class MainFrame(wx.Frame):
         self.rename_item.Enable(has_deck)
         self.unload_item.Enable(is_loaded)
         self.record_deck_menu_item.Enable(is_loaded)
+        self._update_deck_output_device_menu_items()
         if is_recording:
             self.record_deck_menu_item.SetItemLabel(_("Stop Recording Deck") + "\tCtrl+Shift+R")
         else:
@@ -739,7 +788,7 @@ class MainFrame(wx.Frame):
         set_intro_item = menu.Append(wx.ID_ANY, _("Set Intro File") + "...")
         clear_intro_item = menu.Append(wx.ID_ANY, _("Clear Intro File"))
         clear_intro_item.Enable(bool(deck.intro_file))
-        output_menu = wx.Menu()
+        output_menu = self._create_deck_output_device_menu(lambda: deck)
         menu.AppendSubMenu(output_menu, _("Output Device"))
         menu.AppendSeparator()
 
@@ -753,24 +802,6 @@ class MainFrame(wx.Frame):
         else:
             record_deck_item = menu.Append(wx.ID_ANY, _("Start Recording Deck") + "\tCtrl+Shift+R")
         record_deck_item.Enable(deck.state != DECK_STATE_EMPTY)
-
-        output_labels, output_values, output_devices = self._get_output_device_choices()
-        current_device_id = deck.output_device_id
-        for idx, label in enumerate(output_labels):
-            output_device_item = output_menu.AppendRadioItem(wx.ID_ANY, label)
-            selected_device_id = output_values[idx]
-            if selected_device_id == current_device_id or (selected_device_id is None and current_device_id is None):
-                output_device_item.Check(True)
-
-            def handle_output_change(event, device_id=selected_device_id):
-                if device_id is None:
-                    device_name = 'default'
-                else:
-                    matching = next((item for item in output_devices if item['index'] == device_id), None)
-                    device_name = matching['name'] if matching else str(device_id)
-                self._apply_deck_output_device(deck, device_id, device_name)
-
-            self.Bind(wx.EVT_MENU, handle_output_change, output_device_item)
 
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_file(deck), load_file_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_url(deck), load_url_item)
