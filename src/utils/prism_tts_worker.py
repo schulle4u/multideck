@@ -8,6 +8,8 @@ Python subprocess.
 
 import argparse
 import json
+import shutil
+import subprocess
 import sys
 import time
 
@@ -45,6 +47,16 @@ def _create_backend(context, engine_name: str = ''):
                 errors.append(f"{backend_id.name}: {e}")
         raise ValueError("No supported Linux Prism backend found: " + "; ".join(errors))
     return context.create_best()
+
+
+def _registry_snapshot(context) -> str:
+    names = []
+    for idx in range(context.backends_count):
+        try:
+            names.append(context.name_of(context.id_of(idx)))
+        except Exception as e:
+            names.append(f"<backend {idx}: {e}>")
+    return ", ".join(names) if names else "<empty>"
 
 
 def _find_voice_index(PrismError, backend, voice_name: str):
@@ -136,7 +148,14 @@ def list_voices(engine_name: str):
 def speak(config: dict):
     _BackendId, Context, PrismError = _load_prism()
     context = Context()
-    backend = _create_backend(context, config.get("engine_name", ""))
+    try:
+        backend = _create_backend(context, config.get("engine_name", ""))
+    except Exception as e:
+        if _speak_with_speech_dispatcher(config):
+            return
+        raise RuntimeError(
+            f"{e}; Prism registry contains: {_registry_snapshot(context)}"
+        ) from e
     features = backend.features
 
     rate = int(config.get("rate", 0))
@@ -165,6 +184,28 @@ def speak(config: dict):
         raise RuntimeError(f"Prism backend '{backend.name}' cannot speak or output text")
 
     _wait_for_backend_to_finish(PrismError, backend, text)
+
+
+def _speak_with_speech_dispatcher(config: dict) -> bool:
+    """Fallback for Linux builds where Prism lacks compiled Linux backends."""
+    if not sys.platform.startswith("linux"):
+        return False
+    spd_say = shutil.which("spd-say")
+    if not spd_say:
+        return False
+    text = config.get("text", "")
+    if not text:
+        return False
+    command = [spd_say, "--wait"]
+    volume = int(config.get("volume", -1))
+    rate = int(config.get("rate", 0))
+    if volume >= 0:
+        command.extend(["--volume", str(max(-100, min(100, (volume * 2) - 100)))])
+    if rate:
+        command.extend(["--rate", str(max(-100, min(100, (rate * 2) - 100)))])
+    command.append(text)
+    subprocess.run(command, check=True)
+    return True
 
 
 def main():
