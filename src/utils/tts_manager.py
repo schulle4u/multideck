@@ -134,12 +134,30 @@ class TTSManager:
                     json.dumps(config, ensure_ascii=False),
                 ),
                 stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
             )
             with self._lock:
                 self._active_process = process
+            thread = threading.Thread(
+                target=self._log_worker_result,
+                args=(process,),
+                daemon=True,
+            )
+            thread.start()
         except Exception as e:
             logger.error("TTS worker speak error: %s", e)
+
+    def _log_worker_result(self, process):
+        try:
+            _stdout, stderr = process.communicate()
+        except Exception as e:
+            logger.debug("TTS worker result could not be read: %s", e)
+            return
+        if process.returncode and stderr:
+            logger.debug("TTS worker failed with exit code %s: %s", process.returncode, stderr.strip())
+        elif stderr:
+            logger.debug("TTS worker stderr: %s", stderr.strip())
 
     def _create_backend(self, engine_name: str = ''):
         """Create the requested Prism backend, or Prism's best backend."""

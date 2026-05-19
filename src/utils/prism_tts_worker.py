@@ -138,12 +138,14 @@ def speak(config: dict):
         if voice_idx is not None:
             backend.voice = voice_idx
 
+    interrupt = not sys.platform.startswith("linux")
+
     if features.supports_braille and features.supports_output:
-        backend.output(text, interrupt=True)
+        backend.output(text, interrupt=interrupt)
     elif features.supports_speak:
-        backend.speak(text, interrupt=True)
+        backend.speak(text, interrupt=interrupt)
     elif features.supports_output:
-        backend.output(text, interrupt=True)
+        backend.output(text, interrupt=interrupt)
     else:
         raise RuntimeError(f"Prism backend '{backend.name}' cannot speak or output text")
 
