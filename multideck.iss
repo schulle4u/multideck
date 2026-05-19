@@ -1,5 +1,5 @@
 ; MultiDeck Audio Player - InnoSetup Installer Script
-; Requires Inno Setup 6.x
+; Requires Inno Setup 7.x
 
 #define AppName "MultiDeck Audio Player"
 #define AppVersion "0.7.3"
@@ -20,6 +20,7 @@ AppUpdatesURL=https://github.com/schulle4u/multideck/releases
 LicenseFile={#SourceDir}\LICENSE
 
 ; 64-bit only
+SetupArchitecture=x64
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 
