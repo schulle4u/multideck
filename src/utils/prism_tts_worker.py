@@ -13,8 +13,8 @@ import time
 
 
 def _load_prism():
-    from prism import Context, PrismError
-    return Context, PrismError
+    from prism import BackendId, Context, PrismError
+    return BackendId, Context, PrismError
 
 
 def _backend_can_announce(backend) -> bool:
@@ -29,6 +29,21 @@ def _backend_is_available(backend) -> bool:
 def _create_backend(context, engine_name: str = ''):
     if engine_name:
         return context.create(context.id_of(engine_name))
+    if sys.platform.startswith("linux"):
+        from prism import BackendId
+        errors = []
+        for backend_id in (
+            BackendId.ORCA,
+            getattr(BackendId, "SPIEL", None),
+            BackendId.SPEECH_DISPATCHER,
+        ):
+            if backend_id is None:
+                continue
+            try:
+                return context.create(backend_id)
+            except Exception as e:
+                errors.append(f"{backend_id.name}: {e}")
+        raise ValueError("No supported Linux Prism backend found: " + "; ".join(errors))
     return context.create_best()
 
 
@@ -70,7 +85,7 @@ def _wait_for_backend_to_finish(PrismError, backend, text: str):
 
 
 def list_engines():
-    Context, _PrismError = _load_prism()
+    _BackendId, Context, _PrismError = _load_prism()
     context = Context()
     engines = []
     try:
@@ -97,7 +112,7 @@ def list_engines():
 def list_voices(engine_name: str):
     if sys.platform.startswith("linux") and not engine_name:
         return []
-    Context, PrismError = _load_prism()
+    _BackendId, Context, PrismError = _load_prism()
     context = Context()
     try:
         backend = _create_backend(context, engine_name)
@@ -119,7 +134,7 @@ def list_voices(engine_name: str):
 
 
 def speak(config: dict):
-    Context, PrismError = _load_prism()
+    _BackendId, Context, PrismError = _load_prism()
     context = Context()
     backend = _create_backend(context, config.get("engine_name", ""))
     features = backend.features
