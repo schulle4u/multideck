@@ -3,6 +3,9 @@
 # GUI Framework
 wxPython>=4.2.0
 
+# Custom GUI controls
+m45wxcontrols @ https://github.com/schulle4u/m45wxcontrols/releases/download/v0.1.0/m45wxcontrols-0.1.0-py3-none-any.whl
+
 # Audio Libraries
 sounddevice>=0.4.6
 soundfile>=0.12.1

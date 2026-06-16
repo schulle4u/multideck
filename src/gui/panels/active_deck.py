@@ -2,7 +2,7 @@
 
 import wx
 
-from gui.controls.universal_list import UniversalListCtrl
+from m45wxcontrols import UniversalListCtrl
 from utils.i18n import _
 
 

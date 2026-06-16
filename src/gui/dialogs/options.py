@@ -8,7 +8,7 @@ import sounddevice as sd
 from utils.i18n import _, I18n, get_i18n
 from config.defaults import LANGUAGE_NAMES, VALID_DECK_RANGE, RECORDING_FORMATS
 from utils.helpers import check_ffmpeg
-from gui.controls.accessible_spin import AccessibleSpinCtrl
+from m45wxcontrols import AccessibleSpinCtrl
 
 
 FFMPEG_AVAILABLE = check_ffmpeg()
