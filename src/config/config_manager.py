@@ -360,7 +360,7 @@ class ProjectManager:
                         config.set(section, key, str(value))
 
             # Write to file
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, 'w', encoding='utf-8', newline='\n') as f:
                 config.write(f)
         except Exception as e:
             raise Exception(f"Failed to save project: {e}")
