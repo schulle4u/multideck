@@ -234,6 +234,18 @@ class ProjectManager:
         return str((project_dir / path).resolve())
 
     @staticmethod
+    def _get_project_deck_count(config: configparser.ConfigParser) -> int:
+        """Return the declared deck count, extended by any numbered deck sections."""
+        declared_count = config.getint('General', 'deck_count', fallback=10)
+        deck_numbers = []
+        for section in config.sections():
+            suffix = section.removeprefix('Deck')
+            if section.startswith('Deck') and suffix.isdigit():
+                deck_numbers.append(int(suffix))
+
+        return max([declared_count, *deck_numbers])
+
+    @staticmethod
     def load_project(filepath: str) -> Dict:
         """Load project from .mdap file"""
         config = configparser.ConfigParser()
@@ -248,8 +260,9 @@ class ProjectManager:
                 project_data['mixer'] = dict(config.items('Mixer'))
 
             # Load deck settings
+            deck_count = ProjectManager._get_project_deck_count(config)
             project_data['decks'] = []
-            for i in range(1, 11):  # Support up to 10 decks
+            for i in range(1, deck_count + 1):
                 section = f'Deck{i}'
                 if config.has_section(section):
                     deck_data = dict(config.items(section))
@@ -286,7 +299,7 @@ class ProjectManager:
 
             # Per-deck effects
             project_data['deck_effects'] = []
-            for i in range(1, 11):
+            for i in range(1, deck_count + 1):
                 section = f'Deck{i}Effects'
                 if config.has_section(section):
                     project_data['deck_effects'].append(dict(config.items(section, raw=True)))
@@ -305,6 +318,10 @@ class ProjectManager:
         try:
             # Add header comment
             config.set('DEFAULT', '; MultiDeck Audio Player Project', '')
+
+            # Save project metadata
+            config.add_section('General')
+            config.set('General', 'deck_count', str(len(project_data.get('decks', []))))
 
             # Save mixer settings
             if 'mixer' in project_data:
