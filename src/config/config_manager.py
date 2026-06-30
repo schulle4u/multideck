@@ -350,8 +350,10 @@ class ProjectManager:
                     config.set('MasterEffects', key, str(value))
 
             # Per-deck effects
+            decks_data = project_data.get('decks', [])
             for i, fx_data in enumerate(project_data.get('deck_effects', []), start=1):
-                if fx_data:
+                deck_data = decks_data[i - 1] if i <= len(decks_data) else {}
+                if deck_data and fx_data:
                     section = f'Deck{i}Effects'
                     config.add_section(section)
                     for key, value in fx_data.items():
