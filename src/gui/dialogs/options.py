@@ -140,6 +140,7 @@ class OptionsDialog(wx.Dialog):
         button_sizer.AddStretchSpacer()
         ok_button = wx.Button(panel, wx.ID_OK, label=_("&OK"))
         ok_button.SetName(_("&OK"))
+        ok_button.SetDefault()
         cancel_button = wx.Button(panel, wx.ID_CANCEL, label=_("&Cancel"))
         cancel_button.SetName(_("&Cancel"))
         self.apply_button = wx.Button(panel, wx.ID_APPLY, label=_("&Apply"))
