@@ -95,6 +95,7 @@ def _create_tools_menu(owner):
     owner.stream_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Livestream") + "\tF8")
     tools_menu.AppendSeparator()
     owner.effects_menu_item = tools_menu.Append(wx.ID_ANY, _("Audio &Effects") + "...\tCtrl+Shift+E")
+    owner.sleep_timer_menu_item = tools_menu.Append(wx.ID_ANY, _("Sleep &Timer") + "...")
     tools_menu.AppendSeparator()
     tools_menu.Append(wx.ID_PREFERENCES, _("&Options") + "...\tCtrl+Shift+O")
     return tools_menu
@@ -140,6 +141,7 @@ def _bind_menu_events(owner):
     owner.Bind(wx.EVT_MENU, owner._on_toggle_recording, owner.record_menu_item)
     owner.Bind(wx.EVT_MENU, owner._on_toggle_livestream, owner.stream_menu_item)
     owner.Bind(wx.EVT_MENU, owner._on_show_effects_dialog, owner.effects_menu_item)
+    owner.Bind(wx.EVT_MENU, owner._on_sleep_timer, owner.sleep_timer_menu_item)
     owner.Bind(wx.EVT_MENU, owner._on_options, id=wx.ID_PREFERENCES)
     owner.Bind(wx.EVT_MENU, owner._on_help, id=wx.ID_HELP)
     owner.Bind(wx.EVT_MENU, owner._on_website, owner.website_item)

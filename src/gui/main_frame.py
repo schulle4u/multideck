@@ -5,6 +5,9 @@ Main Frame - Main application window
 import wx
 import wx.adv
 import os
+import subprocess
+import sys
+import time
 from pathlib import Path
 
 from m45wxcontrols import CustomTextEntryDialog
@@ -125,6 +128,12 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_TIMER, self._on_position_timer, self._position_timer)
         self._position_timer.Start(250)  # Update 4x per second
         self._slider_dragging = False  # Track if user is dragging slider
+
+        # Sleep timer (one-shot timer configured from Tools > Sleep Timer)
+        self._sleep_timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self._on_sleep_timer_elapsed, self._sleep_timer)
+        self._sleep_timer_config = None
+        self._sleep_timer_started_at = None
 
     def _create_menu_bar(self):
         """Create menu bar"""
@@ -1605,6 +1614,103 @@ class MainFrame(wx.Frame):
         self._effects_dialog = EffectsDialog(self, self.mixer)
         self._effects_dialog.Show()
 
+    def _on_sleep_timer(self, event):
+        """Show sleep timer dialog and start or cancel the timer."""
+        from gui.dialogs.sleep_timer import SleepTimerDialog
+
+        remaining_seconds = self._get_sleep_timer_remaining_seconds()
+        dlg = SleepTimerDialog(self, self._sleep_timer_config, remaining_seconds)
+        result = dlg.ShowModal()
+
+        if result == wx.ID_OK:
+            self._start_sleep_timer(dlg.GetTimerConfig())
+        elif dlg.WasTimerCancelled():
+            self._cancel_sleep_timer()
+
+        dlg.Destroy()
+
+    def _get_sleep_timer_remaining_seconds(self):
+        """Return remaining sleep timer seconds, or None if no timer is running."""
+        if not hasattr(self, '_sleep_timer') or not self._sleep_timer.IsRunning():
+            return None
+        if not self._sleep_timer_config or self._sleep_timer_started_at is None:
+            return None
+        elapsed = time.monotonic() - self._sleep_timer_started_at
+        return max(0, self._sleep_timer_config.seconds - elapsed)
+
+    def _start_sleep_timer(self, config):
+        """Start or replace the sleep timer with the supplied configuration."""
+        if self._sleep_timer.IsRunning():
+            self._sleep_timer.Stop()
+
+        self._sleep_timer_config = config
+        self._sleep_timer_started_at = time.monotonic()
+        self._sleep_timer.Start(config.seconds * 1000, oneShot=True)
+
+        message = _("Sleep timer started: {minutes} min").format(minutes=config.minutes)
+        self.SetStatusText(message, 0)
+        self.tts_manager.speak(message)
+
+    def _cancel_sleep_timer(self):
+        """Cancel the active sleep timer."""
+        if self._sleep_timer.IsRunning():
+            self._sleep_timer.Stop()
+        self._sleep_timer_config = None
+        self._sleep_timer_started_at = None
+        message = _("Sleep timer cancelled")
+        self.SetStatusText(message, 0)
+        self.tts_manager.speak(message)
+
+    def _on_sleep_timer_elapsed(self, event):
+        """Run the selected action when the sleep timer expires."""
+        config = self._sleep_timer_config
+        self._sleep_timer_config = None
+        self._sleep_timer_started_at = None
+        if not config:
+            return
+
+        self._execute_sleep_timer_action(config.action)
+
+    def _execute_sleep_timer_action(self, action):
+        """Execute a sleep timer action on the GUI thread."""
+        from gui.dialogs.sleep_timer import ACTION_SHUTDOWN, ACTION_STOP_ALL_AND_EXIT
+
+        self.mixer.stop_all()
+        self._update_global_play_button()
+        self._update_all_deck_panels()
+
+        if action == ACTION_STOP_ALL_AND_EXIT:
+            self.SetStatusText(_("Sleep timer expired: stopping playback and exiting"), 0)
+            self.Close()
+            return
+
+        if action == ACTION_SHUTDOWN:
+            self.SetStatusText(_("Sleep timer expired: shutting down computer"), 0)
+            if not self._shutdown_computer():
+                wx.MessageBox(
+                    _("Playback was stopped, but the computer could not be shut down automatically."),
+                    _("Sleep Timer"),
+                    wx.OK | wx.ICON_WARNING
+                )
+            return
+
+        self.SetStatusText(_("Sleep timer expired: playback stopped"), 0)
+        self.tts_manager.speak(_("Sleep timer expired"))
+
+    def _shutdown_computer(self):
+        """Request operating system shutdown. Returns True if the command was started."""
+        try:
+            if sys.platform == 'win32':
+                command = ['shutdown', '/s', '/t', '0']
+            elif sys.platform == 'darwin':
+                command = ['osascript', '-e', 'tell application "System Events" to shut down']
+            else:
+                command = ['systemctl', 'poweroff']
+            subprocess.Popen(command)
+            return True
+        except OSError:
+            return False
+
     def _on_options(self, event):
         """Show options dialog"""
         from gui.dialogs.options import OptionsDialog
@@ -2134,6 +2240,8 @@ class MainFrame(wx.Frame):
         # Stop position timer
         if self._position_timer.IsRunning():
             self._position_timer.Stop()
+        if hasattr(self, '_sleep_timer') and self._sleep_timer.IsRunning():
+            self._sleep_timer.Stop()
 
         # Save window size
         width, height = self.GetSize()
