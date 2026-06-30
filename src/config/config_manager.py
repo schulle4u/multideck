@@ -222,11 +222,25 @@ class ProjectManager:
     """Manages MultiDeck project files (.mdap)"""
 
     @staticmethod
+    def _resolve_project_relative_path(value: str, project_dir: Path) -> str:
+        """Resolve local relative paths from a project file against its folder."""
+        if not value or value.startswith(('http://', 'https://')):
+            return value
+
+        path = Path(value).expanduser()
+        if path.is_absolute():
+            return value
+
+        return str((project_dir / path).resolve())
+
+    @staticmethod
     def load_project(filepath: str) -> Dict:
         """Load project from .mdap file"""
         config = configparser.ConfigParser()
         try:
-            config.read(filepath, encoding='utf-8')
+            project_path = Path(filepath).resolve()
+            project_dir = project_path.parent
+            config.read(project_path, encoding='utf-8')
             project_data = {}
 
             # Load mixer settings
@@ -239,6 +253,16 @@ class ProjectManager:
                 section = f'Deck{i}'
                 if config.has_section(section):
                     deck_data = dict(config.items(section))
+                    if 'intro_file' in deck_data:
+                        deck_data['intro_file'] = ProjectManager._resolve_project_relative_path(
+                            deck_data['intro_file'],
+                            project_dir,
+                        )
+                    if deck_data.get('source_type') != 'soundcard_input' and 'file' in deck_data:
+                        deck_data['file'] = ProjectManager._resolve_project_relative_path(
+                            deck_data['file'],
+                            project_dir,
+                        )
                     # Convert string booleans to actual booleans
                     if 'mute' in deck_data:
                         deck_data['mute'] = deck_data['mute'].lower() == 'true'
