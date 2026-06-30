@@ -81,7 +81,7 @@ class ConfigManager:
     def save(self):
         """Save configuration to file"""
         try:
-            with open(self.config_path, 'w', encoding='utf-8') as f:
+            with open(self.config_path, 'w', encoding='utf-8', newline='\n') as f:
                 self.config.write(f)
         except Exception as e:
             logger.error(f"Error saving config: {e}")
