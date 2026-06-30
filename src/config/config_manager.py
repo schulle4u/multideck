@@ -267,15 +267,21 @@ class ProjectManager:
                 if config.has_section(section):
                     deck_data = dict(config.items(section))
                     if 'intro_file' in deck_data:
+                        original_intro_file = deck_data['intro_file']
                         deck_data['intro_file'] = ProjectManager._resolve_project_relative_path(
                             deck_data['intro_file'],
                             project_dir,
                         )
+                        deck_data['_project_intro_file_original'] = original_intro_file
+                        deck_data['_project_intro_file_resolved'] = deck_data['intro_file']
                     if deck_data.get('source_type') != 'soundcard_input' and 'file' in deck_data:
+                        original_file = deck_data['file']
                         deck_data['file'] = ProjectManager._resolve_project_relative_path(
                             deck_data['file'],
                             project_dir,
                         )
+                        deck_data['_project_file_original'] = original_file
+                        deck_data['_project_file_resolved'] = deck_data['file']
                     # Convert string booleans to actual booleans
                     if 'mute' in deck_data:
                         deck_data['mute'] = deck_data['mute'].lower() == 'true'
@@ -335,7 +341,8 @@ class ProjectManager:
                     section = f'Deck{i}'
                     config.add_section(section)
                     for key, value in deck_data.items():
-                        config.set(section, key, str(value))
+                        if not key.startswith('_'):
+                            config.set(section, key, str(value))
                 else:
                     # Add empty deck comment
                     section = f'Deck{i}'

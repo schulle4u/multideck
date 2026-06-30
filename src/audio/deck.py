@@ -57,6 +57,10 @@ class Deck:
         # Audio properties
         self.file_path: Optional[str] = None
         self.intro_file: Optional[str] = None
+        self._project_file_original: Optional[str] = None
+        self._project_file_resolved: Optional[str] = None
+        self._project_intro_file_original: Optional[str] = None
+        self._project_intro_file_resolved: Optional[str] = None
         self.is_stream = False
         self.is_soundcard_input = False
         self.soundcard_device_id: Optional[int] = None
@@ -126,6 +130,7 @@ class Deck:
 
                     # Start streaming
                     if self.stream_handler.start():
+                        self._clear_project_file_reference()
                         self.is_stream = True
                         self.file_path = file_path
                         self.sample_rate = self._target_sample_rate
@@ -143,6 +148,7 @@ class Deck:
                 if not path.exists():
                     raise FileNotFoundError(f"File not found: {file_path}")
 
+                self._clear_project_file_reference()
                 self.is_stream = False
                 self.file_path = file_path
 
@@ -187,6 +193,7 @@ class Deck:
                 handler.on_error = on_input_error
 
                 if handler.start():
+                    self._clear_project_file_reference()
                     self.stream_handler = handler
                     self.is_stream = True
                     self.is_soundcard_input = True
@@ -218,6 +225,8 @@ class Deck:
                 self.stream_handler = None
 
             self.file_path = None
+            self._clear_project_file_reference()
+            self._clear_project_intro_reference()
             self.audio_data = None
             self.sample_rate = None
             self.channels = None
@@ -412,7 +421,53 @@ class Deck:
 
     def set_intro_file(self, intro_file: Optional[str]):
         """Assign an optional intro file that can be played on deck switches."""
+        self._clear_project_intro_reference()
         self.intro_file = intro_file or None
+
+    def _clear_project_file_reference(self):
+        """Forget the project path that produced the current main source."""
+        self._project_file_original = None
+        self._project_file_resolved = None
+
+    def _clear_project_intro_reference(self):
+        """Forget the project path that produced the current intro source."""
+        self._project_intro_file_original = None
+        self._project_intro_file_resolved = None
+
+    def _remember_project_paths(self, data: dict):
+        """Remember original project paths for lossless re-saving."""
+        self._project_file_original = data.get('_project_file_original')
+        self._project_file_resolved = data.get('_project_file_resolved')
+        self._project_intro_file_original = data.get('_project_intro_file_original')
+        self._project_intro_file_resolved = data.get('_project_intro_file_resolved')
+
+    def _path_matches(self, current: Optional[str], loaded: Optional[str]) -> bool:
+        if not current or not loaded:
+            return current == loaded
+
+        if current.startswith(('http://', 'https://')) or loaded.startswith(('http://', 'https://')):
+            return current == loaded
+
+        try:
+            return Path(current).expanduser().resolve() == Path(loaded).expanduser().resolve()
+        except (OSError, RuntimeError, ValueError):
+            return current == loaded
+
+    def _project_file_for_save(self) -> str:
+        if (
+            self._project_file_original is not None
+            and self._path_matches(self.file_path, self._project_file_resolved)
+        ):
+            return self._project_file_original
+        return self.file_path or ''
+
+    def _project_intro_file_for_save(self) -> str:
+        if (
+            self._project_intro_file_original is not None
+            and self._path_matches(self.intro_file, self._project_intro_file_resolved)
+        ):
+            return self._project_intro_file_original
+        return self.intro_file or ''
 
     def get_effective_volume(self) -> float:
         """
@@ -497,7 +552,7 @@ class Deck:
         if self.is_soundcard_input:
             return {
                 'name': self.name,
-                'intro_file': self.intro_file or '',
+                'intro_file': self._project_intro_file_for_save(),
                 'source_type': 'soundcard_input',
                 'soundcard_device_id': self.soundcard_device_id,
                 'soundcard_device_name': self.soundcard_device_name or '',
@@ -511,8 +566,8 @@ class Deck:
 
         return {
             'name': self.name,
-            'intro_file': self.intro_file or '',
-            'file': self.file_path or '',
+            'intro_file': self._project_intro_file_for_save(),
+            'file': self._project_file_for_save(),
             'output_device_id': self.output_device_id,
             'output_device_name': self.output_device_name,
             'volume': self.volume,
@@ -575,12 +630,18 @@ class Deck:
                     return False
 
                 # Try to reconnect; if device_id is no longer valid, the handler will report error
-                return self.load_soundcard_input(device_id, device_name)
+                loaded = self.load_soundcard_input(device_id, device_name)
+                self._remember_project_paths(data)
+                return loaded
 
             # File or stream source (original behaviour)
             if 'file' not in data or not data['file']:
+                self._remember_project_paths(data)
                 return bool(self.intro_file)
-            return self.load_file(data['file'])
+
+            loaded = self.load_file(data['file'])
+            self._remember_project_paths(data)
+            return loaded
 
         except Exception as e:
             logger.error(f"Error loading deck from dict: {e}")
