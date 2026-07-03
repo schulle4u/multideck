@@ -136,6 +136,7 @@ The program window largely follows a standard layout, consisting of a menu bar, 
 * Start/Stop Recording (Ctrl+R): Starts live recording of the output mixer. If no output directory has been set in the program options, the program will ask for a directory before starting the recording.
 * Start/stop livestream (F8): Sends the mixer output to an Icecast server. Configure live streaming data in the program options first. 
 * Audio Effects (Ctrl+Shift+E): Opens a window for configuring audio effects and VST plugins.
+* Sleep timer (Ctrl+Shift+I): This allows you to stop the playback after a configured number of minutes and, optionally, shut down the computer.
 * Options (Ctrl+Shift+O): Opens the program settings.
 
 #### Help
@@ -287,8 +288,8 @@ To avoid having to manually reload all decks every time the player is opened, Mu
 * Operating mode: Mixer, Solo, or Automatic
 * Master volume
 * Transition settings for automatic mode
-* Deck contents: Name, loaded file/URL/sound input, volume/balance, mute, and loop
-* Loaded effects with all parameters
+* Deck contents: Name, loaded file/URL/sound input, multiroom device, volume/balance, mute, and loop
+* Loaded effects with all parameters, if any
 
 Changes in the mixer and the deck list are automatically detected by the player and indicated by an asterisk in the title bar as unsaved project changes. When closing the player, the program will ask whether the changes should be saved. The applied effects currently need to be saved manually, but triggering the save function from the File menu (Ctrl+S) is sufficient for this purpose.
 

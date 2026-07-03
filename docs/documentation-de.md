@@ -136,6 +136,7 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 * Aufnahme starten/beenden (Ctrl+R): Startet die Live-Aufnahme des Ausgabemixers. Wenn in den Programmoptionen kein Ausgabeverzeichnis festgelegt wurde, fragt das Programm vor dem Starten der Aufnahme nach dem Verzeichnis zum Speichern der Datei. 
 * Livestream starten/stoppen (F8): Startet den Livestream, um das Mixersignal an einen Icecast-Server zu senden. Zuvor müssen die Zugangsdaten in den Programmeinstellungen hinterlegt werden. 
 * Audioeffekte (Ctrl+Shift+E): Öffnet ein Fenster zum Konfigurieren von Audioeffekten und VST-Plugins. 
+* Sleep-Timer (Ctrl+Shift+I): Beendet die Wiedergabe nach der eingestellten Anzahl Minuten und fährt den Rechner falls gewünscht herunter. 
 * Optionen (Ctrl+Shift+O): Öffnet die Programmeinstellungen.
 
 #### Hilfe
@@ -287,8 +288,8 @@ Um nicht bei jedem Öffnen des Players alle Decks manuell neu laden zu müssen, 
 * Betriebsmodus: Mixer, Solo oder Automatik
 * Masterlautstärke
 * Übergangseinstellungen für den Automatikmodus
-* Deck-Inhalte: Name, geladene Datei/URL/Soundeingang, Lautstärke/Balance, Stummschaltung und Wiederholung.
-* Geladene Effekte mit allen Parametern
+* Deck-Inhalte: Name, geladene Datei/URL/Soundeingang, Multiroom-Geräte, Lautstärke/Balance, Stummschaltung und Wiederholung.
+* Geladene Effekte mit allen Parametern, sofern zutreffend
 
 Veränderungen im Mixer sowie der Deckliste werden vom Player automatisch erkannt und durch einen Stern in der Titelleiste als nicht gespeicherte Änderung am Projekt gekennzeichnet. Beim Schließen des Players fragt das Programm, ob die Änderungen übernommen werden sollen. Die angewendeten Effekte müssen momentan manuell gespeichert werden, hierzu reicht aber das Auslösen der Speicherfunktion im Datei-Menü (Ctrl+S). 
 
