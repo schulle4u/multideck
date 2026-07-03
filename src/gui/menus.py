@@ -95,7 +95,7 @@ def _create_tools_menu(owner):
     owner.stream_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Livestream") + "\tF8")
     tools_menu.AppendSeparator()
     owner.effects_menu_item = tools_menu.Append(wx.ID_ANY, _("Audio &Effects") + "...\tCtrl+Shift+E")
-    owner.sleep_timer_menu_item = tools_menu.Append(wx.ID_ANY, _("Sleep &Timer") + "...")
+    owner.sleep_timer_menu_item = tools_menu.Append(wx.ID_ANY, _("Sleep &Timer") + "...\tCtrl+Shift+I")
     tools_menu.AppendSeparator()
     tools_menu.Append(wx.ID_PREFERENCES, _("&Options") + "...\tCtrl+Shift+O")
     return tools_menu
