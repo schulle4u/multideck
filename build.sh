@@ -90,6 +90,7 @@ echo -e "${YELLOW}Copying additional files and folders...${RESET}"
 [ -f "config.ini.example" ] && cp "config.ini.example" "${OUTPUT_DIR}/"
 [ -d "locale" ] && cp -r "locale" "${OUTPUT_DIR}/"
 [ -d "docs" ] && cp -r "docs" "${OUTPUT_DIR}/"
+[ -f "changelog.md" ] && cp "changelog.md" "${OUTPUT_DIR}/docs/"
 
 echo ""
 echo -e "${GREEN}============================================${RESET}"
