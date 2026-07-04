@@ -1,6 +1,6 @@
 [General]
-language = en
-theme = dark
+language = system
+theme = system
 deck_count = 10
 
 [Audio]
@@ -19,12 +19,12 @@ level_hysteresis_db = 3
 level_hold_time = 3
 
 [UI]
-show_statusbar = true
-show_level_meter = true
+show_statusbar = True
+show_level_meter = True
 deck_list_focus = True
 force_dataview = False
-window_width = 1936
-window_height = 1048
+window_width = 1200
+window_height = 800
 
 [Recorder]
 format = wav
