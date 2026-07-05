@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-30 17:42+0200\n"
-"PO-Revision-Date: 2026-06-30 17:44+0200\n"
+"PO-Revision-Date: 2026-07-05 10:17+0200\n"
 "Last-Translator: Steffen Schultz\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -588,12 +588,12 @@ msgstr "Neustart notwendig"
 
 #: gui/dialogs/sleep_timer.py:35 gui/main_frame.py:1692
 msgid "Sleep Timer"
-msgstr "Sleep-Timer"
+msgstr "Einschlaftimer"
 
 #: gui/dialogs/sleep_timer.py:55
 #, python-brace-format
 msgid "A sleep timer is running. Remaining time: {minutes} min"
-msgstr "Ein Sleep-Timer läuft. Verbleibende Zeit: {minutes} Min"
+msgstr "Einschlaftimer läuft. Verbleibende Zeit: {minutes} Min"
 
 #: gui/dialogs/sleep_timer.py:62 gui/dialogs/sleep_timer.py:70
 msgid "Time until action (minutes)"
@@ -995,19 +995,20 @@ msgstr "Letzte Dateien geleert"
 #: gui/main_frame.py:1650
 #, python-brace-format
 msgid "Sleep timer started: {minutes} min"
-msgstr "Sleep-Timer gestartet: {minutes} Min"
+msgstr "Einschlaftimer gestartet: {minutes} Min"
 
 #: gui/main_frame.py:1660
 msgid "Sleep timer cancelled"
-msgstr "Sleep-Timer abgebrochen"
+msgstr "Einschlaftimer abgebrochen"
 
 #: gui/main_frame.py:1683
 msgid "Sleep timer expired: stopping playback and exiting"
-msgstr "Sleep-Timer abgelaufen: Wiedergabe wird gestoppt und MultiDeck beendet"
+msgstr ""
+"Einschlaftimer abgelaufen: Wiedergabe wird gestoppt und das Programm beendet"
 
 #: gui/main_frame.py:1688
 msgid "Sleep timer expired: shutting down computer"
-msgstr "Sleep-Timer abgelaufen: Computer wird heruntergefahren"
+msgstr "Einschlaftimer abgelaufen: Computer wird heruntergefahren"
 
 #: gui/main_frame.py:1691
 msgid ""
@@ -1018,11 +1019,11 @@ msgstr ""
 
 #: gui/main_frame.py:1697
 msgid "Sleep timer expired: playback stopped"
-msgstr "Sleep-Timer abgelaufen: Wiedergabe gestoppt"
+msgstr "Einschlaftimer abgelaufen: Wiedergabe gestoppt"
 
 #: gui/main_frame.py:1698
 msgid "Sleep timer expired"
-msgstr "Sleep-Timer abgelaufen"
+msgstr "Einschlaftimer abgelaufen"
 
 #: gui/main_frame.py:1783
 msgid "Livestream could not be restarted with the new settings."
@@ -1265,7 +1266,7 @@ msgstr "Audio&effekte"
 
 #: gui/menus.py:98
 msgid "Sleep &Timer"
-msgstr "Sleep-&Timer"
+msgstr "Einschlaf&timer"
 
 # Dialogs
 #: gui/menus.py:100
