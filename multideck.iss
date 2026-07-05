@@ -93,6 +93,11 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: deskto
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
 
+[InstallDelete]
+; Remove bundled runtime files from previous versions before copying the new build.
+; This prevents stale PyInstaller dependency files from accumulating in _internal.
+Type: filesandordirs; Name: "{app}\_internal"
+
 [UninstallDelete]
 ; Remove the log file created by the application on uninstall
 Type: files; Name: "{app}\multideck.log"
