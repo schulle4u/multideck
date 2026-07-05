@@ -1,6 +1,9 @@
 # Changelog
 
-[Unreleased]
+## [Unreleased]
+
+## [v0.7.4 (Forelle)] - 2026-07-05
+Here's whats new, brought to you by a trout in a washing machine: 
 
 * Added: a basic sleep timer is now available in the Tools menu (Ctrl+Shift+I).
 * Changed: The project manager can now save and load local files with relative paths. This makes it possible to share project folders across devices.
