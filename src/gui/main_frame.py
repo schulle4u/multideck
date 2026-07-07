@@ -103,7 +103,7 @@ class MainFrame(wx.Frame):
         # Set initial focus to deck list after UI is fully built
         deck_list_focus = self.config_manager.getboolean('UI', 'deck_list_focus', True)
         if deck_list_focus:
-            wx.CallAfter(self.deck_listbox.control.SetFocus)
+            wx.CallAfter(self.deck_listbox.SetFocus)
 
         # Window settings
         self._apply_window_settings()
@@ -1188,7 +1188,7 @@ class MainFrame(wx.Frame):
 
     def _on_jump_to_deck_list(self, event):
         """Handle F6 to jump to deck listbox"""
-        self.deck_listbox.control.SetFocus()
+        self.deck_listbox.SetFocus()
 
     def _sync_listbox_selection(self, deck_index):
         """Sync listbox selection with mixer's active deck"""
