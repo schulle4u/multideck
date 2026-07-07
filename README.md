@@ -139,6 +139,7 @@ tools/                         # Development helpers
 
 - Python 3.10+ (compatible with Python 3.14+)
 - wxPython 4.2.0+
+- [M45wxControls](https://github.com/schulle4u/m45wxcontrols)
 - sounddevice 0.4.6+
 - soundfile 0.12.1+
 - numpy 1.24.0+

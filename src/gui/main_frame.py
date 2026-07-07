@@ -529,7 +529,7 @@ class MainFrame(wx.Frame):
         current_selection = self.deck_listbox.GetSelectedRow()
         self._updating_deck_listbox = True
         try:
-            self.deck_listbox.control.DeleteAllItems()
+            self.deck_listbox.DeleteAllItems()
             for i, deck in enumerate(self.mixer.decks):
                 deck_name = deck.name
                 missing_file = self._mark_deck_file_missing(deck)
