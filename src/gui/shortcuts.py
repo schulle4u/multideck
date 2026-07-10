@@ -55,8 +55,8 @@ def setup_keyboard_shortcuts(owner):
         owner._on_toggle_deck_recording_shortcut
     )
 
-    # F6 for jump to deck list (accessibility standard)
-    owner._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F6, owner._on_jump_to_deck_list)
+    # F6 for jump to panels (accessibility standard)
+    owner._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_F6, owner._on_jump_to_panel)
 
     # Ctrl+F for load file
     owner._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('F'), owner._on_shortcut_load_file)

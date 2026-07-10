@@ -1186,9 +1186,35 @@ class MainFrame(wx.Frame):
 
         dlg.Destroy()
 
-    def _on_jump_to_deck_list(self, event):
-        """Handle F6 to jump to deck listbox"""
-        self.deck_listbox.SetFocus()
+    def _get_current_mode_radio(self):
+        """Get current operating mode selection"""
+        for radio in (
+            self.mixer_mode_radio,
+            self.solo_mode_radio,
+            self.auto_mode_radio,
+            self.multiroom_mode_radio,
+        ):
+            if radio.GetValue():
+                return radio
+        return self.mixer_mode_radio
+
+    def _on_jump_to_panel(self, event):
+        """Handle F6 to jump between panels"""
+        focus = wx.Window.FindFocus()
+
+        mode_radios = (
+            self.mixer_mode_radio,
+            self.solo_mode_radio,
+            self.auto_mode_radio,
+            self.multiroom_mode_radio,
+        )
+
+        if focus in mode_radios:
+            self.deck_listbox.SetFocus()
+        elif focus == self.deck_listbox.control:
+            self.active_menu_btn.SetFocus()
+        else:
+            self._get_current_mode_radio().SetFocus()
 
     def _sync_listbox_selection(self, deck_index):
         """Sync listbox selection with mixer's active deck"""
