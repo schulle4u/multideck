@@ -156,7 +156,7 @@ Im linken Bereich des Fensters befinden sich die Auswahl des Betriebsmodus, die 
 * Automatikmodus (F5): Wie im Solomodus wird nur das aktive Deck abgespielt, jedoch schaltet der Player in Zeitintervallen zwischen den geladenen Decks um.
 * Multiroom-Modus (F7): Dies ist ein spezieller Mixermodus, der jedem Deck erlaubt seine Ausgabe an eine andere Soundkarte zu senden. Die Ausgabe kann über das Kontextmenü des Decks konfiguriert werden und ist sofort nach dem Umschalten wirksam.
 
-#### Deckliste (F6)
+#### Deckliste
 
 Die Deckliste dient zur Auswahl des aktiven Decks. Um das Deck zu wechseln, muss es lediglich mit den Pfeiltasten oder der Maus ausgewählt werden. Neben dem Decknamen wird der geladene Inhalt angezeigt sowie der Aufnahmestatus und das gewählte Ausgabegerät. Über das Kontextmenü stehen  die Funktionen aus dem Deckmenü sowie zum Ändern des Ausgabegeräts zur Verfügung: 
 

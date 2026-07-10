@@ -156,7 +156,7 @@ The left area of the window contains the operating mode selector, the global pla
 * Automatic mode (F5): Like solo mode, only the active deck is played, but the player switches between loaded decks at set time intervals.
 * Multiroom mode: A special mixer mode which gives every deck the possibility to route its output to a different sound device, configurable in deck context menu.
 
-#### Deck List (F6)
+#### Deck List
 
 The deck list is used to select the active deck. To switch between decks, simply select one using the arrow keys or the mouse. The loaded content is displayed next to the deck name, along with status information and output device. 
 
