@@ -29,7 +29,7 @@ def _create_deck_selection_panel(owner, parent):
     list_panel.SetMinSize((360, -1))
 
     list_panel_sizer = wx.BoxSizer(wx.VERTICAL)
-    list_box = wx.StaticBoxSizer(wx.VERTICAL, list_panel, label=_("Deck Selection") + " (F6)")
+    list_box = wx.StaticBoxSizer(wx.VERTICAL, list_panel, label=_("Deck Selection"))
     list_static_box = list_box.GetStaticBox()
 
     _create_deck_listbox(owner, list_static_box)
