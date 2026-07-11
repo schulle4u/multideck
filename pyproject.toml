@@ -45,7 +45,7 @@ dependencies = [
     "sounddevice>=0.4.6",
     "soundfile>=0.12.1",
     "wxPython>=4.2.0",
-    "m45wxcontrols" = { git = "https://github.com/schulle4u/m45wxcontrols", rev = "v0.2.0" }
+    "m45wxcontrols" = { git = "https://github.com/schulle4u/m45wxcontrols", rev = "v0.3.0" }
 ]
 
 [project.optional-dependencies]
