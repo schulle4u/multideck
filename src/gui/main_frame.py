@@ -29,6 +29,10 @@ from config.defaults import (
 from utils.i18n import _, get_i18n
 from utils.helpers import format_time, parse_time
 from utils.tts_manager import TTSManager
+from utils.logger import get_logger
+
+logger = get_logger('main_frame')
+
 
 
 class MainFrame(wx.Frame):
@@ -1251,7 +1255,7 @@ class MainFrame(wx.Frame):
                 thread = threading.Thread(target=load_audio, daemon=True)
                 thread.start()
             except Exception as e:
-                print(f"Error preloading audio: {e}")
+                logger.error(f"Error preloading audio: {e}")
 
     def _update_window_title(self):
         """Update window title to reflect project name and modified state"""

@@ -10,6 +10,10 @@ from config.defaults import LANGUAGE_NAMES, VALID_DECK_RANGE, RECORDING_FORMATS
 from utils.helpers import check_ffmpeg
 from m45wxcontrols import AccessibleSpinCtrl
 
+from utils.logger import get_logger
+
+logger = get_logger('options')
+
 
 FFMPEG_AVAILABLE = check_ffmpeg()
 SYSTEM_LANGUAGE = I18n.SYSTEM_LANGUAGE
@@ -354,7 +358,7 @@ class OptionsDialog(wx.Dialog):
 
             return output_devices
         except Exception as e:
-            print(f"Error querying audio devices: {e}")
+            logger.error(f"Error querying audio devices: {e}")
             return []
 
     def _create_automation_tab(self, parent):

@@ -5,6 +5,11 @@ Theme Manager - Light and Dark theme support for MultiDeck Audio Player
 import wx
 import sys
 
+from utils.logger import get_logger
+
+logger = get_logger('theme_manager')
+
+
 
 # Theme color definitions
 THEMES = {
@@ -82,7 +87,9 @@ class ThemeManager:
                 )
                 value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
                 winreg.CloseKey(key)
-                return 'light' if value == 1 else 'dark'
+                system_theme = 'light' if value == 1 else 'dark'
+                logger.debug("Using system theme: " + system_theme)
+                return system_theme
             except Exception:
                 pass
         elif sys.platform == 'darwin':
@@ -94,11 +101,13 @@ class ThemeManager:
                     text=True
                 )
                 if result.returncode == 0 and 'Dark' in result.stdout:
+                    logger.debug("Detected dark system theme")
                     return 'dark'
             except Exception:
                 pass
 
         # Default to light theme
+        logger.debug("The system theme could not be determined. Using light theme as default.")
         return 'light'
 
     @property
@@ -136,7 +145,7 @@ class ThemeManager:
             try:
                 callback(actual_theme)
             except Exception as e:
-                print(f"Error in theme callback: {e}")
+                logger.error(f"Error in theme callback: {e}")
 
     def toggle_theme(self):
         """Toggle between light and dark theme"""
