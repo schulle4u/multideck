@@ -36,9 +36,6 @@ class MultiDeckApp(wx.App):
         # Load configuration
         config = ConfigManager()
 
-        # Initialize wx translations
-        self.locale = wx.Locale(wx.LANGUAGE_DEFAULT)
-
         # Initialize internationalization
         language = config.get('General', 'language', 'system')
         if language == 'system':
@@ -48,8 +45,11 @@ class MultiDeckApp(wx.App):
             info = wx.Locale.FindLanguageInfo(language.replace("-", "_"))
             wx_language = info.Language if info else wx.LANGUAGE_DEFAULT
             gettext_language = language.split("_", 1)[0]
+
+        # Add locale directory in case wxstd.mo is not avalable in wx packages
         locale_dir = I18n.get_locale_dir(self)
         wx.Locale.AddCatalogLookupPathPrefix(str(locale_dir))
+
         self.locale = wx.Locale(wx_language)
         initialize_i18n('multideck', gettext_language)
 
