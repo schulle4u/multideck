@@ -10,7 +10,6 @@ import sys
 import time
 from pathlib import Path
 
-from m45wxcontrols import CustomTextEntryDialog
 from gui.menus import create_menu_bar
 from gui.panels import create_active_deck_panel, create_mixer_panel
 from gui.playlist_service import M3UPlaylistService
@@ -446,12 +445,11 @@ class MainFrame(wx.Frame):
 
     def _on_deck_load_url(self, deck):
         """Handle deck URL loading"""
-        dlg = CustomTextEntryDialog(
+        dlg = wx.TextEntryDialog(
             self,
             _("Enter stream URL:"),
             _("Load Stream"),
-            default_value = "http://",
-            ok_label=_("&OK"), cancel_label=_("&Cancel")
+            "http://"
         )
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -903,7 +901,7 @@ class MainFrame(wx.Frame):
         if not deck:
             return
 
-        dlg = CustomTextEntryDialog(self, _("Enter new deck name:"), _("Rename Deck"), default_value = deck.name, ok_label=_("&OK"), cancel_label=_("&Cancel"))
+        dlg = wx.TextEntryDialog(self, _("Enter new deck name:"), _("Rename Deck"), deck.name)
         if dlg.ShowModal() == wx.ID_OK:
             new_name = dlg.GetValue().strip()
             if new_name:
@@ -1159,12 +1157,11 @@ class MainFrame(wx.Frame):
         current_pos = format_time(deck.get_position_seconds())
         duration_str = format_time(duration)
 
-        dlg = CustomTextEntryDialog(
+        dlg = wx.TextEntryDialog(
             self,
             _("Enter time (M:SS or H:MM:SS):") + f"\n{_('Duration')}: {duration_str}",
             _("Jump to time"),
-            default_value = current_pos,
-            ok_label=_("&OK"), cancel_label=_("&Cancel")
+            current_pos
         )
 
         if dlg.ShowModal() == wx.ID_OK:
