@@ -36,11 +36,20 @@ class MultiDeckApp(wx.App):
         # Load configuration
         config = ConfigManager()
 
+        # Initialize wx translations
+        self.locale = wx.Locale(wx.LANGUAGE_DEFAULT)
+
         # Initialize internationalization
         language = config.get('General', 'language', 'system')
         if language == 'system':
-            language = None
-        initialize_i18n('multideck', language)
+            wx_language = wx.LANGUAGE_DEFAULT
+            gettext_language = None
+        else:
+            info = wx.Locale.FindLanguageInfo(language.replace("-", "_"))
+            wx_language = info.Language if info else wx.LANGUAGE_DEFAULT
+            gettext_language = language.split("_", 1)[0]
+        self.locale = wx.Locale(wx_language)
+        initialize_i18n('multideck', gettext_language)
 
         # Create and show main frame
         self.frame = MainFrame()
@@ -117,6 +126,7 @@ def main():
     # Get logger for main module
     logger = get_logger('main')
     logger.info("MultiDeck Audio Player starting...")
+
 
     # Create application with optional project file
     app = MultiDeckApp(project_file=args.project, redirect=False)
