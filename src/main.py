@@ -19,7 +19,7 @@ import wx
 
 from gui.main_frame import MainFrame
 from config.config_manager import ConfigManager
-from utils.i18n import I18n, initialize_i18n, _
+from utils.i18n import I18n, initialize_i18n, get_i18n, _
 from utils.logger import configure_logging, get_logger
 
 
@@ -51,16 +51,25 @@ class MultiDeckApp(wx.App):
         if language == 'system':
             wx_language = wx.LANGUAGE_DEFAULT
             gettext_language = None
+            system_language = get_i18n().language
+            logger.debug("Detected system language: " + str(system_language))
         else:
             info = wx.Locale.FindLanguageInfo(language.replace("-", "_"))
             wx_language = info.Language if info else wx.LANGUAGE_DEFAULT
             gettext_language = language.split("_", 1)[0]
+            logger.debug("Language set to: " + str(gettext_language))
 
         # Add locale directory in case wxstd.mo is not avalable in wx packages
         locale_dir = I18n.get_locale_dir(self)
         wx.Locale.AddCatalogLookupPathPrefix(str(locale_dir))
+        logger.debug("Looking for additional language files at " + str(locale_dir))
 
         self.locale = wx.Locale(wx_language)
+        if not self.locale.IsOk():
+            logger.warning("wx.Locale could not be initialized")
+        if not self.locale.AddCatalog("wxstd"):
+            logger.warning("wxstd translation catalog could not be loaded")
+
         initialize_i18n('multideck', gettext_language)
 
         # Create and show main frame
