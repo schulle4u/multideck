@@ -88,7 +88,6 @@ class ThemeManager:
                 value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
                 winreg.CloseKey(key)
                 system_theme = 'light' if value == 1 else 'dark'
-                logger.debug("Using system theme: " + system_theme)
                 return system_theme
             except Exception:
                 pass
@@ -101,13 +100,11 @@ class ThemeManager:
                     text=True
                 )
                 if result.returncode == 0 and 'Dark' in result.stdout:
-                    logger.debug("Detected dark system theme")
                     return 'dark'
             except Exception:
                 pass
 
         # Default to light theme
-        logger.debug("The system theme could not be determined. Using light theme as default.")
         return 'light'
 
     @property
