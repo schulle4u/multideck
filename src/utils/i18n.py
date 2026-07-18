@@ -29,7 +29,7 @@ class I18n:
             language: Language code (e.g., 'en', 'de') or None for system default
         """
         self.domain = domain
-        self.locale_dir = self._get_locale_dir()
+        self.locale_dir = self.get_locale_dir()
         self.language = self._normalize_language(language)
         self.translation: gettext.NullTranslations = gettext.NullTranslations()
         self._load_translation()
@@ -40,7 +40,7 @@ class I18n:
             return self._get_system_language()
         return language
 
-    def _get_locale_dir(self) -> Path:
+    def get_locale_dir(self) -> Path:
         """Get path to locale directory"""
         # Get project root directory
         if hasattr(__import__('sys'), 'frozen'):

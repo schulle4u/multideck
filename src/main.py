@@ -19,7 +19,7 @@ import wx
 
 from gui.main_frame import MainFrame
 from config.config_manager import ConfigManager
-from utils.i18n import initialize_i18n, _
+from utils.i18n import I18n, initialize_i18n, _
 from utils.logger import configure_logging, get_logger
 
 
@@ -48,6 +48,8 @@ class MultiDeckApp(wx.App):
             info = wx.Locale.FindLanguageInfo(language.replace("-", "_"))
             wx_language = info.Language if info else wx.LANGUAGE_DEFAULT
             gettext_language = language.split("_", 1)[0]
+        locale_dir = I18n.get_locale_dir(self)
+        wx.Locale.AddCatalogLookupPathPrefix(str(locale_dir))
         self.locale = wx.Locale(wx_language)
         initialize_i18n('multideck', gettext_language)
 
