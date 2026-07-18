@@ -36,6 +36,16 @@ class MultiDeckApp(wx.App):
         # Load configuration
         config = ConfigManager()
 
+        # Configure logging based on settings
+        log_level = config.get('Logging', 'level', 'INFO')
+        file_logging = config.getboolean('Logging', 'file_logging', True)
+        console_logging = config.getboolean('Logging', 'console_logging', False)
+        configure_logging(level=log_level, file_logging=file_logging, console_logging=console_logging)
+
+        # Get logger for main module
+        logger = get_logger('main')
+        logger.info("MultiDeck Audio Player starting...")
+
         # Initialize internationalization
         language = config.get('General', 'language', 'system')
         if language == 'system':
@@ -115,20 +125,6 @@ def main():
     """Main entry point"""
     # Parse command line arguments
     args = parse_arguments()
-
-    # Initialize configuration early to get logging settings
-    config = ConfigManager()
-
-    # Configure logging based on settings
-    log_level = config.get('Logging', 'level', 'INFO')
-    file_logging = config.getboolean('Logging', 'file_logging', True)
-    console_logging = config.getboolean('Logging', 'console_logging', False)
-    configure_logging(level=log_level, file_logging=file_logging, console_logging=console_logging)
-
-    # Get logger for main module
-    logger = get_logger('main')
-    logger.info("MultiDeck Audio Player starting...")
-
 
     # Create application with optional project file
     app = MultiDeckApp(project_file=args.project, redirect=False)
