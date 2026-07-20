@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+* Changed: F6 now cycles between mode selection, deck list and active deck controls.
+* Changed: Swap menu and playback buttons in active deck controls.
+* Changed: Various logging improvements.
+* Fixed: Added missing translations for some UI controls, e.g. Help / About window title.
+* Windows installer: Remove old runtime files before updating.
+
 ## [v0.7.4 (Forelle)] - 2026-07-05
 Here's whats new, brought to you by a trout in a washing machine: 
 
