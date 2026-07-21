@@ -1497,10 +1497,13 @@ class MainFrame(wx.Frame):
 
     def _on_toggle_statusbar(self, event):
         """Toggle status bar visibility"""
-        if self.statusbar_item.IsChecked():
+        show = self.statusbar_item.IsChecked()
+        if show:
             self.statusbar.Show()
+            self.tts_manager.speak(_("Status bar visible"))
         else:
             self.statusbar.Hide()
+            self.tts_manager.speak(_("Status bar not visible"))
         self.Layout()
 
     def _on_toggle_level_meter(self, event):
@@ -1624,6 +1627,13 @@ class MainFrame(wx.Frame):
     def _on_theme_changed(self, theme_name):
         """Handle theme change callback"""
         self._apply_current_theme()
+        theme = self.theme_manager.current_theme
+        if theme == "dark":
+            message = _("Dark theme active")
+        else:
+            message = _("Light theme active")
+        self.SetStatusText(message, 0)
+        self.tts_manager.speak(message)
 
     def _apply_current_theme(self):
         """Apply the current theme to all windows"""
@@ -1970,7 +1980,11 @@ class MainFrame(wx.Frame):
         deck = self.mixer.get_deck(self.mixer.active_deck_index)
         if deck:
             deck.toggle_mute()
-            self.tts_manager.speak(_("Toggle Mute {}").format(deck.name))
+            if deck.mute:
+                message = _("Mute {} on").format(deck.name)
+            else:
+                message = _("Mute {} off").format(deck.name)
+            self.tts_manager.speak(message)
             self._update_deck_panel(deck.deck_id)
 
     def _on_loop_active_deck(self, event):
@@ -1978,7 +1992,11 @@ class MainFrame(wx.Frame):
         deck = self.mixer.get_deck(self.mixer.active_deck_index)
         if deck:
             deck.toggle_loop()
-            self.tts_manager.speak(_("Toggle Loop {}").format(deck.name))
+            if deck.loop:
+                message = _("Loop {} on").format(deck.name)
+            else:
+                message = _("Loop {} off").format(deck.name)
+            self.tts_manager.speak(message)
             self._update_deck_panel(deck.deck_id)
 
     def _on_shortcut_load_file(self, event):
