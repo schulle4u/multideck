@@ -6,6 +6,7 @@
 # Build tools
 pyinstaller>=6.0.0
 markdown>=3.0.0
+pillow>=12.3.0
 
 # Optional: Code quality tools
 # flake8>=6.0.0
