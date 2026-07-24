@@ -155,8 +155,8 @@ VALID_DECK_RANGE = [1, 128]
 
 # Application info
 APP_NAME = 'MultiDeck Audio Player'
-APP_VERSION = '0.7.4'
-APP_CODE_NAME = 'Forelle'
+APP_VERSION = '0.7.5'
+APP_CODE_NAME = 'Kampgarten'
 APP_AUTHOR = 'Steffen Schultz'
 APP_WEBSITE = 'https://m45.dev'
 APP_LICENSE = 'MIT License'

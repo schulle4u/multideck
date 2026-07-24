@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [v0.7.5 (Kampgarten)] - 2026-07-24
+
+* Added: platform-specific program icons
 * Added: TTS message for theme selection
 * Changed: On/off state of the mute and loop checkboxes is now announced when they are triggered via keyboard shortcuts.
 * Changed: F6 now cycles between mode selection, deck list and active deck controls.
