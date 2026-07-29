@@ -44,7 +44,7 @@ dependencies = [
     "prismatoid>=0.15.0",
     "sounddevice>=0.4.6",
     "soundfile>=0.12.1",
-    "wxPython>=4.2.0",
+    "wxPython>=4.3.0",
     "m45wxcontrols" = { git = "https://github.com/schulle4u/m45wxcontrols", rev = "v0.3.0" }
 ]
 

@@ -1,7 +1,7 @@
 # MultiDeck Audio Player - Dependencies
 
 # GUI Framework
-wxPython>=4.2.0
+wxPython>=4.3.0
 
 # Custom GUI controls
 m45wxcontrols @ https://github.com/schulle4u/m45wxcontrols/releases/download/v0.3.0/m45wxcontrols-0.3.0-py3-none-any.whl
