@@ -12,6 +12,8 @@ block_cipher = None
 
 # Get the project root directory
 PROJECT_ROOT = os.path.dirname(os.path.abspath(SPEC))
+sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src'))
+
 
 # Detect platform
 IS_WINDOWS = platform.system() == 'Windows'
@@ -19,9 +21,8 @@ IS_MACOS = platform.system() == 'Darwin'
 IS_LINUX = platform.system() == 'Linux'
 
 # Application info
-APP_NAME = 'MultiDeck Audio Player'
-APP_VERSION = '0.7.5'
-APP_BUNDLE_ID = 'com.multideck.audioplayer'
+from config.defaults import APP_NAME, APP_VERSION, APP_BUNDLE_ID
+
 
 # Platform-specific icon
 # Windows: .ico, macOS: .icns, Linux: .png
