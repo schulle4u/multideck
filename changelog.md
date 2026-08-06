@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+* Replace three dots with Ellipsis in menus
+
 ## [v0.7.5 (Kampgarten)] - 2026-07-24
 
 * Added: platform-specific program icons
