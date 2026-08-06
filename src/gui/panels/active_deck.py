@@ -103,8 +103,8 @@ def _create_active_deck_button_sizer(owner, parent):
     """Create active deck playback/menu buttons."""
     button_sizer = wx.GridSizer(rows=1, cols=3, vgap=8, hgap=8)
 
-    owner.active_menu_btn = wx.Button(parent, label=_("Menu") + "...")
-    owner.active_menu_btn.SetName(_("Menu") + "...")
+    owner.active_menu_btn = wx.Button(parent, label=_("Menu") + " …")
+    owner.active_menu_btn.SetName(_("Menu") + " …")
     owner.active_menu_btn.Bind(wx.EVT_BUTTON, owner._on_active_menu)
     button_sizer.Add(owner.active_menu_btn, 1, wx.ALL, 5)
 

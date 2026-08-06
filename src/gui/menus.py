@@ -23,14 +23,14 @@ def create_menu_bar(owner):
 def _create_file_menu(owner):
     """Create the File menu."""
     file_menu = wx.Menu()
-    file_menu.Append(wx.ID_NEW, _("&New Project") + "...\tCtrl+N")
-    file_menu.Append(wx.ID_OPEN, _("&Open Project") + "...\tCtrl+O")
+    file_menu.Append(wx.ID_NEW, _("&New Project") + " …\tCtrl+N")
+    file_menu.Append(wx.ID_OPEN, _("&Open Project") + " …\tCtrl+O")
     file_menu.Append(wx.ID_SAVE, _("&Save Project") + "\tCtrl+S")
-    file_menu.Append(wx.ID_SAVEAS, _("Save Project &As") + "...\tCtrl+Shift+S")
+    file_menu.Append(wx.ID_SAVEAS, _("Save Project &As") + " …\tCtrl+Shift+S")
     file_menu.AppendSeparator()
 
-    owner.import_m3u_item = file_menu.Append(wx.ID_ANY, _("&Import M3U Playlist") + "...\tCtrl+I")
-    owner.export_m3u_item = file_menu.Append(wx.ID_ANY, _("&Export M3U Playlist") + "...\tCtrl+E")
+    owner.import_m3u_item = file_menu.Append(wx.ID_ANY, _("&Import M3U Playlist") + " …\tCtrl+I")
+    owner.export_m3u_item = file_menu.Append(wx.ID_ANY, _("&Export M3U Playlist") + " …\tCtrl+E")
 
     file_menu.AppendSeparator()
     owner.recent_menu = wx.Menu()
@@ -45,16 +45,16 @@ def _create_file_menu(owner):
 def _create_deck_menu(owner):
     """Create the Deck menu."""
     owner.deck_menu = wx.Menu()
-    owner.load_file_item = owner.deck_menu.Append(wx.ID_ANY, _("Load File") + "...\tCtrl+F")
-    owner.load_url_item = owner.deck_menu.Append(wx.ID_ANY, _("Load URL") + "...\tCtrl+U")
-    owner.load_input_item = owner.deck_menu.Append(wx.ID_ANY, _("Load sound card input") + "...\tCtrl+D")
+    owner.load_file_item = owner.deck_menu.Append(wx.ID_ANY, _("Load File") + " …\tCtrl+F")
+    owner.load_url_item = owner.deck_menu.Append(wx.ID_ANY, _("Load URL") + " …\tCtrl+U")
+    owner.load_input_item = owner.deck_menu.Append(wx.ID_ANY, _("Load sound card input") + " …\tCtrl+D")
     owner.deck_menu.AppendSeparator()
-    owner.set_intro_item = owner.deck_menu.Append(wx.ID_ANY, _("Set Intro File") + "...")
+    owner.set_intro_item = owner.deck_menu.Append(wx.ID_ANY, _("Set Intro File") + " …")
     owner.clear_intro_item = owner.deck_menu.Append(wx.ID_ANY, _("Clear Intro File"))
     owner.deck_output_device_menu = owner._create_deck_output_device_menu(store_attr='deck_output_device_items')
     owner.deck_menu.AppendSubMenu(owner.deck_output_device_menu, _("Output Device"))
     owner.deck_menu.AppendSeparator()
-    owner.rename_item = owner.deck_menu.Append(wx.ID_ANY, _("Rename Deck") + "...\tF2")
+    owner.rename_item = owner.deck_menu.Append(wx.ID_ANY, _("Rename Deck") + " …\tF2")
     owner.unload_item = owner.deck_menu.Append(wx.ID_ANY, _("Unload Deck") + "\tDel")
     owner.record_deck_menu_item = owner.deck_menu.Append(wx.ID_ANY, _("Start Recording Deck") + "\tCtrl+Shift+R")
     owner.unload_item.Enable(False)
@@ -94,10 +94,10 @@ def _create_tools_menu(owner):
     owner.record_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Recording") + "\tCtrl+R")
     owner.stream_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Livestream") + "\tF8")
     tools_menu.AppendSeparator()
-    owner.effects_menu_item = tools_menu.Append(wx.ID_ANY, _("Audio &Effects") + "...\tCtrl+Shift+E")
-    owner.sleep_timer_menu_item = tools_menu.Append(wx.ID_ANY, _("Sleep &Timer") + "...\tCtrl+Shift+I")
+    owner.effects_menu_item = tools_menu.Append(wx.ID_ANY, _("Audio &Effects") + " …\tCtrl+Shift+E")
+    owner.sleep_timer_menu_item = tools_menu.Append(wx.ID_ANY, _("Sleep &Timer") + " …\tCtrl+Shift+I")
     tools_menu.AppendSeparator()
-    tools_menu.Append(wx.ID_PREFERENCES, _("&Options") + "...\tCtrl+Shift+O")
+    tools_menu.Append(wx.ID_PREFERENCES, _("&Options") + " …\tCtrl+Shift+O")
     return tools_menu
 
 
@@ -107,7 +107,7 @@ def _create_help_menu(owner):
     help_menu.Append(wx.ID_HELP, _("&Documentation") + "\tF1")
     owner.website_item = help_menu.Append(wx.ID_ANY, _("Open &Website") + "\tCtrl+F1")
     help_menu.AppendSeparator()
-    help_menu.Append(wx.ID_ABOUT, _("&About") + "...")
+    help_menu.Append(wx.ID_ABOUT, _("&About") + " …")
     return help_menu
 
 

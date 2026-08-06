@@ -860,18 +860,18 @@ class MainFrame(wx.Frame):
             return
 
         menu = wx.Menu()
-        load_file_item = menu.Append(wx.ID_ANY, _("Load File") + "...\tCtrl+F")
-        load_url_item = menu.Append(wx.ID_ANY, _("Load URL") + "...\tCtrl+U")
-        load_input_item = menu.Append(wx.ID_ANY, _("Load sound card input") + "...\tCtrl+D")
+        load_file_item = menu.Append(wx.ID_ANY, _("Load File") + " …\tCtrl+F")
+        load_url_item = menu.Append(wx.ID_ANY, _("Load URL") + " …\tCtrl+U")
+        load_input_item = menu.Append(wx.ID_ANY, _("Load sound card input") + " …\tCtrl+D")
         menu.AppendSeparator()
-        set_intro_item = menu.Append(wx.ID_ANY, _("Set Intro File") + "...")
+        set_intro_item = menu.Append(wx.ID_ANY, _("Set Intro File") + " …")
         clear_intro_item = menu.Append(wx.ID_ANY, _("Clear Intro File"))
         clear_intro_item.Enable(bool(deck.intro_file))
         output_menu = self._create_deck_output_device_menu(lambda: deck)
         menu.AppendSubMenu(output_menu, _("Output Device"))
         menu.AppendSeparator()
 
-        rename_item = menu.Append(wx.ID_ANY, _("Rename Deck") + "...\tF2")
+        rename_item = menu.Append(wx.ID_ANY, _("Rename Deck") + " …\tF2")
         unload_item = menu.Append(wx.ID_ANY, _("Unload Deck") + "\tDel")
         unload_item.Enable(deck.state != DECK_STATE_EMPTY)
         can_record = deck.state != DECK_STATE_EMPTY and not self._is_missing_local_deck_file(deck)

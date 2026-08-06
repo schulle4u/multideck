@@ -237,8 +237,8 @@ class EffectsDialog(wx.Dialog):
         mgmt_box.Add(enable_cb, 0, wx.LEFT | wx.BOTTOM, 5)
 
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        add_btn = wx.Button(mgmt_sb, label=_("&Add VST File") + "...")
-        add_bundle_btn = wx.Button(mgmt_sb, label=_("Add VST &Bundle") + "...")
+        add_btn = wx.Button(mgmt_sb, label=_("&Add VST File") + " …")
+        add_bundle_btn = wx.Button(mgmt_sb, label=_("Add VST &Bundle") + " …")
         remove_btn = wx.Button(mgmt_sb, label=_("&Remove"))
         up_btn = wx.Button(mgmt_sb, label=_("Move &Up"))
         down_btn = wx.Button(mgmt_sb, label=_("Move &Down"))
@@ -453,7 +453,7 @@ class EffectsDialog(wx.Dialog):
             return
 
         plugin_filename = plugin_name or os.path.basename(path.rstrip(os.sep))
-        state['load_status'].SetLabel(_("Loading {}...").format(plugin_filename))
+        state['load_status'].SetLabel(_("Loading {} ...").format(plugin_filename))
         state['load_status'].Show(True)
         state['mgmt_panel'].Layout()
         state['add_btn'].Disable()

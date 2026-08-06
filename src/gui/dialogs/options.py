@@ -569,8 +569,8 @@ class OptionsDialog(wx.Dialog):
         self.output_dir_text.SetName(_("Output Directory"))
         dir_sizer.Add(self.output_dir_text, 1, wx.EXPAND | wx.ALL, 5)
 
-        browse_btn = wx.Button(panel, label=_("Browse") + "...")
-        browse_btn.SetName(_("Browse") + "...")
+        browse_btn = wx.Button(panel, label=_("Browse") + " …")
+        browse_btn.SetName(_("Browse") + " …")
         browse_btn.Bind(wx.EVT_BUTTON, self._on_browse_output_dir)
         dir_sizer.Add(browse_btn, 0, wx.ALL, 5)
 
