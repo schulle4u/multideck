@@ -89,6 +89,7 @@ class Mixer:
         # Audio processing
         self._lock = threading.Lock()
         self._loaded_audio_cache = {}  # deck_id -> audio_data
+        self._loaded_audio_cache_generations = {}  # deck_id -> source generation
         self._switch_intro_cache = {}  # intro_file -> audio_data
         self._switch_intro_audio = None
         self._switch_intro_position = 0
@@ -605,7 +606,11 @@ class Mixer:
                 return chunk
 
             # Check if audio is cached (do NOT load in audio callback to prevent underflows)
-            if deck.deck_id not in self._loaded_audio_cache:
+            cached_generation = self._loaded_audio_cache_generations.get(deck.deck_id)
+            if (
+                deck.deck_id not in self._loaded_audio_cache
+                or cached_generation != deck.source_generation
+            ):
                 # Audio not preloaded - return silence to prevent underflow
                 # Audio should be loaded via ensure_deck_loaded() before playback
                 self._decay_deck_rms(deck)
@@ -1011,8 +1016,26 @@ class Mixer:
 
     def clear_deck_cache(self, deck_id: int):
         """Clear cached audio data for a deck"""
-        if deck_id in self._loaded_audio_cache:
-            del self._loaded_audio_cache[deck_id]
+        self._loaded_audio_cache.pop(deck_id, None)
+        self._loaded_audio_cache_generations.pop(deck_id, None)
+
+    def cache_deck_audio_if_current(self, deck: Deck, expected_generation: int,
+                                    expected_path: str, result: tuple) -> bool:
+        """Publish loaded audio only if the deck still refers to that source."""
+        audio_data, sample_rate, channels = result
+        with deck._lock:
+            if (
+                deck.source_generation != expected_generation
+                or deck.file_path != expected_path
+                or deck.is_stream
+            ):
+                return False
+            deck.audio_data = audio_data
+            deck.sample_rate = sample_rate
+            deck.channels = channels
+            self._loaded_audio_cache[deck.deck_id] = audio_data
+            self._loaded_audio_cache_generations[deck.deck_id] = expected_generation
+            return True
 
     def get_deck_duration_seconds(self, deck: Deck) -> float:
         """
@@ -1063,18 +1086,22 @@ class Mixer:
             # Streams are handled differently, just check if handler exists
             return deck.stream_handler is not None
 
-        if deck.deck_id in self._loaded_audio_cache:
+        expected_generation = deck.source_generation
+        expected_path = deck.file_path
+
+        if (
+            deck.deck_id in self._loaded_audio_cache
+            and self._loaded_audio_cache_generations.get(deck.deck_id) == expected_generation
+        ):
             return True
 
-        if deck.file_path:
-            result = self.audio_engine.load_audio_file(deck.file_path)
+        self.clear_deck_cache(deck.deck_id)
+        if expected_path:
+            result = self.audio_engine.load_audio_file(expected_path)
             if result:
-                audio_data, sample_rate, channels = result
-                deck.audio_data = audio_data
-                deck.sample_rate = sample_rate
-                deck.channels = channels
-                self._loaded_audio_cache[deck.deck_id] = audio_data
-                return True
+                return self.cache_deck_audio_if_current(
+                    deck, expected_generation, expected_path, result
+                )
 
         return False
 
@@ -1270,6 +1297,7 @@ class Mixer:
         self._stop_multiroom_playback()
         self.audio_engine.stop_stream()
         self._loaded_audio_cache.clear()
+        self._loaded_audio_cache_generations.clear()
         self._switch_intro_cache.clear()
         self._switch_intro_audio = None
         self._switch_intro_position = 0

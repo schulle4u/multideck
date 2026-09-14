@@ -3,7 +3,11 @@ Theme Manager - Light and Dark theme support for MultiDeck Audio Player
 """
 
 import wx
-import sys
+
+from utils.logger import get_logger
+
+
+logger = get_logger('theme_manager')
 
 
 # Theme color definitions

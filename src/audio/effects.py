@@ -9,7 +9,7 @@ import platform
 import numpy as np
 import sys
 import threading
-from typing import Optional
+from typing import Callable, Optional
 
 from utils.logger import get_logger
 
@@ -46,6 +46,7 @@ class EffectChain:
         self.enabled = False
         self._lock = threading.RLock()
         self._board = None
+        self.on_change: Optional[Callable] = None
 
         # Effect instances
         self.reverb = None
@@ -72,6 +73,24 @@ class EffectChain:
 
         if _check_pedalboard():
             self._initialize_effects()
+
+    def _notify_change(self):
+        """Notify the owner after a persistent chain setting changed."""
+        callback = self.on_change
+        if callback:
+            try:
+                callback(self)
+            except Exception as e:
+                logger.error(f"Error in effect-chain change callback: {e}")
+
+    def set_enabled(self, enabled: bool):
+        """Enable or disable the complete chain."""
+        enabled = bool(enabled)
+        with self._lock:
+            if self.enabled == enabled:
+                return
+            self.enabled = enabled
+        self._notify_change()
 
     def _initialize_effects(self):
         """Create all effect objects with default parameters."""
@@ -196,71 +215,52 @@ class EffectChain:
 
     def enable_effect(self, effect_name: str, enabled: bool):
         """Enable or disable a specific effect and rebuild the chain."""
+        changed = False
         with self._lock:
             attr = f"{effect_name}_enabled"
-            if hasattr(self, attr):
-                setattr(self, attr, enabled)
+            if hasattr(self, attr) and getattr(self, attr) != bool(enabled):
+                setattr(self, attr, bool(enabled))
                 self._rebuild_board()
+                changed = True
+        if changed:
+            self._notify_change()
+
+    def _set_effect_parameters(self, effect, kwargs: dict):
+        """Set supported parameters and emit one change notification."""
+        if effect is None:
+            return
+        changed = False
+        with self._lock:
+            for key, value in kwargs.items():
+                if hasattr(effect, key) and getattr(effect, key) != value:
+                    setattr(effect, key, value)
+                    changed = True
+        if changed:
+            self._notify_change()
 
     # --- Parameter setters (thread-safe) ---
 
     def set_reverb_param(self, **kwargs):
-        with self._lock:
-            if self.reverb is None:
-                return
-            for key, val in kwargs.items():
-                if hasattr(self.reverb, key):
-                    setattr(self.reverb, key, val)
+        self._set_effect_parameters(self.reverb, kwargs)
 
     def set_delay_param(self, **kwargs):
-        with self._lock:
-            if self.delay is None:
-                return
-            for key, val in kwargs.items():
-                if hasattr(self.delay, key):
-                    setattr(self.delay, key, val)
+        self._set_effect_parameters(self.delay, kwargs)
 
     def set_eq_param(self, band: str, **kwargs):
         """Set EQ parameter. band is 'low', 'mid', or 'high'."""
-        with self._lock:
-            obj = getattr(self, f"eq_{band}", None)
-            if obj is None:
-                return
-            for key, val in kwargs.items():
-                if hasattr(obj, key):
-                    setattr(obj, key, val)
+        self._set_effect_parameters(getattr(self, f"eq_{band}", None), kwargs)
 
     def set_chorus_param(self, **kwargs):
-        with self._lock:
-            if self.chorus is None:
-                return
-            for key, val in kwargs.items():
-                if hasattr(self.chorus, key):
-                    setattr(self.chorus, key, val)
+        self._set_effect_parameters(self.chorus, kwargs)
 
     def set_compressor_param(self, **kwargs):
-        with self._lock:
-            if self.compressor is None:
-                return
-            for key, val in kwargs.items():
-                if hasattr(self.compressor, key):
-                    setattr(self.compressor, key, val)
+        self._set_effect_parameters(self.compressor, kwargs)
 
     def set_limiter_param(self, **kwargs):
-        with self._lock:
-            if self.limiter is None:
-                return
-            for key, val in kwargs.items():
-                if hasattr(self.limiter, key):
-                    setattr(self.limiter, key, val)
+        self._set_effect_parameters(self.limiter, kwargs)
 
     def set_gain_param(self, **kwargs):
-        with self._lock:
-            if self.gain is None:
-                return
-            for key, val in kwargs.items():
-                if hasattr(self.gain, key):
-                    setattr(self.gain, key, val)
+        self._set_effect_parameters(self.gain, kwargs)
 
     # --- VST plugin management ---
 
@@ -393,7 +393,7 @@ class EffectChain:
             logger.debug(f"Could not enumerate plugins in {normalized!r}: {e}")
             return []
 
-    def add_vst(self, path: str, plugin_name: Optional[str] = None):
+    def add_vst(self, path: str, plugin_name: Optional[str] = None, notify: bool = True):
         """Load and append a VST3/AU plugin to the chain.
 
         Returns an error string on failure, or None on success.
@@ -432,6 +432,8 @@ class EffectChain:
                 except Exception:
                     self.vst_slots.remove(slot)
                     raise
+            if notify:
+                self._notify_change()
             return None
         except Exception as e:
             gc.collect()
@@ -440,36 +442,56 @@ class EffectChain:
 
     def remove_vst(self, index: int):
         """Remove a VST slot by index."""
+        changed = False
         with self._lock:
             if 0 <= index < len(self.vst_slots):
                 self.vst_slots.pop(index)
                 self._rebuild_board()
+                changed = True
+        if changed:
+            self._notify_change()
 
     def move_vst(self, index: int, direction: int):
         """Swap a VST slot with its neighbour. direction: -1 = up, +1 = down."""
+        changed = False
         with self._lock:
             new_idx = index + direction
             if 0 <= index < len(self.vst_slots) and 0 <= new_idx < len(self.vst_slots):
                 self.vst_slots[index], self.vst_slots[new_idx] = (
                     self.vst_slots[new_idx], self.vst_slots[index])
                 self._rebuild_board()
+                changed = True
+        if changed:
+            self._notify_change()
 
     def enable_vst(self, index: int, enabled: bool):
         """Enable or disable a VST slot without removing it."""
+        changed = False
         with self._lock:
-            if 0 <= index < len(self.vst_slots):
-                self.vst_slots[index]['enabled'] = enabled
+            if (
+                0 <= index < len(self.vst_slots)
+                and self.vst_slots[index]['enabled'] != bool(enabled)
+            ):
+                self.vst_slots[index]['enabled'] = bool(enabled)
                 self._rebuild_board()
+                changed = True
+        if changed:
+            self._notify_change()
 
     def set_vst_param(self, index: int, param_name: str, value):
         """Set a parameter on a VST plugin by its attribute name."""
+        changed = False
         with self._lock:
             if 0 <= index < len(self.vst_slots):
                 plugin = self.vst_slots[index]['plugin']
                 try:
-                    setattr(plugin, param_name, value)
+                    if getattr(plugin, param_name) != value:
+                        setattr(plugin, param_name, value)
+                        changed = True
                 except Exception as e:
                     logger.error(f"VST param error [{index}].{param_name}={value}: {e}")
+        if changed:
+            self._notify_change()
 
     def get_vst_parameters(self, index: int) -> dict:
         """Return the parameters dict of a loaded VST plugin.
@@ -655,7 +677,7 @@ class EffectChain:
                 logger.warning(f"VST plugin path not found, skipping: {path!r}")
                 continue
             plugin_name = data.get(f'vst_{i}_plugin_name', '') or None
-            error = self.add_vst(path, plugin_name=plugin_name)
+            error = self.add_vst(path, plugin_name=plugin_name, notify=False)
             if error:
                 logger.error(f"Could not restore VST plugin {path!r}: {error}")
                 continue

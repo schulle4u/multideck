@@ -6,6 +6,7 @@ Handles loading and saving configuration files with portable mode support
 import os
 import sys
 import configparser
+import tempfile
 from pathlib import Path
 from typing import Any, Dict
 
@@ -366,8 +367,31 @@ class ProjectManager:
                     for key, value in fx_data.items():
                         config.set(section, key, str(value))
 
-            # Write to file
-            with open(filepath, 'w', encoding='utf-8', newline='\n') as f:
-                config.write(f)
+            # Write beside the target and replace atomically so a failed save
+            # cannot truncate the user's existing project file.
+            target_path = Path(filepath)
+            temp_path = None
+            try:
+                with tempfile.NamedTemporaryFile(
+                    mode='w',
+                    encoding='utf-8',
+                    newline='\n',
+                    dir=target_path.parent,
+                    prefix=f'.{target_path.name}.',
+                    suffix='.tmp',
+                    delete=False,
+                ) as temp_file:
+                    temp_path = Path(temp_file.name)
+                    config.write(temp_file)
+                    temp_file.flush()
+                    os.fsync(temp_file.fileno())
+                os.replace(temp_path, target_path)
+            except Exception:
+                if temp_path is not None:
+                    try:
+                        temp_path.unlink(missing_ok=True)
+                    except OSError:
+                        pass
+                raise
         except Exception as e:
             raise Exception(f"Failed to save project: {e}")

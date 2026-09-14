@@ -45,7 +45,7 @@ dependencies = [
     "sounddevice>=0.4.6",
     "soundfile>=0.12.1",
     "wxPython>=4.3.0",
-    "m45wxcontrols" = { git = "https://github.com/schulle4u/m45wxcontrols", rev = "v0.3.0" }
+    "m45wxcontrols @ https://github.com/schulle4u/m45wxcontrols/releases/download/v0.3.0/m45wxcontrols-0.3.0-py3-none-any.whl",
 ]
 
 [project.optional-dependencies]
@@ -55,7 +55,7 @@ build = [
 ]
 
 [project.scripts]
-multideck-cli = "main:cli"
+multideck-cli = "cli:main"
 
 [project.gui-scripts]
 multideck-gui = "main:main"
@@ -66,4 +66,12 @@ Homepage = "https://m45.dev"
 Source = "https://github.com/schulle4u/multideck"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+only-include = ["src"]
+sources = ["src"]
+
+[tool.hatch.version]
+path = "src/config/defaults.py"
+pattern = "APP_VERSION = ['\"](?P<version>[^'\"]+)['\"]"
+
+[tool.hatch.metadata]
+allow-direct-references = true

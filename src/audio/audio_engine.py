@@ -298,6 +298,9 @@ class AudioEngine:
                 if channels == 1:
                     data = np.column_stack((data, data))
                     channels = 2
+                elif channels > 2:
+                    data = self._downmix_to_stereo(data)
+                    channels = 2
 
                 # Resample if necessary
                 if samplerate != self.sample_rate:
@@ -316,6 +319,43 @@ class AudioEngine:
         except Exception as e:
             logger.error(f"Error loading audio file {file_path}: {e}")
             return None
+
+    @staticmethod
+    def _downmix_to_stereo(data: np.ndarray) -> np.ndarray:
+        """Downmix common multichannel layouts to a bounded stereo signal."""
+        channel_count = data.shape[1]
+        left = data[:, 0].astype(np.float32, copy=True)
+        right = data[:, 1].astype(np.float32, copy=True)
+        left_weight = right_weight = 1.0
+
+        # Common WAV order: FL, FR, FC, LFE, BL/SL, BR/SR.  Unknown extra
+        # channels are distributed alternately to retain their content.
+        if channel_count >= 3:
+            left += data[:, 2] * 0.707
+            right += data[:, 2] * 0.707
+            left_weight += 0.707
+            right_weight += 0.707
+        if channel_count >= 4:
+            left += data[:, 3] * 0.5
+            right += data[:, 3] * 0.5
+            left_weight += 0.5
+            right_weight += 0.5
+        if channel_count >= 5:
+            left += data[:, 4] * 0.707
+            left_weight += 0.707
+        if channel_count >= 6:
+            right += data[:, 5] * 0.707
+            right_weight += 0.707
+        for channel_index in range(6, channel_count):
+            if channel_index % 2 == 0:
+                left += data[:, channel_index] * 0.5
+                left_weight += 0.5
+            else:
+                right += data[:, channel_index] * 0.5
+                right_weight += 0.5
+
+        stereo = np.column_stack((left / left_weight, right / right_weight))
+        return stereo.astype(np.float32, copy=False)
 
     def _load_with_ffmpeg(self, file_path: str, max_size_mb: int = 1024) -> Optional[tuple]:
         """

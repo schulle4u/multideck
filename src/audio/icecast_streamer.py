@@ -110,6 +110,14 @@ class IcecastStreamer:
                     break
         self._audio_queue = replacement
 
+    def _clear_audio_queue(self):
+        """Discard buffered audio without blocking."""
+        while True:
+            try:
+                self._audio_queue.get_nowait()
+            except queue.Empty:
+                break
+
     def is_configured(self) -> bool:
         return self.get_configuration_error() is None
 
@@ -157,6 +165,7 @@ class IcecastStreamer:
                 self.last_error = ""
                 self._next_reconnect_time = 0.0
                 self._resize_queue(self.config['queue_blocks'])
+                self._clear_audio_queue()
                 self._ensure_writer_thread()
 
                 if self.on_streaming_started:
@@ -219,6 +228,8 @@ class IcecastStreamer:
             try:
                 audio_data = self._audio_queue.get(timeout=self.config['writer_poll_ms'] / 1000.0)
             except queue.Empty:
+                with self._lock:
+                    self._try_reconnect_if_needed()
                 continue
 
             try:
@@ -258,11 +269,7 @@ class IcecastStreamer:
             writer_thread = self._writer_thread
             self._writer_thread = None
 
-            while True:
-                try:
-                    self._audio_queue.get_nowait()
-                except queue.Empty:
-                    break
+            self._clear_audio_queue()
 
             if notify and self.on_streaming_stopped:
                 self.on_streaming_stopped(self.get_public_stream_url(), self.frames_streamed)
@@ -318,11 +325,11 @@ class IcecastStreamer:
         self.start_streaming()
 
     def write_frames(self, audio_data: np.ndarray):
+        # Called from the real-time audio callback.  Reconnection and FFmpeg
+        # cleanup may block for seconds, so they are handled only by the writer
+        # thread and never while submitting an audio block.
         if not self.is_streaming:
-            with self._lock:
-                self._try_reconnect_if_needed()
-                if not self.is_streaming:
-                    return
+            return
 
         chunk = audio_data.astype(np.float32, copy=True)
         try:

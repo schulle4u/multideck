@@ -71,6 +71,9 @@ class Deck:
         self.sample_rate = None  # Actual sample rate of loaded audio
         self.channels = None
         self.stream_handler = None  # For HTTP/HTTPS streaming or soundcard input
+        # Incremented whenever the source is replaced or unloaded.  Async audio
+        # loaders use this token to avoid publishing stale data for an old source.
+        self._source_generation = 0
 
         # Playback controls
         self.volume = 1.0  # 0.0 to 1.0
@@ -112,10 +115,7 @@ class Deck:
             with self._lock:
                 # Check if it's a URL (stream)
                 if file_path.startswith(('http://', 'https://')):
-                    # Stop any existing stream
-                    if self.stream_handler:
-                        self.stream_handler.stop()
-                        self.stream_handler = None
+                    self._prepare_source_replacement()
 
                     # Create and start stream handler
                     StreamHandler = _get_stream_handler_class()
@@ -148,6 +148,7 @@ class Deck:
                 if not path.exists():
                     raise FileNotFoundError(f"File not found: {file_path}")
 
+                self._prepare_source_replacement()
                 self._clear_project_file_reference()
                 self.is_stream = False
                 self.file_path = file_path
@@ -176,10 +177,7 @@ class Deck:
         """
         try:
             with self._lock:
-                # Stop any existing stream or soundcard input
-                if self.stream_handler:
-                    self.stream_handler.stop()
-                    self.stream_handler = None
+                self._prepare_source_replacement()
 
                 SoundCardInputHandler = _get_soundcard_input_handler_class()
                 handler = SoundCardInputHandler(
@@ -217,25 +215,35 @@ class Deck:
     def unload(self):
         """Unload audio from deck"""
         with self._lock:
-            self.stop()
-
-            # Stop stream handler if active
-            if self.stream_handler:
-                self.stream_handler.stop()
-                self.stream_handler = None
-
-            self.file_path = None
+            self._prepare_source_replacement()
             self._clear_project_file_reference()
             self._clear_project_intro_reference()
-            self.audio_data = None
-            self.sample_rate = None
-            self.channels = None
-            self.position = 0
-            self.is_stream = False
-            self.is_soundcard_input = False
-            self.soundcard_device_id = None
-            self.soundcard_device_name = None
             self._set_state(DECK_STATE_EMPTY)
+
+    def _prepare_source_replacement(self):
+        """Stop and forget the current source before installing another one."""
+        self.stop()
+        if self.stream_handler:
+            self.stream_handler.stop()
+
+        self.stream_handler = None
+        self.file_path = None
+        self.audio_data = None
+        self.sample_rate = None
+        self.channels = None
+        self.position = 0
+        self.is_stream = False
+        self.is_soundcard_input = False
+        self.soundcard_device_id = None
+        self.soundcard_device_name = None
+        self._source_generation += 1
+
+    @property
+    def source_generation(self) -> int:
+        """Return the token identifying the currently selected source."""
+        # This is read from the real-time audio callback, where waiting on a
+        # source shutdown lock could cause an audible output underflow.
+        return self._source_generation
 
     def set_output_device(self, device_id: Optional[int], device_name: Optional[str] = None):
         """

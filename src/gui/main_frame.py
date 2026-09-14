@@ -95,6 +95,7 @@ class MainFrame(wx.Frame):
         # UI components
         self.current_project_file = None
         self._project_modified = False  # Track unsaved changes
+        self._setup_effect_change_tracking()
         self.playlist_service = M3UPlaylistService(self)
 
         # Create UI
@@ -212,8 +213,7 @@ class MainFrame(wx.Frame):
         deck.is_playing = False
         deck.is_paused = False
         deck.audio_data = None
-        if hasattr(self.mixer, '_loaded_audio_cache'):
-            self.mixer._loaded_audio_cache.pop(deck.deck_id, None)
+        self.mixer.clear_deck_cache(deck.deck_id)
         if deck.state != DECK_STATE_ERROR:
             deck._set_state(DECK_STATE_ERROR)
         return True
@@ -428,6 +428,7 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             filepath = dlg.GetPath()
+            self.mixer.clear_deck_cache(deck.deck_id)
             if deck.load_file(filepath):
                 # Preload audio data to avoid stuttering on first playback
                 self._preload_deck_audio(deck)
@@ -455,6 +456,7 @@ class MainFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             url = dlg.GetValue().strip()
             if url:
+                self.mixer.clear_deck_cache(deck.deck_id)
                 if deck.load_file(url):
                     self.SetStatusText(_("Loaded stream: {}").format(url), 0)
                     self._update_deck_panel(deck.deck_id)
@@ -476,6 +478,7 @@ class MainFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             device = dlg.GetSelectedDevice()
             if device:
+                self.mixer.clear_deck_cache(deck.deck_id)
                 if deck.load_soundcard_input(device['id'], device['name']):
                     self.SetStatusText(_("Loaded sound card input: {}").format(device['name']), 0)
                     self._update_deck_panel(deck.deck_id)
@@ -919,6 +922,7 @@ class MainFrame(wx.Frame):
             deck.toggle_loop()
             self._update_active_deck_controls()
             self._update_deck_panel(deck.deck_id)
+            self._mark_project_modified()
 
     def _on_active_toggle_mute(self):
         """Toggle mute for active deck"""
@@ -927,6 +931,7 @@ class MainFrame(wx.Frame):
             deck.toggle_mute()
             self._update_active_deck_controls()
             self._update_deck_panel(deck.deck_id)
+            self._mark_project_modified()
 
     def _on_active_unload(self):
         """Unload the active deck"""
@@ -935,6 +940,7 @@ class MainFrame(wx.Frame):
             if self.mixer.is_deck_recording(deck.deck_id):
                 self.mixer.stop_deck_recording(deck.deck_id)
             deck.unload()
+            self.mixer.clear_deck_cache(deck.deck_id)
             self.mixer.restart_multiroom_routing()
             self._update_active_deck_controls()
             self._update_deck_panel(deck.deck_id)
@@ -1238,16 +1244,15 @@ class MainFrame(wx.Frame):
             try:
                 # Load audio file in background thread to avoid blocking UI
                 import threading
+                expected_path = deck.file_path
+                expected_generation = deck.source_generation
 
                 def load_audio():
-                    result = self.audio_engine.load_audio_file(deck.file_path)
+                    result = self.audio_engine.load_audio_file(expected_path)
                     if result:
-                        audio_data, sample_rate, channels = result
-                        deck.audio_data = audio_data
-                        deck.sample_rate = sample_rate
-                        deck.channels = channels
-                        # Cache in mixer
-                        self.mixer._loaded_audio_cache[deck.deck_id] = audio_data
+                        self.mixer.cache_deck_audio_if_current(
+                            deck, expected_generation, expected_path, result
+                        )
 
                 thread = threading.Thread(target=load_audio, daemon=True)
                 thread.start()
@@ -1269,6 +1274,20 @@ class MainFrame(wx.Frame):
         if not self._project_modified:
             self._project_modified = True
             self._update_window_title()
+
+    def _setup_effect_change_tracking(self):
+        """Mark the project dirty whenever a persistent effect setting changes."""
+        self.mixer.master_effects.on_change = self._on_effect_chain_changed
+        for deck in self.mixer.decks:
+            if deck.effects:
+                deck.effects.on_change = self._on_effect_chain_changed
+
+    def _on_effect_chain_changed(self, _effect_chain):
+        """Handle EffectChain change notifications on the GUI thread."""
+        if wx.IsMainThread():
+            self._mark_project_modified()
+        else:
+            wx.CallAfter(self._mark_project_modified)
 
     def _clear_project_modified(self):
         """Clear the modified flag (after save, new, or load)"""
@@ -1297,7 +1316,8 @@ class MainFrame(wx.Frame):
 
         if result == wx.ID_YES:
             if self.current_project_file:
-                self._save_project(self.current_project_file)
+                if not self._save_project(self.current_project_file):
+                    return False
             else:
                 # Save As dialog
                 save_dlg = wx.FileDialog(self, _("Save Project As"), wildcard=PROJECT_FILE_FILTER,
@@ -1306,7 +1326,9 @@ class MainFrame(wx.Frame):
                     filepath = save_dlg.GetPath()
                     if not filepath.endswith('.mdap'):
                         filepath += '.mdap'
-                    self._save_project(filepath)
+                    if not self._save_project(filepath):
+                        save_dlg.Destroy()
+                        return False
                     self.current_project_file = filepath
                     save_dlg.Destroy()
                 else:
@@ -1331,7 +1353,11 @@ class MainFrame(wx.Frame):
             deck.set_mute(False)
             deck.set_loop(False)
             deck.set_name(f"Deck {i + 1}")
+            if deck.effects:
+                deck.effects.from_dict({})
             self.mixer.clear_deck_cache(deck.deck_id)
+
+        self.mixer.master_effects.from_dict({})
 
         # Reset mixer to defaults from global config
         self.mixer.set_master_volume(0.8)
@@ -1405,9 +1431,9 @@ class MainFrame(wx.Frame):
             filepath = dlg.GetPath()
             if not filepath.endswith('.mdap'):
                 filepath += '.mdap'
-            self._save_project(filepath)
-            self.current_project_file = filepath
-            self._update_window_title()
+            if self._save_project(filepath):
+                self.current_project_file = filepath
+                self._update_window_title()
 
         dlg.Destroy()
 
@@ -1418,8 +1444,10 @@ class MainFrame(wx.Frame):
             ProjectManager.save_project(filepath, project_data)
             self._clear_project_modified()
             self.SetStatusText(_("Saved: {}").format(os.path.basename(filepath)), 0)
+            return True
         except Exception as e:
             wx.MessageBox(_("Failed to save project: {}").format(e), _("Error"), wx.OK | wx.ICON_ERROR)
+            return False
 
     def _get_project_data(self):
         """Get current project data"""
@@ -1568,6 +1596,7 @@ class MainFrame(wx.Frame):
 
         # Check if it's a URL or file
         if filepath.startswith('http://') or filepath.startswith('https://'):
+            self.mixer.clear_deck_cache(target_deck.deck_id)
             if target_deck.load_file(filepath):
                 self.SetStatusText(_("Loaded stream: {}").format(filepath), 0)
                 self._update_deck_panel(target_deck.deck_id)
@@ -1583,6 +1612,7 @@ class MainFrame(wx.Frame):
         else:
             # Check if file exists
             if os.path.exists(filepath):
+                self.mixer.clear_deck_cache(target_deck.deck_id)
                 if target_deck.load_file(filepath):
                     self._preload_deck_audio(target_deck)
                     self.SetStatusText(_("Loaded: {}").format(os.path.basename(filepath)), 0)
@@ -1986,6 +2016,7 @@ class MainFrame(wx.Frame):
                 message = _("Mute {} off").format(deck.name)
             self.tts_manager.speak(message)
             self._update_deck_panel(deck.deck_id)
+            self._mark_project_modified()
 
     def _on_loop_active_deck(self, event):
         """Handle Ctrl+L for loop"""
@@ -1998,6 +2029,7 @@ class MainFrame(wx.Frame):
                 message = _("Loop {} off").format(deck.name)
             self.tts_manager.speak(message)
             self._update_deck_panel(deck.deck_id)
+            self._mark_project_modified()
 
     def _on_shortcut_load_file(self, event):
         """Handle Ctrl+F for load file"""

@@ -206,7 +206,7 @@ class EffectsDialog(wx.Dialog):
         return panel
 
     def _set_chain_enabled(self, effect_chain, enabled):
-        effect_chain.enabled = enabled
+        effect_chain.set_enabled(enabled)
 
     # ------------------------------------------------------------------ #
     #  VST plugin panel                                                    #

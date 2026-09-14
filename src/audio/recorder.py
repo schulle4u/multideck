@@ -69,7 +69,7 @@ class Recorder:
         self.frames_recorded = 0
 
         # Threading
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
 
         # Callbacks
         self.on_recording_started: Optional[Callable] = None
@@ -103,11 +103,12 @@ class Recorder:
         Args:
             seconds: Pre-roll duration in seconds (0-120, 0 to disable)
         """
-        self._pre_roll_seconds = max(0.0, min(120.0, seconds))
-        # Clear buffer if pre-roll is disabled
-        if self._pre_roll_seconds == 0:
-            self._pre_roll_buffer.clear()
-            self._pre_roll_frames_count = 0
+        with self._lock:
+            self._pre_roll_seconds = max(0.0, min(120.0, seconds))
+            # Clear buffer if pre-roll is disabled
+            if self._pre_roll_seconds == 0:
+                self._pre_roll_buffer.clear()
+                self._pre_roll_frames_count = 0
 
     def get_pre_roll_seconds(self) -> float:
         """
@@ -116,7 +117,8 @@ class Recorder:
         Returns:
             Pre-roll duration in seconds
         """
-        return self._pre_roll_seconds
+        with self._lock:
+            return self._pre_roll_seconds
 
     def set_pre_roll_enabled(self, enabled: bool):
         """
@@ -125,10 +127,11 @@ class Recorder:
         Args:
             enabled: True to enable, False to disable
         """
-        self._pre_roll_enabled = enabled
-        if not enabled:
-            self._pre_roll_buffer.clear()
-            self._pre_roll_frames_count = 0
+        with self._lock:
+            self._pre_roll_enabled = enabled
+            if not enabled:
+                self._pre_roll_buffer.clear()
+                self._pre_roll_frames_count = 0
 
     def get_pre_roll_buffer_fill(self) -> float:
         """
@@ -137,10 +140,11 @@ class Recorder:
         Returns:
             Buffer fill percentage (0.0 to 1.0)
         """
-        if self._pre_roll_seconds <= 0:
-            return 0.0
-        max_frames = int(self.sample_rate * self._pre_roll_seconds)
-        return min(1.0, self._pre_roll_frames_count / max_frames) if max_frames > 0 else 0.0
+        with self._lock:
+            if self._pre_roll_seconds <= 0:
+                return 0.0
+            max_frames = int(self.sample_rate * self._pre_roll_seconds)
+            return min(1.0, self._pre_roll_frames_count / max_frames) if max_frames > 0 else 0.0
 
     def buffer_frames(self, audio_data: np.ndarray):
         """
@@ -150,24 +154,24 @@ class Recorder:
         Args:
             audio_data: Audio data (samples, channels) as numpy array
         """
-        if not self._pre_roll_enabled or self._pre_roll_seconds <= 0:
-            return
-
-        if self.is_recording:
-            # Don't buffer while recording (frames go directly to file)
-            return
-
         try:
-            # Add new chunk to buffer (make a copy to avoid reference issues)
-            chunk_frames = len(audio_data)
-            self._pre_roll_buffer.append(audio_data.copy())
-            self._pre_roll_frames_count += chunk_frames
+            with self._lock:
+                if not self._pre_roll_enabled or self._pre_roll_seconds <= 0:
+                    return
+                if self.is_recording:
+                    # Don't buffer while recording (frames go directly to file)
+                    return
 
-            # Remove old chunks if buffer exceeds max size
-            max_frames = int(self.sample_rate * self._pre_roll_seconds)
-            while self._pre_roll_frames_count > max_frames and self._pre_roll_buffer:
-                removed = self._pre_roll_buffer.popleft()
-                self._pre_roll_frames_count -= len(removed)
+                # Add new chunk to buffer (make a copy to avoid reference issues)
+                chunk_frames = len(audio_data)
+                self._pre_roll_buffer.append(audio_data.copy())
+                self._pre_roll_frames_count += chunk_frames
+
+                # Remove old chunks if buffer exceeds max size
+                max_frames = int(self.sample_rate * self._pre_roll_seconds)
+                while self._pre_roll_frames_count > max_frames and self._pre_roll_buffer:
+                    removed = self._pre_roll_buffer.popleft()
+                    self._pre_roll_frames_count -= len(removed)
 
         except Exception as e:
             logger.error(f"Error buffering frames: {e}")
@@ -196,9 +200,10 @@ class Recorder:
         Args:
             audio_data: Audio data to write
         """
-        # Convert float32 to int16 for both WAV and FFmpeg
-        audio_int = (audio_data * 32767).astype(np.int16)
-        audio_int = np.clip(audio_int, -32768, 32767)
+        # Clip before integer conversion; converting out-of-range floats first
+        # can wrap around and produce severe distortion.
+        clipped_audio = np.clip(audio_data, -1.0, 1.0)
+        audio_int = (clipped_audio * 32767).astype(np.int16)
         audio_bytes = audio_int.tobytes()
 
         if self.wave_file:
@@ -206,12 +211,16 @@ class Recorder:
             if self.bit_depth == 16:
                 self.wave_file.writeframes(audio_bytes)
             elif self.bit_depth == 24:
-                audio_int32 = (audio_data * 8388607).astype(np.int32)
-                audio_int32 = np.clip(audio_int32, -8388608, 8388607)
-                self.wave_file.writeframes(audio_int32.tobytes())
+                # wave expects packed 24-bit PCM: exactly three little-endian
+                # bytes per sample, not four-byte int32 values.
+                audio_int32 = (clipped_audio * 8388607).astype(np.int32).reshape(-1)
+                packed = np.empty(audio_int32.size * 3, dtype=np.uint8)
+                packed[0::3] = audio_int32 & 0xFF
+                packed[1::3] = (audio_int32 >> 8) & 0xFF
+                packed[2::3] = (audio_int32 >> 16) & 0xFF
+                self.wave_file.writeframes(packed.tobytes())
             elif self.bit_depth == 32:
-                audio_int32 = (audio_data * 2147483647).astype(np.int32)
-                audio_int32 = np.clip(audio_int32, -2147483648, 2147483647)
+                audio_int32 = (clipped_audio * 2147483647).astype(np.int32)
                 self.wave_file.writeframes(audio_int32.tobytes())
 
         elif self._ffmpeg_process and self._ffmpeg_process.stdin:
