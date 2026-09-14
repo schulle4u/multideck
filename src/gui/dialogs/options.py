@@ -366,25 +366,30 @@ class OptionsDialog(wx.Dialog):
         panel = wx.Panel(parent)
         sizer = wx.BoxSizer(wx.VERTICAL)
 
+        crossfade_box = wx.StaticBox(panel, label=_("Crossfade"))
+        crossfade_sizer = wx.StaticBoxSizer(crossfade_box, wx.VERTICAL)
+
         # Switch interval
         interval_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        interval_label = wx.StaticText(panel, label=_("Switch Interval (seconds)") + ":")
+        interval_label = wx.StaticText(
+            crossfade_box, label=_("Switch Interval (seconds)") + ":"
+        )
         interval_sizer.Add(interval_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_interval = self.config_manager.getint('Automation', 'switch_interval', 10)
-        self.interval_spin = wx.SpinCtrl(panel, value=str(current_interval),
+        self.interval_spin = wx.SpinCtrl(crossfade_box, value=str(current_interval),
                                          min=1, max=300, initial=current_interval)
         self.interval_spin.SetName(_("Switch Interval (seconds)"))
         interval_sizer.Add(self.interval_spin, 1, wx.EXPAND | wx.ALL, 5)
 
-        sizer.Add(interval_sizer, 0, wx.EXPAND | wx.ALL, 5)
+        crossfade_sizer.Add(interval_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
         # Crossfade enabled
-        self.crossfade_check = wx.CheckBox(panel, label=_("Enable Crossfade"))
+        self.crossfade_check = wx.CheckBox(crossfade_box, label=_("Enable Crossfade"))
         self.crossfade_check.SetName(_("Enable Crossfade"))
         crossfade_enabled = self.config_manager.getboolean('Automation', 'crossfade_enabled', True)
         self.crossfade_check.SetValue(crossfade_enabled)
-        sizer.Add(self.crossfade_check, 0, wx.ALL, 10)
+        crossfade_sizer.Add(self.crossfade_check, 0, wx.ALL, 10)
 
         # Crossfade duration (in seconds)
         label_text = _("Crossfade Duration (seconds)")
@@ -392,7 +397,7 @@ class OptionsDialog(wx.Dialog):
 
         # Create the custom control (it's a sizer)
         self.crossfade_ctrl = AccessibleSpinCtrl(
-            panel, 
+            crossfade_box,
             label_text=label_text + ":", 
             initial_val=current_duration, 
             min_val=0.5, 
@@ -400,63 +405,58 @@ class OptionsDialog(wx.Dialog):
             inc=0.1
         )
 
-        sizer.Add(self.crossfade_ctrl, 0, wx.EXPAND | wx.ALL, 5)
+        crossfade_sizer.Add(self.crossfade_ctrl, 0, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(crossfade_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
-        # Separator
-        sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.ALL, 10)
-
-        # Level-based switching header
-        level_header = wx.StaticText(panel, label=_("Level-Based Switching"))
-        header_font = level_header.GetFont()
-        header_font.SetWeight(wx.FONTWEIGHT_BOLD)
-        level_header.SetFont(header_font)
-        sizer.Add(level_header, 0, wx.ALL, 5)
+        level_box = wx.StaticBox(panel, label=_("Level-Based Switching"))
+        level_sizer = wx.StaticBoxSizer(level_box, wx.VERTICAL)
 
         # Enable level-based switching
-        self.level_switch_check = wx.CheckBox(panel, label=_("Enable level-based switching"))
+        self.level_switch_check = wx.CheckBox(level_box, label=_("Enable level-based switching"))
         self.level_switch_check.SetName(_("Enable level-based switching"))
         level_switch_enabled = self.config_manager.getboolean('Automation', 'level_switch_enabled', False)
         self.level_switch_check.SetValue(level_switch_enabled)
-        sizer.Add(self.level_switch_check, 0, wx.ALL, 10)
+        level_sizer.Add(self.level_switch_check, 0, wx.ALL, 10)
 
         # Threshold
         threshold_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        threshold_label = wx.StaticText(panel, label=_("Threshold (dB)") + ":")
+        threshold_label = wx.StaticText(level_box, label=_("Threshold (dB)") + ":")
         threshold_sizer.Add(threshold_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_threshold = self.config_manager.getint('Automation', 'level_threshold_db', -30)
-        self.threshold_spin = wx.SpinCtrl(panel, value=str(current_threshold),
+        self.threshold_spin = wx.SpinCtrl(level_box, value=str(current_threshold),
                                           min=-60, max=0, initial=current_threshold)
         self.threshold_spin.SetName(_("Threshold (dB)"))
         threshold_sizer.Add(self.threshold_spin, 1, wx.EXPAND | wx.ALL, 5)
 
-        sizer.Add(threshold_sizer, 0, wx.EXPAND | wx.ALL, 5)
+        level_sizer.Add(threshold_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
         # Hysteresis
         hysteresis_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        hysteresis_label = wx.StaticText(panel, label=_("Hysteresis (dB)") + ":")
+        hysteresis_label = wx.StaticText(level_box, label=_("Hysteresis (dB)") + ":")
         hysteresis_sizer.Add(hysteresis_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_hysteresis = self.config_manager.getint('Automation', 'level_hysteresis_db', 3)
-        self.hysteresis_spin = wx.SpinCtrl(panel, value=str(current_hysteresis),
+        self.hysteresis_spin = wx.SpinCtrl(level_box, value=str(current_hysteresis),
                                            min=0, max=20, initial=current_hysteresis)
         self.hysteresis_spin.SetName(_("Hysteresis (dB)"))
         hysteresis_sizer.Add(self.hysteresis_spin, 1, wx.EXPAND | wx.ALL, 5)
 
-        sizer.Add(hysteresis_sizer, 0, wx.EXPAND | wx.ALL, 5)
+        level_sizer.Add(hysteresis_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
         # Hold time
         hold_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        hold_label = wx.StaticText(panel, label=_("Hold Time (seconds)") + ":")
+        hold_label = wx.StaticText(level_box, label=_("Hold Time (seconds)") + ":")
         hold_sizer.Add(hold_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_hold = self.config_manager.getint('Automation', 'level_hold_time', 3)
-        self.hold_time_spin = wx.SpinCtrl(panel, value=str(current_hold),
+        self.hold_time_spin = wx.SpinCtrl(level_box, value=str(current_hold),
                                           min=1, max=30, initial=current_hold)
         self.hold_time_spin.SetName(_("Hold Time (seconds)"))
         hold_sizer.Add(self.hold_time_spin, 1, wx.EXPAND | wx.ALL, 5)
 
-        sizer.Add(hold_sizer, 0, wx.EXPAND | wx.ALL, 5)
+        level_sizer.Add(hold_sizer, 0, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(level_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
         panel.SetSizer(sizer)
         return panel

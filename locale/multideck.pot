@@ -411,6 +411,9 @@ msgstr ""
 msgid "Enable Crossfade"
 msgstr ""
 
+msgid "Crossfade"
+msgstr ""
+
 #: gui/dialogs/options.py:390
 msgid "Crossfade Duration (seconds)"
 msgstr ""

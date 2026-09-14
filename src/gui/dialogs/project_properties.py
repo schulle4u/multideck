@@ -31,11 +31,16 @@ class ProjectPropertiesDialog(wx.Dialog):
 
         settings_sizer = wx.BoxSizer(wx.VERTICAL)
 
+        crossfade_box = wx.StaticBox(panel, label=_("Crossfade"))
+        crossfade_sizer = wx.StaticBoxSizer(crossfade_box, wx.VERTICAL)
+
         interval_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        interval_label = wx.StaticText(panel, label=_("Switch Interval (seconds)") + ":")
+        interval_label = wx.StaticText(
+            crossfade_box, label=_("Switch Interval (seconds)") + ":"
+        )
         interval_sizer.Add(interval_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
         self.interval_spin = wx.SpinCtrl(
-            panel,
+            crossfade_box,
             value=str(self.mixer.auto_switch_interval),
             min=1,
             max=300,
@@ -43,62 +48,61 @@ class ProjectPropertiesDialog(wx.Dialog):
         )
         self.interval_spin.SetName(_("Switch Interval (seconds)"))
         interval_sizer.Add(self.interval_spin, 1, wx.EXPAND | wx.ALL, 5)
-        settings_sizer.Add(interval_sizer, 0, wx.EXPAND | wx.ALL, 5)
+        crossfade_sizer.Add(interval_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
-        self.crossfade_check = wx.CheckBox(panel, label=_("Enable Crossfade"))
+        self.crossfade_check = wx.CheckBox(
+            crossfade_box, label=_("Enable Crossfade")
+        )
         self.crossfade_check.SetName(_("Enable Crossfade"))
         self.crossfade_check.SetValue(self.mixer.crossfade_enabled)
-        settings_sizer.Add(self.crossfade_check, 0, wx.ALL, 10)
+        crossfade_sizer.Add(self.crossfade_check, 0, wx.ALL, 10)
 
         self.crossfade_ctrl = AccessibleSpinCtrl(
-            panel,
+            crossfade_box,
             label_text=_("Crossfade Duration (seconds)") + ":",
             initial_val=self.mixer.crossfade_duration,
             min_val=0.5,
             max_val=10.0,
             inc=0.1,
         )
-        settings_sizer.Add(self.crossfade_ctrl, 0, wx.EXPAND | wx.ALL, 5)
+        crossfade_sizer.Add(self.crossfade_ctrl, 0, wx.EXPAND | wx.ALL, 5)
+        settings_sizer.Add(crossfade_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
-        settings_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.ALL, 10)
-
-        level_header = wx.StaticText(panel, label=_("Level-Based Switching"))
-        header_font = level_header.GetFont()
-        header_font.SetWeight(wx.FONTWEIGHT_BOLD)
-        level_header.SetFont(header_font)
-        settings_sizer.Add(level_header, 0, wx.ALL, 5)
+        level_box = wx.StaticBox(panel, label=_("Level-Based Switching"))
+        level_sizer = wx.StaticBoxSizer(level_box, wx.VERTICAL)
 
         self.level_switch_check = wx.CheckBox(
-            panel, label=_("Enable level-based switching")
+            level_box, label=_("Enable level-based switching")
         )
         self.level_switch_check.SetName(_("Enable level-based switching"))
         self.level_switch_check.SetValue(self.mixer.level_switch_enabled)
-        settings_sizer.Add(self.level_switch_check, 0, wx.ALL, 10)
+        level_sizer.Add(self.level_switch_check, 0, wx.ALL, 10)
 
         self.threshold_spin = self._add_spin_setting(
-            panel,
-            settings_sizer,
+            level_box,
+            level_sizer,
             _("Threshold (dB)"),
             int(self.mixer.level_threshold_db),
             -60,
             0,
         )
         self.hysteresis_spin = self._add_spin_setting(
-            panel,
-            settings_sizer,
+            level_box,
+            level_sizer,
             _("Hysteresis (dB)"),
             int(self.mixer.level_hysteresis_db),
             0,
             20,
         )
         self.hold_time_spin = self._add_spin_setting(
-            panel,
-            settings_sizer,
+            level_box,
+            level_sizer,
             _("Hold Time (seconds)"),
             int(self.mixer.level_hold_time),
             1,
             30,
         )
+        settings_sizer.Add(level_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
         main_sizer.Add(settings_sizer, 1, wx.EXPAND | wx.ALL, 10)
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)

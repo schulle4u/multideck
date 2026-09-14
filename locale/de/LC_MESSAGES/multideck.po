@@ -419,6 +419,9 @@ msgstr "Umschaltintervall (Sekunden)"
 msgid "Enable Crossfade"
 msgstr "Überblendung aktivieren"
 
+msgid "Crossfade"
+msgstr "Überblendung"
+
 #: gui/dialogs/options.py:390
 msgid "Crossfade Duration (seconds)"
 msgstr "Überblendungsdauer (Sekunden)"
