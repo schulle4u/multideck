@@ -12,7 +12,7 @@ from audio.deck import Deck
 from audio.audio_engine import AudioEngine
 from audio.recorder import Recorder
 from audio.effects import EffectChain
-from config.defaults import MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC, MODE_MULTIROOM, DECK_STATE_PLAYING
+from config.defaults import MODE_MIXER, MODE_SOLO, MODE_AUTOMATIC, MODE_MULTIROOM
 from utils.logger import get_logger
 from utils.helpers import generate_recording_filename, sanitize_filename
 

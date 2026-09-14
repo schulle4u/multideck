@@ -26,7 +26,7 @@ def _check_pedalboard():
     global _pedalboard_available
     if _pedalboard_available is None:
         try:
-            import pedalboard
+            __import__('pedalboard')
             _pedalboard_available = True
         except ImportError:
             _pedalboard_available = False

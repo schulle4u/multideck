@@ -258,7 +258,7 @@ class Recorder:
         # Check if format requires FFmpeg
         format_info = self.FORMATS.get(self.format, self.FORMATS['wav'])
         if not format_info['native'] and not FFMPEG_AVAILABLE:
-            logger.info(f"FFmpeg not available, falling back to WAV format")
+            logger.info("FFmpeg not available, falling back to WAV format")
             self.format = 'wav'
             format_info = self.FORMATS['wav']
 

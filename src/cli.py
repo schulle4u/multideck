@@ -9,7 +9,6 @@ Designed for server environments, Raspberry Pi, or script integration.
 """
 
 import sys
-import os
 import signal
 import time
 import argparse
@@ -255,7 +254,7 @@ class MultiDeckCLI:
                 print(f"Level-based switching: On (threshold: {self.mixer.level_threshold_db} dB, "
                       f"hysteresis: {self.mixer.level_hysteresis_db} dB, hold: {self.mixer.level_hold_time}s)")
             else:
-                print(f"Level-based switching: Off")
+                print("Level-based switching: Off")
 
         print("-" * 50)
         print("Decks:")
@@ -297,7 +296,7 @@ class MultiDeckCLI:
             return 1
 
         if project_path.suffix.lower() != '.mdap':
-            print(f"Error: Invalid file format. Expected .mdap file.", file=sys.stderr)
+            print("Error: Invalid file format. Expected .mdap file.", file=sys.stderr)
             return 1
 
         # Load application configuration
@@ -363,7 +362,7 @@ class MultiDeckCLI:
             if 0 <= deck_index < len(self.mixer.decks):
                 if self.mixer.mode not in [MODE_SOLO, MODE_AUTOMATIC]:
                     self.mixer.set_mode(MODE_SOLO)
-                    self.log(f"Mode set to Solo (--deck specified)")
+                    self.log("Mode set to Solo (--deck specified)")
                 self.mixer.set_active_deck(deck_index, trigger_switch_event=True)
             else:
                 print(f"Error: Deck {self.initial_deck} does not exist (1-{len(self.mixer.decks)}).", file=sys.stderr)
