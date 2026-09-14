@@ -1193,7 +1193,6 @@ class OptionsDialog(wx.Dialog):
         elif tab_name == 'automation':
             self._save_automation()
             self.config_manager.save()
-            self.main_frame.apply_automation_settings()
         elif tab_name == 'recorder':
             self._save_recorder()
             self.config_manager.save()

@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: MultiDeck Audio Player 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-21 19:31+0200\n"
-"PO-Revision-Date: 2026-07-21 19:32+0200\n"
+"PO-Revision-Date: 2026-09-14 16:39+0200\n"
 "Last-Translator: Steffen Schultz\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -1223,6 +1223,12 @@ msgstr "Projekt &speichern"
 #: gui/menus.py:29
 msgid "Save Project &As"
 msgstr "Projekt speichern &unter"
+
+msgid "Project &Properties"
+msgstr "Projektei&genschaften"
+
+msgid "Project Properties"
+msgstr "Projekteigenschaften"
 
 #: gui/menus.py:32
 msgid "&Import M3U Playlist"

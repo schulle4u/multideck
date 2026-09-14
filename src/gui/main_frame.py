@@ -32,6 +32,16 @@ from utils.logger import get_logger
 
 logger = get_logger('main_frame')
 
+PROJECT_AUTOMATION_FIELDS = (
+    'auto_switch_interval',
+    'crossfade_enabled',
+    'crossfade_duration',
+    'level_switch_enabled',
+    'level_threshold_db',
+    'level_hysteresis_db',
+    'level_hold_time',
+)
+
 
 
 class MainFrame(wx.Frame):
@@ -1437,6 +1447,29 @@ class MainFrame(wx.Frame):
 
         dlg.Destroy()
 
+    def _on_project_properties(self, event):
+        """Edit mixer settings that are stored with the current project."""
+        from gui.dialogs.project_properties import ProjectPropertiesDialog
+
+        dlg = ProjectPropertiesDialog(self, self.mixer, self.theme_manager)
+        if dlg.ShowModal() == wx.ID_OK:
+            self._apply_project_properties(dlg.get_values())
+        dlg.Destroy()
+
+    def _apply_project_properties(self, values):
+        """Apply changed project properties and update the unsaved state."""
+        changed = any(
+            getattr(self.mixer, name) != values[name]
+            for name in PROJECT_AUTOMATION_FIELDS
+        )
+        if not changed:
+            return False
+
+        for name in PROJECT_AUTOMATION_FIELDS:
+            setattr(self.mixer, name, values[name])
+        self._mark_project_modified()
+        return True
+
     def _save_project(self, filepath):
         """Save project to file"""
         try:
@@ -1790,8 +1823,6 @@ class MainFrame(wx.Frame):
             # Apply sections that weren't already applied via per-tab Apply buttons
             if 'audio' not in applied:
                 self.apply_audio_settings(old_device)
-            if 'automation' not in applied:
-                self.apply_automation_settings()
             if 'recorder' not in applied:
                 self.apply_recorder_settings()
             if 'streaming' not in applied:

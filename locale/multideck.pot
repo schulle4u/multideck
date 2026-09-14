@@ -1195,6 +1195,12 @@ msgstr ""
 msgid "Save Project &As"
 msgstr ""
 
+msgid "Project &Properties"
+msgstr ""
+
+msgid "Project Properties"
+msgstr ""
+
 #: gui/menus.py:32
 msgid "&Import M3U Playlist"
 msgstr ""

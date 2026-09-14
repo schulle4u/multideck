@@ -18,6 +18,31 @@ from gui.main_frame import MainFrame
 
 
 class RemainingRegressionTests(unittest.TestCase):
+    def test_project_properties_mark_project_dirty_only_when_changed(self):
+        initial = {
+            "auto_switch_interval": 10,
+            "crossfade_enabled": True,
+            "crossfade_duration": 2.0,
+            "level_switch_enabled": False,
+            "level_threshold_db": -30.0,
+            "level_hysteresis_db": 3.0,
+            "level_hold_time": 3.0,
+        }
+        dirty_events = []
+        frame = SimpleNamespace(
+            mixer=SimpleNamespace(**initial),
+            _mark_project_modified=lambda: dirty_events.append(True),
+        )
+
+        self.assertFalse(MainFrame._apply_project_properties(frame, dict(initial)))
+        self.assertEqual(dirty_events, [])
+
+        changed = dict(initial, auto_switch_interval=25, crossfade_enabled=False)
+        self.assertTrue(MainFrame._apply_project_properties(frame, changed))
+        self.assertEqual(frame.mixer.auto_switch_interval, 25)
+        self.assertFalse(frame.mixer.crossfade_enabled)
+        self.assertEqual(dirty_events, [True])
+
     def test_effect_chain_notifies_only_for_persistent_changes(self):
         chain = EffectChain(48000)
         changes = []

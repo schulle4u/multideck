@@ -27,6 +27,9 @@ def _create_file_menu(owner):
     file_menu.Append(wx.ID_OPEN, _("&Open Project") + " …\tCtrl+O")
     file_menu.Append(wx.ID_SAVE, _("&Save Project") + "\tCtrl+S")
     file_menu.Append(wx.ID_SAVEAS, _("Save Project &As") + " …\tCtrl+Shift+S")
+    owner.project_properties_item = file_menu.Append(
+        wx.ID_ANY, _("Project &Properties") + " …"
+    )
     file_menu.AppendSeparator()
 
     owner.import_m3u_item = file_menu.Append(wx.ID_ANY, _("&Import M3U Playlist") + " …\tCtrl+I")
@@ -117,6 +120,7 @@ def _bind_menu_events(owner):
     owner.Bind(wx.EVT_MENU, owner._on_open_project, id=wx.ID_OPEN)
     owner.Bind(wx.EVT_MENU, owner._on_save_project, id=wx.ID_SAVE)
     owner.Bind(wx.EVT_MENU, owner._on_save_project_as, id=wx.ID_SAVEAS)
+    owner.Bind(wx.EVT_MENU, owner._on_project_properties, owner.project_properties_item)
     owner.Bind(wx.EVT_MENU, owner._on_import_m3u, owner.import_m3u_item)
     owner.Bind(wx.EVT_MENU, owner._on_export_m3u, owner.export_m3u_item)
     owner.Bind(wx.EVT_MENU, owner._on_exit, id=wx.ID_EXIT)
