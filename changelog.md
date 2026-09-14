@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 * Replace three dots with Ellipsis in menus
+* Implemented a project properties dialog to override automation settings during runtime
+* Various code improvements
 
 ## [v0.7.5 (Kampgarten)] - 2026-07-24
 

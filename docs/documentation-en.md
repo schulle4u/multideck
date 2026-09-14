@@ -99,6 +99,7 @@ The program window largely follows a standard layout, consisting of a menu bar, 
 * Open Project (Ctrl+O): Loads an existing project file (`*.mdap`) into the player.
 * Save Project (Ctrl+S): Saves the settings of the current project.
 * Save Project As (Ctrl+Shift+S): Saves the project under a different name.
+* Project properties: Modify project-specific [automation settings](#automation).
 * Import M3U Playlist (Ctrl+I): Imports an M3U playlist containing audio files or URLs and distributes them across the available decks. If no free decks are available, playlist entries will be ignored.
 * Export M3U Playlist (Ctrl+E): Exports the files and URLs loaded in the decks as an M3U or M3U8 playlist.
 * Recent Files: Contains a list of recently opened files. Note that these are the loaded audio files, not the project files. The list can be cleared if needed.

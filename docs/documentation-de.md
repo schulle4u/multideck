@@ -99,6 +99,7 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 * Projekt öffnen (Ctrl+O): Lädt eine bestehende Projektdatei (`*.mdap`) in den Player.
 * Projekt speichern (Ctrl+S): Einstellungen des aktuellen Projekts speichern.
 * Projekt speichern unter (Ctrl+Shift+S): Projekt unter einem anderen Namen abspeichern.
+* Projekteigenschaften: [Automatisierungseinstellungen](#automatisierung) des Mixers projektspezifisch anpassen.
 * M3U-Playliste importieren (Ctrl+I): Importiert eine M3U-Playliste mit Audiodateien oder URLs und verteilt sie auf die freien Decks. Wenn keine freien Decks mehr zur Verfügung stehen, werden die Einträge der Playliste ignoriert.
 * M3U-Playliste exportieren (Ctrl+E): Exportiert die in den Decks geladenen Dateien und URLs als M3U- oder M3U8-Playliste. 
 * Letzte Dateien: Enthält eine Liste der zuletzt geöffneten Dateien. Hierbei handelt es sich jedoch um die geladenen Audiodateien, nicht um die Projektdateien. Die Liste kann bei Bedarf auch gelöscht werden.
