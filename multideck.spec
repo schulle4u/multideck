@@ -7,6 +7,7 @@ Cross-platform: Windows, macOS, Linux
 import os
 import sys
 import platform
+from importlib.machinery import EXTENSION_SUFFIXES
 
 block_cipher = None
 
@@ -49,7 +50,12 @@ hiddenimports = [
 ]
 
 # Collect dependency data
-from PyInstaller.utils.hooks import collect_all, collect_data_files, collect_dynamic_libs
+from PyInstaller.utils.hooks import (
+    collect_all,
+    collect_data_files,
+    collect_dynamic_libs,
+    get_package_paths,
+)
 
 # Collect PortAudio library for sounddevice
 datas += collect_data_files('sounddevice')
@@ -63,11 +69,21 @@ prism_datas, prism_binaries, prism_hiddenimports = collect_all('prism')
 datas += prism_datas
 binaries += prism_binaries
 hiddenimports += prism_hiddenimports
-hiddenimports += [
-    'prism',
-    'prism.core',
-    'prism.lib',
-]
+
+# Prismatoid stores its CFFI extension in prism/_native and adds that directory
+# to prism.__path__ at runtime. PyInstaller cannot discover the extension from
+# the regular package path, so collect it explicitly next to prism.dll.
+_, prism_package_dir = get_package_paths('prism')
+prism_native_dir = os.path.join(prism_package_dir, '_native')
+prism_cffi_found = False
+for extension_suffix in EXTENSION_SUFFIXES:
+    prism_cffi = os.path.join(prism_native_dir, f'_prism_cffi{extension_suffix}')
+    if os.path.isfile(prism_cffi):
+        binaries.append((prism_cffi, os.path.join('prism', '_native')))
+        prism_cffi_found = True
+
+if not prism_cffi_found:
+    raise RuntimeError('Prismatoid CFFI extension could not be found')
 
 a = Analysis(
     [os.path.join(PROJECT_ROOT, 'src', 'main.py')],
