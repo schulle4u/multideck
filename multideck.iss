@@ -12,7 +12,7 @@
 AppId={{A3F2B1C4-9D7E-4F8A-B2C3-D1E5F6A7B8C9}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppVerName={#AppName} {#AppVersion}
+AppVerName={#AppName} v{#AppVersion}
 AppPublisher={#AppPublisher}
 AppPublisherURL=https://m45.dev
 AppSupportURL=https://github.com/schulle4u/multideck/issues
@@ -34,7 +34,7 @@ DefaultGroupName={#AppName}
 
 ; Installer output
 OutputDir=dist
-OutputBaseFilename=multideck_win64_{#AppVersion}_Setup
+OutputBaseFilename=multideck_win64_v{#AppVersion}_Setup
 Compression=lzma2/ultra64
 SolidCompression=yes
 LZMANumBlockThreads=4
