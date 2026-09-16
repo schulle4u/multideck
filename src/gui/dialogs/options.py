@@ -186,6 +186,7 @@ class OptionsDialog(wx.Dialog):
             ctrl.Bind(wx.EVT_SPINCTRL, self._on_control_changed)
 
         self.crossfade_ctrl.Bind(wx.EVT_SPINCTRLDOUBLE, self._on_control_changed)
+        self.remember_last_project_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
         self.crossfade_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
         self.level_switch_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
         self.connect_at_startup_check.Bind(wx.EVT_CHECKBOX, self._on_control_changed)
@@ -264,6 +265,16 @@ class OptionsDialog(wx.Dialog):
         theme_sizer.Add(self.theme_choice, 1, wx.EXPAND | wx.ALL, 5)
 
         sizer.Add(theme_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Restore last project
+        self.remember_last_project_check = wx.CheckBox(
+            panel,
+            label=_("&Reopen the last project on startup"),
+        )
+        self.remember_last_project_check.SetValue(
+            self.config_manager.getboolean('General', 'remember_last_project', False)
+        )
+        sizer.Add(self.remember_last_project_check, 0, wx.EXPAND | wx.ALL, 10)
 
         panel.SetSizer(sizer)
         return panel
@@ -907,6 +918,7 @@ class OptionsDialog(wx.Dialog):
                 self.language_choice.GetSelection(),
                 self.deck_count_spin.GetValue(),
                 self.theme_choice.GetSelection(),
+                self.remember_last_project_check.GetValue(),
             ),
             'audio': (
                 self.device_choice.GetSelection(),
@@ -961,6 +973,7 @@ class OptionsDialog(wx.Dialog):
                 self.language_choice.GetSelection(),
                 self.deck_count_spin.GetValue(),
                 self.theme_choice.GetSelection(),
+                self.remember_last_project_check.GetValue(),
             )
         elif tab_name == 'audio':
             return (
@@ -1073,6 +1086,14 @@ class OptionsDialog(wx.Dialog):
         self.config_manager.set('General', 'deck_count', self.deck_count_spin.GetValue())
         self.config_manager.set('General', 'theme',
                                self.theme_values[self.theme_choice.GetSelection()])
+        remember_last_project = self.remember_last_project_check.GetValue()
+        self.config_manager.set('General', 'remember_last_project', remember_last_project)
+        if remember_last_project and self.main_frame.current_project_file:
+            self.config_manager.set(
+                'General', 'last_project_file', self.main_frame.current_project_file
+            )
+        elif not remember_last_project:
+            self.config_manager.set('General', 'last_project_file', '')
 
         restart_reasons = []
         if self.config_manager.get('General', 'language', 'system') != old_language:

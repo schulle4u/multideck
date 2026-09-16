@@ -75,7 +75,15 @@ class MultiDeckApp(wx.App):
         self.frame = MainFrame()
         self.frame.Show()
 
-        # Load project file if specified
+        # An explicitly supplied project takes precedence over the remembered one.
+        if not self.project_file:
+            remembered_project = config.get_last_project_file()
+            if remembered_project:
+                remembered_path = Path(remembered_project)
+                if remembered_path.is_file() and remembered_path.suffix.lower() == '.mdap':
+                    self.project_file = remembered_project
+
+        # Load an explicit or remembered project file.
         if self.project_file:
             wx.CallAfter(self._load_project_file)
 
@@ -83,8 +91,6 @@ class MultiDeckApp(wx.App):
 
     def _load_project_file(self):
         """Load the project file specified on command line"""
-        from config.config_manager import ProjectManager
-
         filepath = Path(self.project_file)
         if not filepath.exists():
             wx.MessageBox(
@@ -103,10 +109,7 @@ class MultiDeckApp(wx.App):
             return
 
         try:
-            project_data = ProjectManager.load_project(str(filepath))
-            self.frame._load_project_data(project_data)
-            self.frame.current_project_file = str(filepath)
-            self.frame.SetStatusText(_("Opened: {}").format(filepath.name), 0)
+            self.frame._open_project_file(str(filepath))
         except Exception as e:
             wx.MessageBox(
                 _("Failed to open project: {}").format(e),

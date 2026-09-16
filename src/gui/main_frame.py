@@ -1339,7 +1339,9 @@ class MainFrame(wx.Frame):
                     if not self._save_project(filepath):
                         save_dlg.Destroy()
                         return False
-                    self.current_project_file = filepath
+                    self.current_project_file = str(Path(filepath).resolve())
+                    self.config_manager.remember_project_file(self.current_project_file)
+                    self._update_window_title()
                     save_dlg.Destroy()
                 else:
                     save_dlg.Destroy()
@@ -1410,16 +1412,21 @@ class MainFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             filepath = dlg.GetPath()
             try:
-                self._reset_to_defaults()
-                project_data = ProjectManager.load_project(filepath)
-                self._load_project_data(project_data)
-                self.current_project_file = filepath
-                self._clear_project_modified()
-                self.SetStatusText(_("Opened: {}").format(os.path.basename(filepath)), 0)
+                self._open_project_file(filepath)
             except Exception as e:
                 wx.MessageBox(_("Failed to open project: {}").format(e), _("Error"), wx.OK | wx.ICON_ERROR)
 
         dlg.Destroy()
+
+    def _open_project_file(self, filepath):
+        """Load a project and remember it only after loading succeeded."""
+        project_data = ProjectManager.load_project(filepath)
+        self._reset_to_defaults()
+        self._load_project_data(project_data)
+        self.current_project_file = str(Path(filepath).resolve())
+        self._clear_project_modified()
+        self.config_manager.remember_project_file(self.current_project_file)
+        self.SetStatusText(_("Opened: {}").format(os.path.basename(filepath)), 0)
 
     def _on_save_project(self, event):
         """Handle save project"""
@@ -1442,7 +1449,8 @@ class MainFrame(wx.Frame):
             if not filepath.endswith('.mdap'):
                 filepath += '.mdap'
             if self._save_project(filepath):
-                self.current_project_file = filepath
+                self.current_project_file = str(Path(filepath).resolve())
+                self.config_manager.remember_project_file(self.current_project_file)
                 self._update_window_title()
 
         dlg.Destroy()

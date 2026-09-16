@@ -4,6 +4,7 @@ import threading
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 
 import numpy as np
 
@@ -18,6 +19,40 @@ from gui.main_frame import MainFrame
 
 
 class RemainingRegressionTests(unittest.TestCase):
+    def test_open_project_remembers_only_after_successful_load(self):
+        events = []
+        config_manager = SimpleNamespace(
+            remember_project_file=lambda path: events.append(("remember", path))
+        )
+        frame = SimpleNamespace(
+            config_manager=config_manager,
+            _reset_to_defaults=lambda: events.append(("reset", None)),
+            _load_project_data=lambda data: events.append(("load", data)),
+            _clear_project_modified=lambda: events.append(("clear", None)),
+            SetStatusText=lambda message, field: None,
+        )
+        project_data = {"decks": []}
+
+        with mock.patch(
+            "gui.main_frame.ProjectManager.load_project",
+            return_value=project_data,
+        ):
+            MainFrame._open_project_file(frame, "restored.mdap")
+
+        self.assertEqual(events[0], ("reset", None))
+        self.assertEqual(events[1], ("load", project_data))
+        self.assertEqual(events[2], ("clear", None))
+        self.assertEqual(events[3], ("remember", str(Path("restored.mdap").resolve())))
+
+        events.clear()
+        with mock.patch(
+            "gui.main_frame.ProjectManager.load_project",
+            side_effect=ValueError("invalid project"),
+        ):
+            with self.assertRaisesRegex(ValueError, "invalid project"):
+                MainFrame._open_project_file(frame, "broken.mdap")
+        self.assertEqual(events, [])
+
     def test_project_properties_mark_project_dirty_only_when_changed(self):
         initial = {
             "auto_switch_interval": 10,

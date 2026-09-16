@@ -135,6 +135,22 @@ class ConfigManager:
             return dict(self.config.items(section))
         return {}
 
+    def get_last_project_file(self) -> str:
+        """Return the remembered project path when restoring is enabled."""
+        if not self.getboolean('General', 'remember_last_project', False):
+            return ''
+        return self.get('General', 'last_project_file', '').strip()
+
+    def remember_project_file(self, filepath: str) -> bool:
+        """Persist a successfully opened project when the option is enabled."""
+        if not filepath or not self.getboolean('General', 'remember_last_project', False):
+            return False
+
+        project_path = str(Path(filepath).expanduser().resolve())
+        self.set('General', 'last_project_file', project_path)
+        self.save()
+        return True
+
     # Recent Files Management
 
     def get_recent_files(self) -> list:

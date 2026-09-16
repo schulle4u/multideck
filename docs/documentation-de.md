@@ -189,6 +189,7 @@ Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+Shift+O aufrufbar.
 * Sprache: Legt die Programmsprache fest.
 * Anzahl der Decks: Die Anzahl sichtbarer Decks im Hauptfenster.
 * Theme: Legt das Standard-Aussehen des Programms fest.
+* Letztes Projekt beim Start erneut öffnen: Lädt das zuletzt erfolgreich geöffnete oder gespeicherte Projekt. Diese Option ist standardmäßig deaktiviert.
 
 ### Audio
 

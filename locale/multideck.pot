@@ -368,6 +368,10 @@ msgstr ""
 msgid "Theme"
 msgstr ""
 
+#: gui/dialogs/options.py:272
+msgid "&Reopen the last project on startup"
+msgstr ""
+
 #: gui/dialogs/options.py:255
 msgid "System"
 msgstr ""

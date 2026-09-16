@@ -189,6 +189,7 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 * Language: Sets the program language.
 * Number of Decks: The number of decks shown in the main window.
 * Theme: Sets the default appearance of the program.
+* Reopen the last project on startup: Reloads the last successfully opened or saved project. This option is disabled by default.
 
 ### Audio
 

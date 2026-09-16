@@ -2,6 +2,8 @@
 language = system
 theme = system
 deck_count = 10
+remember_last_project = False
+last_project_file =
 
 [Audio]
 # Use "null" for livestream-only operation without a physical sound device

@@ -17,10 +17,35 @@ from audio.audio_engine import AudioEngine
 from audio.deck import Deck
 from audio.mixer import Mixer
 from audio.recorder import Recorder
-from config.config_manager import ProjectManager
+from config.config_manager import ConfigManager, ProjectManager
+from config.defaults import DEFAULT_CONFIG
 
 
 class CriticalRegressionTests(unittest.TestCase):
+    def test_remember_last_project_is_disabled_by_default(self):
+        self.assertFalse(DEFAULT_CONFIG["General"]["remember_last_project"])
+        self.assertEqual(DEFAULT_CONFIG["General"]["last_project_file"], "")
+
+    def test_project_path_is_only_remembered_when_enabled(self):
+        manager = ConfigManager.__new__(ConfigManager)
+        manager.config = configparser.ConfigParser()
+        manager.config.add_section("General")
+        manager.config.set("General", "remember_last_project", "False")
+        manager.save = mock.Mock()
+
+        project_path = Path("remember-me.mdap")
+        self.assertFalse(manager.remember_project_file(str(project_path)))
+        self.assertEqual(manager.get_last_project_file(), "")
+        manager.save.assert_not_called()
+
+        manager.set("General", "remember_last_project", True)
+        self.assertTrue(manager.remember_project_file(str(project_path)))
+        self.assertEqual(
+            manager.get_last_project_file(),
+            str(project_path.resolve()),
+        )
+        manager.save.assert_called_once_with()
+
     def test_replacing_input_with_file_clears_old_source_state(self):
         with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as directory:
             audio_path = Path(directory) / "replacement.wav"

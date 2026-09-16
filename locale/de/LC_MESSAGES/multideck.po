@@ -376,6 +376,10 @@ msgstr "Anzahl der Decks"
 msgid "Theme"
 msgstr "Thema"
 
+#: gui/dialogs/options.py:272
+msgid "&Reopen the last project on startup"
+msgstr "Letztes Projekt beim Start erneut &öffnen"
+
 #: gui/dialogs/options.py:255
 msgid "System"
 msgstr "System"
