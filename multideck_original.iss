@@ -90,7 +90,7 @@ Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: start
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait skipifsilent; Check: ShouldLaunchProgram
+Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
 
 [InstallDelete]
 ; Remove bundled runtime files from previous versions before copying the new build.
@@ -103,11 +103,7 @@ Type: files; Name: "{app}\multideck.log"
 
 [Code]
 var
-  OptionsPage: TWizardPage;
-  DesktopIconCombo: TNewComboBox;
-  StartMenuIconCombo: TNewComboBox;
-  LaunchProgramCombo: TNewComboBox;
-  FFmpegCombo: TNewComboBox;
+  FFmpegPage: TInputOptionWizardPage;
   FFmpegFound: Boolean;
   WingetFound: Boolean;
 
@@ -134,165 +130,66 @@ end;
 function FFmpegInstallRequested: Boolean;
 begin
   Result :=
-    (FFmpegCombo <> nil) and
-    (FFmpegCombo.ItemIndex = 0);
-end;
-
-function ShouldLaunchProgram: Boolean;
-begin
-  Result :=
-    (LaunchProgramCombo = nil) or
-    (LaunchProgramCombo.ItemIndex = 0);
-end;
-
-procedure AddYesNoOption(
-  Page: TWizardPage;
-  const Prompt: string;
-  DefaultYes: Boolean;
-  var Combo: TNewComboBox;
-  var NextTop: Integer);
-var
-  PromptLabel: TNewStaticText;
-begin
-  { Create the combo box before its label. Windows exposes child controls in
-    reverse creation order, and screen readers use that order to associate a
-    static label with the following input control. }
-  Combo := TNewComboBox.Create(Page);
-  Combo.Parent := Page.Surface;
-  Combo.Left := 0;
-  Combo.Width := ScaleX(180);
-  Combo.Style := csDropDownList;
-  Combo.DropDownCount := 2;
-
-  if IsGerman then
-  begin
-    Combo.Items.Add('Ja');
-    Combo.Items.Add('Nein');
-  end
-  else
-  begin
-    Combo.Items.Add('Yes');
-    Combo.Items.Add('No');
-  end;
-
-  if DefaultYes then
-    Combo.ItemIndex := 0
-  else
-    Combo.ItemIndex := 1;
-
-  PromptLabel := TNewStaticText.Create(Page);
-  PromptLabel.Parent := Page.Surface;
-  PromptLabel.Left := 0;
-  PromptLabel.Top := NextTop;
-  PromptLabel.Width := Page.SurfaceWidth;
-  PromptLabel.AutoSize := False;
-  PromptLabel.WordWrap := True;
-  PromptLabel.Caption := Prompt;
-  PromptLabel.AdjustHeight;
-  PromptLabel.FocusControl := Combo;
-
-  Combo.Top := PromptLabel.Top + PromptLabel.Height + ScaleY(4);
-  NextTop := Combo.Top + Combo.Height + ScaleY(12);
-end;
-
-procedure ApplySelectedTasks;
-begin
-  if DesktopIconCombo.ItemIndex = 0 then
-    WizardSelectTasks('desktopicon')
-  else
-    WizardSelectTasks('!desktopicon');
-
-  if StartMenuIconCombo.ItemIndex = 0 then
-    WizardSelectTasks('startmenuicon')
-  else
-    WizardSelectTasks('!startmenuicon');
+    (FFmpegPage <> nil) and
+    FFmpegPage.Values[0];
 end;
 
 procedure InitializeWizard;
 var
-  PageCaption: string;
-  PageDescription: string;
-  NextTop: Integer;
+  Description: string;
+  SubCaption: string;
 begin
   FFmpegFound := FindOnPath('ffmpeg.exe');
   WingetFound := FindOnPath('winget.exe');
 
   if IsGerman then
   begin
-    PageCaption := 'Zusätzliche Optionen';
-    PageDescription :=
-      'Wählen Sie für jede Option Ja oder Nein. ' +
-      'Mit der Tabulatortaste wechseln Sie zwischen den Auswahllisten.';
+    Description :=
+      'MultiDeck nutzt FFmpeg als externe Abhängigkeit. ' +
+      'FFmpeg wurde im aktuellen Systempfad nicht gefunden.';
+    SubCaption :=
+      'Durch das Aktivieren dieser Option versucht das Setup am Ende ' +
+      'der Installation FFmpeg über winget zu installieren ' +
+      '(Paket: Gyan.FFmpeg).';
   end
   else
   begin
-    PageCaption := 'Additional Options';
-    PageDescription :=
-      'Choose Yes or No for each option. ' +
-      'Use the Tab key to move between the selection lists.';
+    Description :=
+      'MultiDeck uses FFmpeg as an external dependency. ' +
+      'FFmpeg was not found in the current system path.';
+    SubCaption :=
+      'If you enable this option, Setup will try to install FFmpeg ' +
+      'via winget at the end of the installation ' +
+      '(package: Gyan.FFmpeg).';
   end;
 
-  OptionsPage := CreateCustomPage(wpSelectTasks, PageCaption, PageDescription);
-  NextTop := 0;
+  FFmpegPage :=
+    CreateInputOptionPage(
+      wpSelectTasks,
+      'FFmpeg',
+      Description,
+      SubCaption,
+      False,
+      False
+    );
 
   if IsGerman then
-  begin
-    AddYesNoOption(
-      OptionsPage, 'Desktop-Symbol erstellen:',
-      WizardIsTaskSelected('desktopicon'), DesktopIconCombo, NextTop);
-    AddYesNoOption(
-      OptionsPage, 'Eintrag im Startmenü erstellen:',
-      WizardIsTaskSelected('startmenuicon'), StartMenuIconCombo, NextTop);
-    AddYesNoOption(
-      OptionsPage, 'MultiDeck nach der Installation starten:',
-      True, LaunchProgramCombo, NextTop);
-  end
+    FFmpegPage.Add('FFmpeg über winget installieren')
   else
-  begin
-    AddYesNoOption(
-      OptionsPage, 'Create a desktop icon:',
-      WizardIsTaskSelected('desktopicon'), DesktopIconCombo, NextTop);
-    AddYesNoOption(
-      OptionsPage, 'Create a Start Menu entry:',
-      WizardIsTaskSelected('startmenuicon'), StartMenuIconCombo, NextTop);
-    AddYesNoOption(
-      OptionsPage, 'Launch MultiDeck after installation:',
-      True, LaunchProgramCombo, NextTop);
-  end;
-
-  if (not FFmpegFound) and WingetFound then
-  begin
-    if IsGerman then
-      AddYesNoOption(
-        OptionsPage,
-        'FFmpeg wurde nicht gefunden. FFmpeg über winget installieren:',
-        False, FFmpegCombo, NextTop)
-    else
-      AddYesNoOption(
-        OptionsPage,
-        'FFmpeg was not found. Install FFmpeg via winget:',
-        False, FFmpegCombo, NextTop);
-  end;
+    FFmpegPage.Add('Install FFmpeg via winget');
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
-  { The standard task page uses check boxes. Its selections are exposed on
-    OptionsPage as accessible Yes/No combo boxes instead. }
-  Result := PageID = wpSelectTasks;
-end;
+  Result := False;
 
-function NextButtonClick(CurPageID: Integer): Boolean;
-begin
-  Result := True;
-
-  if (OptionsPage <> nil) and (CurPageID = OptionsPage.ID) then
-    ApplySelectedTasks;
+  if (FFmpegPage <> nil) and (PageID = FFmpegPage.ID) then
+    Result := FFmpegFound or (not WingetFound);
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
 begin
-  if (CurPageID = wpReady) and (not FFmpegFound) and (not WingetFound) then
+  if (FFmpegPage <> nil) and (CurPageID = wpReady) and (not FFmpegFound) and (not WingetFound) then
   begin
     if IsGerman then
       SuppressibleMsgBox(
