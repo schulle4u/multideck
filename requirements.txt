@@ -1,30 +1,24 @@
 # MultiDeck Audio Player - Dependencies
 
 # GUI Framework
-wxPython>=4.3.0
+wxPython>=4.3.1
 
 # Custom GUI controls
 m45wxcontrols @ https://github.com/schulle4u/m45wxcontrols/releases/download/v0.3.0/m45wxcontrols-0.3.0-py3-none-any.whl
 
 # Audio Libraries
-sounddevice>=0.4.6
-soundfile>=0.12.1
+sounddevice>=0.5.6
+soundfile>=0.14.0
 
 # Configuration
-configparser>=6.0.0
+configparser>=7.2.0
 
 # Audio Processing
-numpy>=1.24.0
+numpy>=2.5.3
 
 # Audio Effects
 # V0.9.24 causes Illegal Instructions on linux machines, therefore we stay at 0.9.23 for the moment
 pedalboard==0.9.23
 
 # Text-to-speech and screen reader announcement support
-prismatoid>=0.15.0
-
-# External dependency: FFmpeg (for MP3 support and streaming)
-# Windows: Download from https://www.gyan.dev/ffmpeg/builds/ (ffmpeg-release-essentials.zip)
-#          Extract and add the bin folder to your PATH
-# Linux: sudo apt-get install ffmpeg (Ubuntu/Debian) or sudo dnf install ffmpeg (Fedora)
-# macOS: brew install ffmpeg
+prismatoid>=0.18.2

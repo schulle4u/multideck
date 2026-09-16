@@ -38,20 +38,21 @@ classifiers = [
     "Topic :: Multimedia :: Sound/Audio :: Players",
 ]
 dependencies = [
-    "configparser>=6.0.0",
-    "numpy>=1.24.0",
+    "configparser>=7.2.0",
+    "numpy>=2.5.3",
     "pedalboard==0.9.23",
-    "prismatoid>=0.15.0",
-    "sounddevice>=0.4.6",
-    "soundfile>=0.12.1",
-    "wxPython>=4.3.0",
+    "prismatoid>=0.18.2",
+    "sounddevice>=0.5.6",
+    "soundfile>=0.14.0",
+    "wxPython>=4.3.1",
     "m45wxcontrols @ https://github.com/schulle4u/m45wxcontrols/releases/download/v0.3.0/m45wxcontrols-0.3.0-py3-none-any.whl",
 ]
 
 [project.optional-dependencies]
 build = [
-    "pyinstaller>=6.0.0",
-    "markdown>=3.0.0",
+    "pyinstaller>=6.22.3",
+    "markdown>=3.10.3",
+    "pillow>=12.3.0",
 ]
 
 [project.scripts]
