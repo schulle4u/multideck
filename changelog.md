@@ -1,10 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [v0.8.0 (Regentonne)] - 2026-09-16
 
 * Replace three dots with Ellipsis in menus
 * Implemented a project properties dialog to override automation settings during runtime (accessible via file menu).
 * An option to remember the last project on startup has been added to general settings.
+* Temporary accessibility fixes for additional setup tasks in windows installation script.
 * Various code improvements
 
 ## [v0.7.5 (Kampgarten)] - 2026-07-24
