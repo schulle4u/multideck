@@ -11,7 +11,7 @@ from utils.i18n import _
 class EffectsDialog(wx.Dialog):
     """Modeless dialog for real-time audio effect controls."""
 
-    def __init__(self, parent, mixer):
+    def __init__(self, parent, mixer, effect_chain=None, chain_name=None, deck_id=None):
         """
         Initialize effects dialog.
 
@@ -24,6 +24,10 @@ class EffectsDialog(wx.Dialog):
 
         self.mixer = mixer
         self.main_frame = parent
+        self.effect_chain = effect_chain or mixer.master_effects
+        self.chain_name = chain_name or _("Master")
+        self.deck_id = deck_id
+        self.SetTitle(_("Audio Effects: {}").format(self.chain_name))
 
         self._create_ui()
         self._fit_to_pages()
@@ -95,15 +99,12 @@ class EffectsDialog(wx.Dialog):
 
         book_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        # Build page names list: interleaved built-in + VST entries per chain
+        # A dialog owns one chain. This keeps dynamic deck changes independent
+        # from the master-effects UI and from other decks.
         page_names = [
-            _("Master: Built-in Effects"),
-            _("Master: VST Plugins"),
+            _("Built-in Effects"),
+            _("VST Plugins"),
         ]
-        for deck in self.mixer.decks:
-            if deck.effects:
-                page_names.append(f"{deck.name}: {_('Built-in Effects')}")
-                page_names.append(f"{deck.name}: {_('VST Plugins')}")
 
         list_sizer = wx.BoxSizer(wx.VERTICAL)
         list_label = wx.StaticText(panel, label=_("&Effect Chains"))
@@ -119,33 +120,17 @@ class EffectsDialog(wx.Dialog):
         self.page_sizer = wx.BoxSizer(wx.VERTICAL)
         self.pages = []
 
-        # Master built-in effects page
-        master_panel = self._create_effect_panel(
-            self.page_container, self.mixer.master_effects, _("Master"))
-        self.page_sizer.Add(master_panel, 1, wx.EXPAND)
-        self.pages.append(master_panel)
+        effect_panel = self._create_effect_panel(
+            self.page_container, self.effect_chain, self.chain_name)
+        self.page_sizer.Add(effect_panel, 1, wx.EXPAND)
+        self.pages.append(effect_panel)
 
         # Master VST page
-        master_vst = self._create_vst_panel(
-            self.page_container, self.mixer.master_effects, _("Master"))
-        master_vst.Show(False)
-        self.page_sizer.Add(master_vst, 1, wx.EXPAND)
-        self.pages.append(master_vst)
-
-        # Per-deck pages (hidden at creation to avoid GTK allocating 0 size)
-        for deck in self.mixer.decks:
-            if deck.effects:
-                deck_panel = self._create_effect_panel(
-                    self.page_container, deck.effects, deck.name)
-                deck_panel.Show(False)
-                self.page_sizer.Add(deck_panel, 1, wx.EXPAND)
-                self.pages.append(deck_panel)
-
-                deck_vst = self._create_vst_panel(
-                    self.page_container, deck.effects, deck.name)
-                deck_vst.Show(False)
-                self.page_sizer.Add(deck_vst, 1, wx.EXPAND)
-                self.pages.append(deck_vst)
+        vst_panel = self._create_vst_panel(
+            self.page_container, self.effect_chain, self.chain_name)
+        vst_panel.Show(False)
+        self.page_sizer.Add(vst_panel, 1, wx.EXPAND)
+        self.pages.append(vst_panel)
 
         self.page_container.SetSizer(self.page_sizer)
 

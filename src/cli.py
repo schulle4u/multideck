@@ -131,6 +131,7 @@ class MultiDeckCLI:
         try:
             project_data = ProjectManager.load_project(self.project_file)
             self.log(f"Loading project: {self.project_file}")
+            self.mixer.replace_decks(project_data.get('deck_count', len(project_data.get('decks', []))))
 
             # Parse mixer settings (apply mode AFTER loading decks)
             mixer_data = project_data.get('mixer', {})

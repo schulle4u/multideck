@@ -44,7 +44,7 @@ class Deck:
         Initialize a deck.
 
         Args:
-            deck_id: Deck number (1-10)
+            deck_id: Stable runtime identifier
             sample_rate: Sample rate for audio playback
             buffer_size: Audio engine block size (passed to SoundCardInputHandler)
         """
@@ -555,7 +555,15 @@ class Deck:
             Dictionary with deck configuration
         """
         if self.state == DECK_STATE_EMPTY and not self.intro_file:
-            return {}
+            return {
+                'name': self.name,
+                'output_device_id': self.output_device_id,
+                'output_device_name': self.output_device_name,
+                'volume': self.volume,
+                'balance': self.balance,
+                'mute': self.mute,
+                'loop': self.loop,
+            }
 
         if self.is_soundcard_input:
             return {

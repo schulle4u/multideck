@@ -40,25 +40,30 @@ class M3UPlaylistService:
 
             for entry in entries:
                 target_deck = self._find_next_free_deck()
+                created_deck = False
                 if target_deck is None:
-                    skipped_count = len(entries) - loaded_count
-                    break
+                    target_deck = self.owner.mixer.create_deck()
+                    created_deck = True
+                    if target_deck.effects:
+                        target_deck.effects.on_change = self.owner._on_effect_chain_changed
 
                 if target_deck.load_file(entry):
                     if not entry.startswith(('http://', 'https://')):
                         self.owner._preload_deck_audio(target_deck)
-                    self.owner._update_deck_panel(target_deck.deck_id)
                     self.owner.config_manager.add_recent_file(entry)
                     loaded_count += 1
                 else:
+                    if created_deck:
+                        self.owner.mixer.remove_deck(target_deck.deck_id)
                     skipped_count += 1
 
             self.owner._update_recent_files_menu()
+            self.owner._update_deck_listbox()
             if loaded_count > 0:
                 self.owner._mark_project_modified()
 
             if skipped_count > 0:
-                message = _("Imported {loaded} entries. {skipped} entries skipped (no free decks or load errors).").format(
+                message = _("Imported {loaded} entries. {skipped} entries skipped due to load errors.").format(
                     loaded=loaded_count,
                     skipped=skipped_count,
                 )
@@ -157,6 +162,6 @@ class M3UPlaylistService:
     def _find_next_free_deck(self):
         """Return the next free deck or None if all decks are occupied."""
         for deck in self.owner.mixer.decks:
-            if not deck.file_path:
+            if not deck.file_path and not deck.is_soundcard_input:
                 return deck
         return None

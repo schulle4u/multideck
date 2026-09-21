@@ -13,8 +13,7 @@ def setup_keyboard_shortcuts(owner):
     accel_entries = []
 
     # Ctrl+1 to Ctrl+0 for deck selection, Ctrl + Alt if more than 10 decks
-    num_decks = owner.config_manager.get_deck_count()
-    for i in range(1, num_decks + 1):
+    for i in range(1, 21):
         digit = i % 10
         key = ord(str(digit)) if digit != 0 else ord('0')
         if i <= 10:
@@ -72,6 +71,14 @@ def setup_keyboard_shortcuts(owner):
 
     # Delete for unload deck
     owner._add_keyboard_shortcut(accel_entries, wx.ACCEL_NORMAL, wx.WXK_DELETE, owner._on_shortcut_unload)
+
+    # Create/delete decks
+    owner._add_keyboard_shortcut(
+        accel_entries, wx.ACCEL_CTRL | wx.ACCEL_SHIFT, ord('N'), owner._on_new_deck
+    )
+    owner._add_keyboard_shortcut(
+        accel_entries, wx.ACCEL_SHIFT, wx.WXK_DELETE, owner._on_delete_deck
+    )
 
     # Ctrl+Up/Down for deck volume
     owner._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, wx.WXK_UP, lambda e: owner._on_deck_volume_change(5))

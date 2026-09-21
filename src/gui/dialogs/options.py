@@ -235,14 +235,14 @@ class OptionsDialog(wx.Dialog):
 
         # Number of decks
         deck_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        deck_label = wx.StaticText(panel, label=_("Number of decks") + ":")
+        deck_label = wx.StaticText(panel, label=_("Initial number of decks") + ":")
         deck_sizer.Add(deck_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         current_deck_count = self.config_manager.getint('General', 'deck_count', 10)
 
         self.deck_count_spin = wx.SpinCtrl(panel, value=str(current_deck_count),
                                          min=min(VALID_DECK_RANGE), max=max(VALID_DECK_RANGE), initial=current_deck_count)
-        self.deck_count_spin.SetName(_("Number of decks"))
+        self.deck_count_spin.SetName(_("Initial number of decks"))
         deck_sizer.Add(self.deck_count_spin, 1, wx.EXPAND | wx.ALL, 5)
 
         sizer.Add(deck_sizer, 0, wx.EXPAND | wx.ALL, 5)
@@ -1099,7 +1099,7 @@ class OptionsDialog(wx.Dialog):
         if self.config_manager.get('General', 'language', 'system') != old_language:
             restart_reasons.append(_("Language"))
         if self.config_manager.get('General', 'deck_count', '10') != old_deck_count:
-            restart_reasons.append(_("Number of decks"))
+            restart_reasons.append(_("Initial number of decks"))
         return restart_reasons
 
     def _save_audio(self):

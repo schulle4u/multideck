@@ -376,11 +376,17 @@ class MainFrame(wx.Frame):
 
     def _on_active_deck_changed(self, old_index, new_index):
         """Handle active deck change (e.g., from automatic mode switching)"""
-        # Use CallAfter since this may be called from background thread
-        wx.CallAfter(self._update_active_deck_ui, new_index)
+        # Capture stable identity before scheduling work on the GUI thread;
+        # list indexes may change before CallAfter is processed.
+        deck = self.mixer.get_deck(new_index)
+        deck_id = deck.deck_id if deck else None
+        wx.CallAfter(self._update_active_deck_ui, deck_id)
 
-    def _update_active_deck_ui(self, deck_index):
+    def _update_active_deck_ui(self, deck_id):
         """Update UI to reflect the new active deck"""
+        deck_index = self.mixer.index_of_deck(deck_id) if deck_id is not None else -1
+        if deck_index < 0:
+            return
         self._sync_listbox_selection(deck_index)
         if deck_index < len(self.mixer.decks):
             deck = self.mixer.decks[deck_index]
@@ -537,11 +543,14 @@ class MainFrame(wx.Frame):
         self._update_deck_listbox()
         # Update active deck controls if this is the selected deck
         selection = self.deck_listbox.GetSelectedRow()
-        if selection != wx.NOT_FOUND and selection == deck_id - 1:
+        if selection != wx.NOT_FOUND and selection == self.mixer.index_of_deck(deck_id):
             self._update_active_deck_controls()
 
-    def _update_deck_listbox(self):
+    def _update_deck_listbox(self, selected_deck_id=None):
+        """Rebuild the deck list while preserving selection by stable ID."""
         current_selection = self.deck_listbox.GetSelectedRow()
+        if selected_deck_id is None and 0 <= current_selection < len(self.mixer.decks):
+            selected_deck_id = self.mixer.decks[current_selection].deck_id
         self._updating_deck_listbox = True
         try:
             self.deck_listbox.DeleteAllItems()
@@ -583,13 +592,16 @@ class MainFrame(wx.Frame):
                 row_data = [deck.is_playing, status, deck_name, file_info, output_label]
                 self.deck_listbox.Append(row_data)
 
-            if current_selection != -1 and current_selection < self.deck_listbox.GetItemCount():
-                self.deck_listbox.SelectRow(current_selection)
+            selection_index = self.mixer.index_of_deck(selected_deck_id) if selected_deck_id is not None else -1
+            if selection_index != -1 and selection_index < self.deck_listbox.GetItemCount():
+                self.deck_listbox.SelectRow(selection_index)
         finally:
             self._updating_deck_listbox = False
 
     def _on_deck_listbox_select(self, event):
         """Handle deck listbox selection"""
+        if getattr(self, '_updating_deck_listbox', False):
+            return
         deck_index = self.deck_listbox.GetSelectedRow()
         if deck_index != wx.NOT_FOUND:
             # Update mixer's active deck for Solo/Automatic mode
@@ -745,6 +757,11 @@ class MainFrame(wx.Frame):
         self.clear_intro_item.Enable(has_deck and bool(deck.intro_file))
         self.rename_item.Enable(has_deck)
         self.unload_item.Enable(is_loaded)
+        self.delete_deck_item.Enable(has_deck)
+        self.deck_effects_item.Enable(has_deck)
+        deck_index = self.mixer.index_of_deck(deck.deck_id) if deck else -1
+        self.move_deck_up_item.Enable(has_deck and deck_index > 0)
+        self.move_deck_down_item.Enable(has_deck and deck_index < len(self.mixer.decks) - 1)
         self.record_deck_menu_item.Enable(can_record)
         self._update_deck_output_device_menu_items()
         if is_recording:
@@ -873,6 +890,14 @@ class MainFrame(wx.Frame):
             return
 
         menu = wx.Menu()
+        new_deck_item = menu.Append(wx.ID_ANY, _("New Deck") + " …\tCtrl+Shift+N")
+        delete_deck_item = menu.Append(wx.ID_ANY, _("Delete Deck") + "\tShift+Del")
+        move_up_item = menu.Append(wx.ID_ANY, _("Move Deck Up"))
+        move_down_item = menu.Append(wx.ID_ANY, _("Move Deck Down"))
+        deck_index = self.mixer.index_of_deck(deck.deck_id)
+        move_up_item.Enable(deck_index > 0)
+        move_down_item.Enable(deck_index < len(self.mixer.decks) - 1)
+        menu.AppendSeparator()
         load_file_item = menu.Append(wx.ID_ANY, _("Load File") + " …\tCtrl+F")
         load_url_item = menu.Append(wx.ID_ANY, _("Load URL") + " …\tCtrl+U")
         load_input_item = menu.Append(wx.ID_ANY, _("Load sound card input") + " …\tCtrl+D")
@@ -886,6 +911,7 @@ class MainFrame(wx.Frame):
 
         rename_item = menu.Append(wx.ID_ANY, _("Rename Deck") + " …\tF2")
         unload_item = menu.Append(wx.ID_ANY, _("Unload Deck") + "\tDel")
+        deck_effects_item = menu.Append(wx.ID_ANY, _("Deck Audio Effects") + " …")
         unload_item.Enable(deck.state != DECK_STATE_EMPTY)
         can_record = deck.state != DECK_STATE_EMPTY and not self._is_missing_local_deck_file(deck)
 
@@ -897,23 +923,38 @@ class MainFrame(wx.Frame):
         record_deck_item.Enable(can_record)
 
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_file(deck), load_file_item)
+        self.Bind(wx.EVT_MENU, self._on_new_deck, new_deck_item)
+        self.Bind(wx.EVT_MENU, self._on_delete_deck, delete_deck_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_move_selected_deck(-1), move_up_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._on_move_selected_deck(1), move_down_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_url(deck), load_url_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_soundcard_input(deck), load_input_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_set_intro_file(deck), set_intro_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_clear_intro_file(deck), clear_intro_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_rename(), rename_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_unload(), unload_item)
+        self.Bind(wx.EVT_MENU, self._on_show_deck_effects_dialog, deck_effects_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_toggle_deck_recording(deck), record_deck_item)
 
         parent_widget.PopupMenu(menu)
         menu.Destroy()
 
-    def _on_active_rename(self):
-        """Rename the active deck"""
-        deck = self._get_selected_deck()
-        if not deck:
-            return
+    def _on_new_deck(self, event=None):
+        """Insert a new deck at the selected position and offer to name it."""
+        selection = self.deck_listbox.GetSelectedRow()
+        insert_at = None if selection == wx.NOT_FOUND else selection
+        deck = self.mixer.create_deck(insert_at)
+        if deck.effects:
+            deck.effects.on_change = self._on_effect_chain_changed
+        deck_index = self.mixer.index_of_deck(deck.deck_id)
+        self.mixer.set_active_deck(deck_index)
+        self._update_deck_listbox(selected_deck_id=deck.deck_id)
+        self._sync_listbox_selection(deck_index)
+        self._mark_project_modified()
+        self._rename_deck(deck)
 
+    def _rename_deck(self, deck):
+        """Show the naming dialog for a specific deck."""
         dlg = wx.TextEntryDialog(self, _("Enter new deck name:"), _("Rename Deck"), deck.name)
         if dlg.ShowModal() == wx.ID_OK:
             new_name = dlg.GetValue().strip()
@@ -921,9 +962,56 @@ class MainFrame(wx.Frame):
                 deck.set_name(new_name)
                 self._update_deck_listbox()
                 self._update_active_deck_controls()
-                self._update_deck_panel(deck.deck_id)
                 self._mark_project_modified()
         dlg.Destroy()
+
+    def _on_delete_deck(self, event=None):
+        """Delete the selected deck and all resources owned by it."""
+        deck = self._get_selected_deck()
+        if not deck:
+            return
+        if deck.state != DECK_STATE_EMPTY or self.mixer.is_deck_recording(deck.deck_id):
+            result = wx.MessageBox(
+                _("Delete deck '{}'? Its loaded source will be unloaded.").format(deck.name),
+                _("Delete Deck"),
+                wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING,
+            )
+            if result != wx.YES:
+                return
+        if getattr(self, '_effects_dialog', None) and getattr(self._effects_dialog, 'deck_id', None) == deck.deck_id:
+            self._effects_dialog.Close()
+        removed_index = self.mixer.index_of_deck(deck.deck_id)
+        self.mixer.remove_deck(deck.deck_id)
+        if self.mixer.decks:
+            selection_index = min(removed_index, len(self.mixer.decks) - 1)
+            selected_deck = self.mixer.decks[selection_index]
+            self._update_deck_listbox(selected_deck_id=selected_deck.deck_id)
+            self._sync_listbox_selection(selection_index)
+        else:
+            self._update_deck_listbox()
+            self._update_active_deck_controls()
+        self._mark_project_modified()
+
+    def _on_move_selected_deck(self, offset):
+        """Move the selected deck by one list position."""
+        deck = self._get_selected_deck()
+        if not deck:
+            return
+        current = self.mixer.index_of_deck(deck.deck_id)
+        target = current + offset
+        if self.mixer.move_deck(deck.deck_id, target):
+            new_index = self.mixer.index_of_deck(deck.deck_id)
+            self._update_deck_listbox(selected_deck_id=deck.deck_id)
+            self._sync_listbox_selection(new_index)
+            self._mark_project_modified()
+
+    def _on_active_rename(self):
+        """Rename the active deck"""
+        deck = self._get_selected_deck()
+        if not deck:
+            return
+
+        self._rename_deck(deck)
 
     def _on_active_toggle_loop(self):
         """Toggle loop for active deck"""
@@ -1235,9 +1323,13 @@ class MainFrame(wx.Frame):
 
     def _sync_listbox_selection(self, deck_index):
         """Sync listbox selection with mixer's active deck"""
-        if deck_index < self.deck_listbox.GetItemCount():
+        if 0 <= deck_index < self.deck_listbox.GetItemCount():
             if self.deck_listbox.GetSelectedRow() != deck_index:
-                self.deck_listbox.SelectRow(deck_index)
+                self._updating_deck_listbox = True
+                try:
+                    self.deck_listbox.SelectRow(deck_index)
+                finally:
+                    self._updating_deck_listbox = False
             self._update_active_deck_controls()
 
     def _on_deck_info_changed(self, deck):
@@ -1245,7 +1337,7 @@ class MainFrame(wx.Frame):
         self._update_deck_listbox()
         # Update active controls if this deck is selected
         selection = self.deck_listbox.GetSelectedRow()
-        if selection != wx.NOT_FOUND and selection == deck.deck_id - 1:
+        if selection != wx.NOT_FOUND and selection == self.mixer.index_of_deck(deck.deck_id):
             self._update_active_deck_controls()
 
     def _preload_deck_audio(self, deck):
@@ -1352,22 +1444,18 @@ class MainFrame(wx.Frame):
         else:
             return False  # Cancelled
 
-    def _reset_to_defaults(self):
+    def _reset_to_defaults(self, deck_count=None):
         """Reset all mixer and deck settings to defaults"""
+        if getattr(self, '_effects_dialog', None):
+            self._effects_dialog.Close()
+
         # Stop all playback
         self.mixer.stop_all()
 
-        # Unload all decks and reset their settings
-        for i, deck in enumerate(self.mixer.decks):
-            deck.unload()
-            deck.set_volume(1.0)
-            deck.set_balance(0.0)
-            deck.set_mute(False)
-            deck.set_loop(False)
-            deck.set_name(f"Deck {i + 1}")
-            if deck.effects:
-                deck.effects.from_dict({})
-            self.mixer.clear_deck_cache(deck.deck_id)
+        if deck_count is None:
+            deck_count = self.config_manager.get_deck_count()
+        self.mixer.replace_decks(deck_count)
+        self._setup_effect_change_tracking()
 
         self.mixer.master_effects.from_dict({})
 
@@ -1501,6 +1589,11 @@ class MainFrame(wx.Frame):
 
     def _load_project_data(self, project_data):
         """Load project data"""
+        deck_count = project_data.get('deck_count', len(project_data.get('decks', [])))
+        if len(self.mixer.decks) != deck_count:
+            self.mixer.replace_decks(deck_count)
+            self._setup_effect_change_tracking()
+
         # Load mixer settings
         if 'mixer' in project_data:
             self.mixer.from_dict(project_data['mixer'])
@@ -1518,7 +1611,7 @@ class MainFrame(wx.Frame):
                         deck.is_stream = False
                         deck.is_soundcard_input = False
                         self._mark_deck_file_missing(deck)
-                    self._update_deck_panel(i + 1)
+                    self._update_deck_panel(deck.deck_id)
 
         # Load effects settings
         if 'master_effects' in project_data and project_data['master_effects']:
@@ -1713,13 +1806,32 @@ class MainFrame(wx.Frame):
         self.Update()
 
     def _on_show_effects_dialog(self, event):
-        """Show modeless effects dialog (single instance)."""
-        if hasattr(self, '_effects_dialog') and self._effects_dialog:
+        """Show the master-effects dialog (single modeless instance)."""
+        self._show_effect_chain_dialog(self.mixer.master_effects, _("Master"))
+
+    def _on_show_deck_effects_dialog(self, event):
+        """Show effects for the currently selected deck only."""
+        deck = self._get_selected_deck()
+        if deck and deck.effects:
+            self._show_effect_chain_dialog(deck.effects, deck.name, deck.deck_id)
+
+    def _show_effect_chain_dialog(self, effect_chain, chain_name, deck_id=None):
+        """Open or focus the dialog for one effect chain."""
+        if getattr(self, '_effects_dialog', None):
+            if self._effects_dialog.effect_chain is not effect_chain:
+                self._effects_dialog.Close()
+            else:
+                self._effects_dialog.Raise()
+                self._effects_dialog.SetFocus()
+                return
+        if getattr(self, '_effects_dialog', None):
             self._effects_dialog.Raise()
             self._effects_dialog.SetFocus()
             return
         from gui.dialogs.effects import EffectsDialog
-        self._effects_dialog = EffectsDialog(self, self.mixer)
+        self._effects_dialog = EffectsDialog(
+            self, self.mixer, effect_chain, chain_name, deck_id=deck_id
+        )
         self._effects_dialog.Show()
 
     def _on_sleep_timer(self, event):
@@ -2024,6 +2136,8 @@ class MainFrame(wx.Frame):
 
     def _on_next_deck(self, event):
         """Handle Ctrl+Tab for next deck"""
+        if not self.mixer.decks:
+            return
         intro_started = self.mixer.next_deck(trigger_switch_event=True)
         deck_index = self.mixer.active_deck_index
         self._sync_listbox_selection(deck_index)
@@ -2035,6 +2149,8 @@ class MainFrame(wx.Frame):
 
     def _on_previous_deck(self, event):
         """Handle Ctrl+Shift+Tab for previous deck"""
+        if not self.mixer.decks:
+            return
         intro_started = self.mixer.previous_deck(trigger_switch_event=True)
         deck_index = self.mixer.active_deck_index
         self._sync_listbox_selection(deck_index)
@@ -2327,7 +2443,7 @@ class MainFrame(wx.Frame):
         self.tts_manager.speak(message)
         self._update_deck_listbox()
         selection = self.deck_listbox.GetSelectedRow()
-        if selection != wx.NOT_FOUND and selection == deck_id - 1:
+        if selection != wx.NOT_FOUND and selection == self.mixer.index_of_deck(deck_id):
             self._update_active_deck_controls()
 
     def _on_deck_recording_stopped(self, deck_id, filepath, frames):
@@ -2343,7 +2459,7 @@ class MainFrame(wx.Frame):
         self.tts_manager.speak(message)
         self._update_deck_listbox()
         selection = self.deck_listbox.GetSelectedRow()
-        if selection != wx.NOT_FOUND and selection == deck_id - 1:
+        if selection != wx.NOT_FOUND and selection == self.mixer.index_of_deck(deck_id):
             self._update_active_deck_controls()
 
     def _on_close(self, event):

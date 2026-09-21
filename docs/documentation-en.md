@@ -100,13 +100,16 @@ The program window largely follows a standard layout, consisting of a menu bar, 
 * Save Project (Ctrl+S): Saves the settings of the current project.
 * Save Project As (Ctrl+Shift+S): Saves the project under a different name.
 * Project properties: Modify project-specific [automation settings](#automation).
-* Import M3U Playlist (Ctrl+I): Imports an M3U playlist containing audio files or URLs and distributes them across the available decks. If no free decks are available, playlist entries will be ignored.
+* Import M3U Playlist (Ctrl+I): Imports an M3U playlist containing audio files or URLs and distributes them across free decks. Additional decks are appended automatically when needed.
 * Export M3U Playlist (Ctrl+E): Exports the files and URLs loaded in the decks as an M3U or M3U8 playlist.
 * Recent Files: Contains a list of recently opened files. Note that these are the loaded audio files, not the project files. The list can be cleared if needed.
 * Exit (Alt+F4): Exits the program.
 
 #### Deck
 
+* New Deck (Ctrl+Shift+N): Inserts a new deck at the selected position and opens the naming dialog.
+* Delete Deck (Shift+Del): Unloads and removes the selected deck.
+* Move Deck Up/Down: Changes the selected deck's position in the list.
 * Load File (Ctrl+F): Loads an audio file into the selected deck.
 * Load URL (Ctrl+U): Opens an internet stream in the selected deck.
 * Load Sound Card Input (Ctrl+D): Enables playback of an audio source connected to the computer (microphone, line-in).
@@ -114,6 +117,7 @@ The program window largely follows a standard layout, consisting of a menu bar, 
 * Clear intro file: Remove a previously selected intro audio file from the deck.
 * Rename Deck (F2): Allows you to assign a custom name to the deck.
 * Unload Deck (Del): Removes the file loaded on the selected deck.
+* Deck Audio Effects: Configures the built-in and VST3 effects belonging to the selected deck.
 * Start Deck Recording (Ctrl+Shift+R): Enables individual deck recording, independent of the selected operating mode.
 
 #### Playback
@@ -136,7 +140,7 @@ The program window largely follows a standard layout, consisting of a menu bar, 
 
 * Start/Stop Recording (Ctrl+R): Starts live recording of the output mixer. If no output directory has been set in the program options, the program will ask for a directory before starting the recording.
 * Start/stop livestream (F8): Sends the mixer output to an Icecast server. Configure live streaming data in the program options first. 
-* Audio Effects (Ctrl+Shift+E): Opens a window for configuring audio effects and VST plugins.
+* Audio Effects (Ctrl+Shift+E): Opens a window for configuring the master built-in and VST3 effects.
 * Sleep timer (Ctrl+Shift+I): This allows you to stop the playback after a configured number of minutes and, optionally, shut down the computer.
 * Options (Ctrl+Shift+O): Opens the program settings.
 
@@ -187,7 +191,7 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 ### General
 
 * Language: Sets the program language.
-* Number of Decks: The number of decks shown in the main window.
+* Initial Number of Decks: The number created at program startup and for a new empty project. Decks can then be added, removed, and rearranged at runtime.
 * Theme: Sets the default appearance of the program.
 * Reopen the last project on startup: Reloads the last successfully opened or saved project. This option is disabled by default.
 
@@ -266,7 +270,7 @@ Additional options in `[Streaming]` section:
 
 ## Audio Effects
 
-Some audio effects are available for the master mix or each deck individually, accessible via the Tools menu or with the keyboard shortcut Ctrl+Shift+E. First, select the desired deck or the master mix from the effect chain list. The effects are organized per deck across two pages: Built-in Effects and VST Plugins.
+The Tools menu opens the master effect chain. To edit a deck's own effect chain, use Deck Audio Effects in the Deck menu or deck context menu. Each dialog contains two pages: Built-in Effects and VST Plugins.
 
 ### Built-in Effects
 

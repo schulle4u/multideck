@@ -37,16 +37,15 @@ class Mixer:
             streamer: Optional livestreamer instance for master output streaming
         """
         self.audio_engine = audio_engine
-        self.num_decks = num_decks
+        self._decks_lock = threading.RLock()
+        self._next_deck_id = 1
         self.recorder = recorder
         self.streamer = streamer
 
         # Create decks with per-deck effect chains
         self.decks: List[Deck] = []
-        for i in range(num_decks):
-            deck = Deck(i + 1, audio_engine.sample_rate, audio_engine.buffer_size)
-            deck.effects = EffectChain(audio_engine.sample_rate)
-            self.decks.append(deck)
+        for index in range(num_decks):
+            self.decks.append(self._new_deck(index + 1))
 
         # Master effect chain
         self.master_effects = EffectChain(audio_engine.sample_rate)
@@ -115,6 +114,111 @@ class Mixer:
         # Start audio stream
         self._apply_output_mode()
 
+    @property
+    def num_decks(self) -> int:
+        """Return the current number of decks."""
+        with self._decks_lock:
+            return len(self.decks)
+
+    def _new_deck(self, name_number: Optional[int] = None) -> Deck:
+        """Create a deck with a stable runtime identity and effect chain."""
+        deck_id = self._next_deck_id
+        self._next_deck_id += 1
+        deck = Deck(deck_id, self.audio_engine.sample_rate, self.audio_engine.buffer_size)
+        if name_number is None:
+            name_number = len(self.decks) + 1
+            existing_names = {existing.name for existing in self.decks}
+            while f"Deck {name_number}" in existing_names:
+                name_number += 1
+        deck.name = f"Deck {name_number}"
+        deck.effects = EffectChain(self.audio_engine.sample_rate)
+        return deck
+
+    def deck_snapshot(self) -> List[Deck]:
+        """Return a stable snapshot for GUI and audio-thread iteration."""
+        with self._decks_lock:
+            return list(self.decks)
+
+    def index_of_deck(self, deck_id: int) -> int:
+        """Return the current list position of a stable deck ID."""
+        with self._decks_lock:
+            for index, deck in enumerate(self.decks):
+                if deck.deck_id == deck_id:
+                    return index
+        return -1
+
+    def create_deck(self, index: Optional[int] = None) -> Deck:
+        """Create and insert a deck at *index*, or append it."""
+        with self._decks_lock:
+            insert_at = len(self.decks) if index is None else max(0, min(index, len(self.decks)))
+            active_deck = self.get_deck(self.active_deck_index)
+            deck = self._new_deck()
+            self.decks.insert(insert_at, deck)
+            if self._crossfade_active:
+                self._crossfade_active = False
+            if active_deck is not None:
+                self.active_deck_index = self.decks.index(active_deck)
+            elif len(self.decks) == 1:
+                self.active_deck_index = 0
+            return deck
+
+    def remove_deck(self, deck_id: int, restart_routing: bool = True) -> Optional[Deck]:
+        """Stop, detach and remove a deck identified by its stable ID."""
+        with self._decks_lock:
+            index = self.index_of_deck(deck_id)
+            if index < 0:
+                return None
+            deck = self.decks[index]
+            active_deck = self.get_deck(self.active_deck_index)
+
+            self.stop_deck_recording(deck_id)
+            deck.unload()
+            self.clear_deck_cache(deck_id)
+            if self._crossfade_active:
+                self._crossfade_active = False
+
+            self.decks.pop(index)
+            if not self.decks:
+                self.active_deck_index = 0
+            elif active_deck is deck:
+                self.active_deck_index = min(index, len(self.decks) - 1)
+            elif active_deck in self.decks:
+                self.active_deck_index = self.decks.index(active_deck)
+            else:
+                self.active_deck_index = min(self.active_deck_index, len(self.decks) - 1)
+
+        if restart_routing:
+            self.restart_multiroom_routing()
+        return deck
+
+    def move_deck(self, deck_id: int, target_index: int) -> bool:
+        """Move a deck while preserving its identity and active status."""
+        with self._decks_lock:
+            source_index = self.index_of_deck(deck_id)
+            if source_index < 0 or not self.decks:
+                return False
+            target_index = max(0, min(target_index, len(self.decks) - 1))
+            if source_index == target_index:
+                return False
+            active_deck = self.get_deck(self.active_deck_index)
+            deck = self.decks.pop(source_index)
+            self.decks.insert(target_index, deck)
+            if active_deck in self.decks:
+                self.active_deck_index = self.decks.index(active_deck)
+            if self._crossfade_active:
+                self._crossfade_active = False
+            return True
+
+    def replace_decks(self, count: int) -> None:
+        """Replace the collection with *count* new empty decks."""
+        count = max(0, int(count))
+        for deck in self.deck_snapshot():
+            self.remove_deck(deck.deck_id, restart_routing=False)
+        with self._decks_lock:
+            self.decks = [self._new_deck(index + 1) for index in range(count)]
+            self.active_deck_index = 0
+        self.restart_multiroom_routing()
+
     def _start_playback(self):
         """Start audio output stream with callback"""
         self.audio_engine.start_stream(self._audio_callback)
@@ -173,7 +277,7 @@ class Mixer:
     def _ensure_multiroom_workers(self):
         """Create workers for all devices currently needed in multiroom mode."""
         required_devices = set()
-        for deck in self.decks:
+        for deck in self.deck_snapshot():
             if deck.file_path:
                 required_devices.add(self._normalize_device_key(self._resolve_output_device_for_deck(deck)))
 
@@ -184,7 +288,7 @@ class Mixer:
                 del self._multiroom_workers[key]
 
         # Create missing workers
-        for deck in self.decks:
+        for deck in self.deck_snapshot():
             if not deck.file_path:
                 continue
             resolved_device = self._resolve_output_device_for_deck(deck)
@@ -273,7 +377,7 @@ class Mixer:
         route_streams = {}
         virtual_streams = []
 
-        for deck in self.decks:
+        for deck in self.deck_snapshot():
             if deck.is_playing:
                 audio = self._get_deck_audio(deck, frames)
                 if audio is None:
@@ -395,7 +499,7 @@ class Mixer:
         """Generate audio for Mixer mode (all decks mix together)"""
         audio_streams = []
 
-        for deck in self.decks:
+        for deck in self.deck_snapshot():
             if deck.is_playing:
                 audio = self._get_deck_audio(deck, frames)
                 if audio is not None:
@@ -412,8 +516,11 @@ class Mixer:
         handled_deck_ids = set()
         result = self.audio_engine.create_silence(frames)
 
-        if 0 <= self.active_deck_index < len(self.decks):
-            deck = self.decks[self.active_deck_index]
+        with self._decks_lock:
+            decks = list(self.decks)
+            active_deck_index = self.active_deck_index
+        if 0 <= active_deck_index < len(decks):
+            deck = decks[active_deck_index]
             if deck.is_playing:
                 audio = self._get_deck_audio(deck, frames)
                 if audio is not None:
@@ -445,8 +552,12 @@ class Mixer:
         fade_end = min(1.0, self._crossfade_samples_done / self._crossfade_samples_total)
 
         # Get audio from both decks
-        from_deck = self.decks[self._crossfade_from_deck] if 0 <= self._crossfade_from_deck < len(self.decks) else None
-        to_deck = self.decks[self._crossfade_to_deck] if 0 <= self._crossfade_to_deck < len(self.decks) else None
+        with self._decks_lock:
+            decks = list(self.decks)
+            from_index = self._crossfade_from_deck
+            to_index = self._crossfade_to_deck
+        from_deck = decks[from_index] if 0 <= from_index < len(decks) else None
+        to_deck = decks[to_index] if 0 <= to_index < len(decks) else None
 
         from_audio = None
         to_audio = None
@@ -709,7 +820,7 @@ class Mixer:
         Start recording a specific deck's output to a separate file.
 
         Args:
-            deck_id: Deck ID (1-based)
+            deck_id: Stable runtime deck ID
             output_directory: Directory to save the recording
 
         Returns:
@@ -752,7 +863,8 @@ class Mixer:
 
             # Generate full output file path with deck name
             deck_name = sanitize_filename(deck.name)
-            prefix = f"deck{deck_id}_{deck_name}"
+            deck_number = self.index_of_deck(deck_id) + 1
+            prefix = f"deck{deck_number}_{deck_name}"
             fmt = config.get('format', 'wav')
             filename = generate_recording_filename(fmt, prefix)
             output_file = str(Path(output_directory) / filename)
@@ -771,7 +883,7 @@ class Mixer:
         Stop recording a specific deck.
 
         Args:
-            deck_id: Deck ID (1-based)
+            deck_id: Stable runtime deck ID
         """
         recorder = self.deck_recorders.get(deck_id)
         if recorder:
@@ -798,7 +910,7 @@ class Mixer:
         Feed audio data to a deck's recorder for writing or pre-roll buffering.
 
         Args:
-            deck_id: Deck ID (1-based)
+            deck_id: Stable runtime deck ID
             audio_data: Audio data as numpy array
         """
         recorder = self.deck_recorders.get(deck_id)
@@ -822,7 +934,7 @@ class Mixer:
             exclude_deck_ids: Set of deck IDs already handled
         """
         need_levels = self.level_switch_enabled and self.mode == MODE_AUTOMATIC
-        for deck in self.decks:
+        for deck in self.deck_snapshot():
             if deck.deck_id in exclude_deck_ids:
                 continue
             if deck.is_playing and (deck.deck_id in self.deck_recorders or need_levels):
@@ -857,6 +969,11 @@ class Mixer:
             self.on_mode_change(old_mode, mode)
 
     def set_active_deck(self, deck_index: int, trigger_switch_event: bool = False) -> bool:
+        """Thread-safe wrapper for changing the active deck."""
+        with self._decks_lock:
+            return self._set_active_deck(deck_index, trigger_switch_event)
+
+    def _set_active_deck(self, deck_index: int, trigger_switch_event: bool = False) -> bool:
         """
         Set active deck for Solo/Automatic modes.
 
@@ -886,6 +1003,11 @@ class Mixer:
         return False
 
     def next_deck(self, use_crossfade: bool = None, trigger_switch_event: bool = False) -> bool:
+        """Thread-safe wrapper for selecting the next deck."""
+        with self._decks_lock:
+            return self._next_deck(use_crossfade, trigger_switch_event)
+
+    def _next_deck(self, use_crossfade: bool = None, trigger_switch_event: bool = False) -> bool:
         """
         Switch to next deck (Solo/Automatic mode).
         In Automatic mode, only switches to decks that have content loaded.
@@ -897,6 +1019,9 @@ class Mixer:
         Returns:
             True if a deck intro was started, otherwise False
         """
+        if not self.decks:
+            return False
+
         # In automatic mode, only consider loaded decks
         if self.mode == MODE_AUTOMATIC:
             loaded_indices = self._get_loaded_deck_indices()
@@ -926,6 +1051,11 @@ class Mixer:
             return self.set_active_deck(next_index, trigger_switch_event=trigger_switch_event)
 
     def previous_deck(self, use_crossfade: bool = None, trigger_switch_event: bool = False) -> bool:
+        """Thread-safe wrapper for selecting the previous deck."""
+        with self._decks_lock:
+            return self._previous_deck(use_crossfade, trigger_switch_event)
+
+    def _previous_deck(self, use_crossfade: bool = None, trigger_switch_event: bool = False) -> bool:
         """
         Switch to previous deck (Solo/Automatic mode).
         In Automatic mode, only switches to decks that have content loaded.
@@ -937,6 +1067,9 @@ class Mixer:
         Returns:
             True if a deck intro was started, otherwise False
         """
+        if not self.decks:
+            return False
+
         # In automatic mode, only consider loaded decks
         if self.mode == MODE_AUTOMATIC:
             loaded_indices = self._get_loaded_deck_indices()
@@ -984,8 +1117,9 @@ class Mixer:
         Returns:
             Deck instance or None
         """
-        if 0 <= deck_index < len(self.decks):
-            return self.decks[deck_index]
+        with self._decks_lock:
+            if 0 <= deck_index < len(self.decks):
+                return self.decks[deck_index]
         return None
 
     def get_deck_by_id(self, deck_id: int) -> Optional[Deck]:
@@ -993,12 +1127,13 @@ class Mixer:
         Get deck by ID.
 
         Args:
-            deck_id: Deck ID (1-based)
+            deck_id: Stable runtime deck ID
 
         Returns:
             Deck instance or None
         """
-        return self.get_deck(deck_id - 1)
+        with self._decks_lock:
+            return next((deck for deck in self.decks if deck.deck_id == deck_id), None)
 
     def _get_loaded_deck_indices(self) -> List[int]:
         """
@@ -1008,7 +1143,7 @@ class Mixer:
             List of deck indices (0-based) that have files or streams loaded
         """
         loaded = []
-        for i, deck in enumerate(self.decks):
+        for i, deck in enumerate(self.deck_snapshot()):
             # Check if deck has content: either a file path or an active stream
             if deck.file_path or (deck.is_stream and deck.stream_handler):
                 loaded.append(i)
@@ -1107,26 +1242,26 @@ class Mixer:
 
     def preload_all_decks(self):
         """Preload audio for all decks that have files loaded"""
-        for deck in self.decks:
+        for deck in self.deck_snapshot():
             if deck.file_path and not deck.is_stream:
                 self.ensure_deck_loaded(deck)
 
     def play_all(self):
         """Start playback on all loaded decks"""
-        for deck in self.decks:
+        for deck in self.deck_snapshot():
             if deck.file_path:  # Only play decks that have content loaded
                 self.ensure_deck_loaded(deck)  # Preload to prevent underflow
                 deck.play()
 
     def pause_all(self):
         """Pause playback on all decks"""
-        for deck in self.decks:
+        for deck in self.deck_snapshot():
             if deck.is_playing:
                 deck.pause()
 
     def stop_all(self):
         """Stop playback on all decks and reset positions"""
-        for deck in self.decks:
+        for deck in self.deck_snapshot():
             deck.stop()
 
     def toggle_play_pause_all(self):
@@ -1134,7 +1269,7 @@ class Mixer:
         Toggle play/pause for all decks.
         If any deck is playing, pause all. Otherwise, play all loaded decks.
         """
-        any_playing = any(deck.is_playing for deck in self.decks)
+        any_playing = any(deck.is_playing for deck in self.deck_snapshot())
         if any_playing:
             self.pause_all()
         else:
@@ -1142,7 +1277,7 @@ class Mixer:
 
     def is_any_playing(self) -> bool:
         """Check if any deck is currently playing"""
-        return any(deck.is_playing for deck in self.decks)
+        return any(deck.is_playing for deck in self.deck_snapshot())
 
     def _check_level_switch(self) -> Optional[int]:
         """

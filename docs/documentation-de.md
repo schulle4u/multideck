@@ -100,13 +100,16 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 * Projekt speichern (Ctrl+S): Einstellungen des aktuellen Projekts speichern.
 * Projekt speichern unter (Ctrl+Shift+S): Projekt unter einem anderen Namen abspeichern.
 * Projekteigenschaften: [Automatisierungseinstellungen](#automatisierung) des Mixers projektspezifisch anpassen.
-* M3U-Playliste importieren (Ctrl+I): Importiert eine M3U-Playliste mit Audiodateien oder URLs und verteilt sie auf die freien Decks. Wenn keine freien Decks mehr zur Verfügung stehen, werden die Einträge der Playliste ignoriert.
+* M3U-Playliste importieren (Ctrl+I): Importiert eine M3U-Playliste mit Audiodateien oder URLs und verteilt sie auf freie Decks. Bei Bedarf werden automatisch weitere Decks angehängt.
 * M3U-Playliste exportieren (Ctrl+E): Exportiert die in den Decks geladenen Dateien und URLs als M3U- oder M3U8-Playliste. 
 * Letzte Dateien: Enthält eine Liste der zuletzt geöffneten Dateien. Hierbei handelt es sich jedoch um die geladenen Audiodateien, nicht um die Projektdateien. Die Liste kann bei Bedarf auch gelöscht werden.
 * Beenden (Alt+F4): Beendet das Programm.
 
 #### Deck
 
+* Neues Deck (Ctrl+Shift+N): Fügt an der ausgewählten Position ein neues Deck ein und öffnet den Dialog zum Benennen.
+* Deck löschen (Shift+Entf): Entlädt und entfernt das ausgewählte Deck.
+* Deck nach oben/unten verschieben: Ändert die Position des ausgewählten Decks in der Liste.
 * Datei laden (Ctrl+F): Lädt eine Audiodatei in das gewählte Deck. 
 * URL laden (Ctrl+U): Öffnet einen Internetstream im gewählten Deck.
 * Soundkarteneingang laden (Ctrl+D): Ermöglicht die Wiedergabe einer an den Computer angeschlossenen Audioquelle (Mikrofon, Line). 
@@ -114,6 +117,7 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 * Introdatei löschen: Entfernt die zuvor festgelegte Intro-Audiodatei aus dem Deck.
 * Deck umbenennen (F2): Erlaubt das Hinterlegen eines benutzerdefinierten Decknamens. 
 * Deck entladen (Del/Entf): Entfernt die auf dem gewählten Deck geladene Datei.
+* Deck-Audioeffekte: Konfiguriert die integrierten und VST3-Effekte des ausgewählten Decks.
 * Deckaufnahme starten (Ctrl+Shift+R): Ermöglicht eine individuelle Deckaufnahme, unabhängig vom gewählten Betriebsmodus. 
 
 #### Wiedergabe
@@ -136,7 +140,7 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 
 * Aufnahme starten/beenden (Ctrl+R): Startet die Live-Aufnahme des Ausgabemixers. Wenn in den Programmoptionen kein Ausgabeverzeichnis festgelegt wurde, fragt das Programm vor dem Starten der Aufnahme nach dem Verzeichnis zum Speichern der Datei. 
 * Livestream starten/stoppen (F8): Startet den Livestream, um das Mixersignal an einen Icecast-Server zu senden. Zuvor müssen die Zugangsdaten in den Programmeinstellungen hinterlegt werden. 
-* Audioeffekte (Ctrl+Shift+E): Öffnet ein Fenster zum Konfigurieren von Audioeffekten und VST-Plugins. 
+* Audioeffekte (Ctrl+Shift+E): Öffnet ein Fenster zum Konfigurieren der integrierten und VST3-Mastereffekte.
 * Sleep-Timer (Ctrl+Shift+I): Beendet die Wiedergabe nach der eingestellten Anzahl Minuten und fährt den Rechner falls gewünscht herunter. 
 * Optionen (Ctrl+Shift+O): Öffnet die Programmeinstellungen.
 
@@ -187,7 +191,7 @@ Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+Shift+O aufrufbar.
 ### Allgemein
 
 * Sprache: Legt die Programmsprache fest.
-* Anzahl der Decks: Die Anzahl sichtbarer Decks im Hauptfenster.
+* Initiale Anzahl der Decks: Die beim Programmstart und für ein neues leeres Projekt erzeugte Anzahl. Decks können anschließend während der Laufzeit erstellt, gelöscht und verschoben werden.
 * Theme: Legt das Standard-Aussehen des Programms fest.
 * Letztes Projekt beim Start erneut öffnen: Lädt das zuletzt erfolgreich geöffnete oder gespeicherte Projekt. Diese Option ist standardmäßig deaktiviert.
 
@@ -266,7 +270,7 @@ Zusätzliche Optionen im Bereich `[Streaming]`:
 
 ## Audioeffekte
 
-Über das Werkzeuge-Menü oder mit der Tastenkombination Ctrl+Shift+E sind einige Audioeffekte für den Mastermix oder jedes Deck einzeln verfügbar. Zunächst muss hierfür in der Effektkettenliste das gewünschte Deck oder der Mastermix gewählt werden. Die Effekte sind pro Deck in zwei Seiten unterteilt: Integrierte Effekte und VST-Plugins. 
+Das Werkzeuge-Menü öffnet die Master-Effektkette. Die eigene Effektkette eines Decks ist über „Deck-Audioeffekte“ im Deck- oder Kontextmenü erreichbar. Jeder Dialog enthält zwei Seiten: Integrierte Effekte und VST-Plugins.
 
 ### Integrierte Effekte
 

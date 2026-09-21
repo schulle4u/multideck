@@ -118,8 +118,10 @@ class ConfigManager:
         max_count = max(VALID_DECK_RANGE)
 
         if count < min_count:
+            logger.warning(f"Deck count is too low, using {min_count}")
             return min_count
         elif count > max_count:
+            logger.warning(f"Deck count {count} exceeds the maximum deck count, using {max_count}")
             return max_count
         return count
 
@@ -278,6 +280,7 @@ class ProjectManager:
 
             # Load deck settings
             deck_count = ProjectManager._get_project_deck_count(config)
+            project_data['deck_count'] = deck_count
             project_data['decks'] = []
             for i in range(1, deck_count + 1):
                 section = f'Deck{i}'

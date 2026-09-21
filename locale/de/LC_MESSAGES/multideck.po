@@ -1520,3 +1520,33 @@ msgstr ""
 #, python-brace-format
 #~ msgid "Toggle Loop {}"
 #~ msgstr "Wiederholung für {} umschalten"
+
+msgid "New Deck"
+msgstr "Neues Deck"
+
+msgid "Delete Deck"
+msgstr "Deck löschen"
+
+msgid "Move Deck Up"
+msgstr "Deck nach oben verschieben"
+
+msgid "Move Deck Down"
+msgstr "Deck nach unten verschieben"
+
+msgid "Deck Audio Effects"
+msgstr "Deck-Audioeffekte"
+
+#, python-brace-format
+msgid "Delete deck '{}'? Its loaded source will be unloaded."
+msgstr "Deck '{}' löschen? Die geladene Quelle wird dabei entladen."
+
+#, python-brace-format
+msgid "Audio Effects: {}"
+msgstr "Audioeffekte: {}"
+
+msgid "Initial number of decks"
+msgstr "Initiale Anzahl der Decks"
+
+#, python-brace-format
+msgid "Imported {loaded} entries. {skipped} entries skipped due to load errors."
+msgstr "{loaded} Einträge importiert. {skipped} Einträge wurden wegen Ladefehlern übersprungen."

@@ -1467,3 +1467,33 @@ msgid ""
 "Invalid project file format: {}\n"
 "Expected .mdap file."
 msgstr ""
+
+msgid "New Deck"
+msgstr ""
+
+msgid "Delete Deck"
+msgstr ""
+
+msgid "Move Deck Up"
+msgstr ""
+
+msgid "Move Deck Down"
+msgstr ""
+
+msgid "Deck Audio Effects"
+msgstr ""
+
+#, python-brace-format
+msgid "Delete deck '{}'? Its loaded source will be unloaded."
+msgstr ""
+
+#, python-brace-format
+msgid "Audio Effects: {}"
+msgstr ""
+
+msgid "Initial number of decks"
+msgstr ""
+
+#, python-brace-format
+msgid "Imported {loaded} entries. {skipped} entries skipped due to load errors."
+msgstr ""
