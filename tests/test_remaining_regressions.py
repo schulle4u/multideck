@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import numpy as np
+import wx
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -91,6 +92,55 @@ class RemainingRegressionTests(unittest.TestCase):
 
         MainFrame._on_deck_listbox_select(frame, None)
         self.assertEqual(mixer.active_deck_index, 1)
+
+    def test_ctrl_space_toggles_selection_without_reaching_checkbox(self):
+        actions = []
+        deck_listbox = SimpleNamespace(
+            GetFocusedRow=lambda: 1,
+            IsSelected=lambda row: True,
+            ClearSelection=lambda: actions.append(("clear", None)),
+            SelectRow=lambda row: actions.append(("select", row)),
+        )
+        event = SimpleNamespace(
+            GetKeyCode=lambda: wx.WXK_SPACE,
+            ControlDown=lambda: True,
+            AltDown=lambda: False,
+            ShiftDown=lambda: False,
+            Skip=lambda: actions.append(("skip", None)),
+        )
+        frame = SimpleNamespace(deck_listbox=deck_listbox)
+
+        MainFrame._on_deck_listbox_key(frame, event)
+
+        self.assertEqual(actions, [("clear", None)])
+
+        actions.clear()
+        deck_listbox.IsSelected = lambda row: False
+        MainFrame._on_deck_listbox_key(frame, event)
+
+        self.assertEqual(actions, [("select", 1)])
+
+    def test_space_does_not_toggle_checkbox_for_unselected_focused_row(self):
+        actions = []
+        deck_listbox = SimpleNamespace(
+            GetFocusedRow=lambda: 1,
+            IsSelected=lambda row: False,
+        )
+        event = SimpleNamespace(
+            GetKeyCode=lambda: wx.WXK_SPACE,
+            ControlDown=lambda: False,
+            AltDown=lambda: False,
+            ShiftDown=lambda: False,
+            Skip=lambda: actions.append("skip"),
+        )
+        frame = SimpleNamespace(deck_listbox=deck_listbox)
+
+        MainFrame._on_deck_listbox_key(frame, event)
+        self.assertEqual(actions, [])
+
+        deck_listbox.IsSelected = lambda row: True
+        MainFrame._on_deck_listbox_key(frame, event)
+        self.assertEqual(actions, ["skip"])
 
     def test_move_handler_refreshes_selection_by_stable_deck_id(self):
         mixer = self._make_mixer()

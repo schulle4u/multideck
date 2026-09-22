@@ -871,6 +871,38 @@ class MainFrame(wx.Frame):
     def _on_deck_listbox_key(self, event):
         """Handle key events in deck listbox for accessibility"""
         key = event.GetKeyCode()
+        # A checkbox-enabled native ListCtrl also treats Ctrl+Space as a
+        # checkbox action. Handle the selection toggle before the control sees
+        # the key so screen readers receive the selected/unselected state
+        # change without a competing checked-state event.
+        if (
+            key == wx.WXK_SPACE
+            and event.ControlDown()
+            and not event.AltDown()
+            and not event.ShiftDown()
+        ):
+            row = self.deck_listbox.GetFocusedRow()
+            if row != wx.NOT_FOUND:
+                if self.deck_listbox.IsSelected(row):
+                    self.deck_listbox.ClearSelection()
+                else:
+                    self.deck_listbox.SelectRow(row)
+            # Don't Skip(): suppress the native checkbox handling.
+            return
+
+        # Deselecting a ListCtrl row leaves its keyboard focus on that row.
+        # Native checkbox handling would still toggle the focused row on Space,
+        # so discard an unmodified Space press unless the row is selected.
+        if (
+            key == wx.WXK_SPACE
+            and not event.ControlDown()
+            and not event.AltDown()
+            and not event.ShiftDown()
+        ):
+            row = self.deck_listbox.GetFocusedRow()
+            if row == wx.NOT_FOUND or not self.deck_listbox.IsSelected(row):
+                return
+
         # Open context menu on Enter or Application/Menu key
         # This helps VoiceOver users on macOS who can't trigger EVT_CONTEXT_MENU
         if key in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
