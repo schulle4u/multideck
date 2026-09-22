@@ -992,7 +992,6 @@ class MainFrame(wx.Frame):
             position_message = _("at position {}").format(selection + 1)
         message = _("Added {deck_name} {position} to deck list").format(deck_name=deck.name, position=position_message)
         self.tts_manager.speak(message)
-        self._rename_deck(deck)
 
     def _rename_deck(self, deck):
         """Show the naming dialog for a specific deck."""
