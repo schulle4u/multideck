@@ -983,6 +983,15 @@ class MainFrame(wx.Frame):
         self._update_deck_listbox(selected_deck_id=deck.deck_id)
         self._sync_listbox_selection(deck_index)
         self._mark_project_modified()
+        position = selection
+        if position == -1:
+            position_message = _("at last position")
+        elif position == 0:
+            position_message = _("at first position")
+        else:
+            position_message = _("at position {}").format(selection + 1)
+        message = _("Added {deck_name} {position} to deck list").format(deck_name=deck.name, position=position_message)
+        self.tts_manager.speak(message)
         self._rename_deck(deck)
 
     def _rename_deck(self, deck):
@@ -1023,6 +1032,8 @@ class MainFrame(wx.Frame):
             self._update_deck_listbox()
             self._update_active_deck_controls()
         self._mark_project_modified()
+        message = _("Deleted {}").format(deck.name)
+        self.tts_manager.speak(message)
 
     def _on_move_selected_deck(self, offset):
         """Move the selected deck by one list position."""
