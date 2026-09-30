@@ -2175,10 +2175,17 @@ class MainFrame(wx.Frame):
                 self.tts_manager.speak(message)
             # Update deck listbox selection
             self._sync_listbox_selection(deck_index)
+        else:
+            message = _("Deck not available")
+            self.tts_manager.speak(message)
+            self.SetStatusText(message, 0)
 
     def _on_next_deck(self, event):
         """Handle Ctrl+Tab for next deck"""
         if not self.mixer.decks:
+            message = _("No decks available")
+            self.tts_manager.speak(message)
+            self.SetStatusText(message, 0)
             return
         intro_started = self.mixer.next_deck(trigger_switch_event=True)
         deck_index = self.mixer.active_deck_index
@@ -2192,6 +2199,9 @@ class MainFrame(wx.Frame):
     def _on_previous_deck(self, event):
         """Handle Ctrl+Shift+Tab for previous deck"""
         if not self.mixer.decks:
+            message = _("No decks available")
+            self.tts_manager.speak(message)
+            self.SetStatusText(message, 0)
             return
         intro_started = self.mixer.previous_deck(trigger_switch_event=True)
         deck_index = self.mixer.active_deck_index
