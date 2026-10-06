@@ -95,59 +95,59 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 
 #### Datei
 
-* Neues Projekt (Ctrl+N): Erstellt ein leeres Projekt.
-* Projekt öffnen (Ctrl+O): Lädt eine bestehende Projektdatei (`*.mdap`) in den Player.
-* Projekt speichern (Ctrl+S): Einstellungen des aktuellen Projekts speichern.
-* Projekt speichern unter (Ctrl+Shift+S): Projekt unter einem anderen Namen abspeichern.
+* Neues Projekt (STRG+N): Erstellt ein leeres Projekt.
+* Projekt öffnen (STRG+O): Lädt eine bestehende Projektdatei (`*.mdap`) in den Player.
+* Projekt speichern (STRG+S): Einstellungen des aktuellen Projekts speichern.
+* Projekt speichern unter (STRG+Umschalt+S): Projekt unter einem anderen Namen abspeichern.
 * Projekteigenschaften: [Automatisierungseinstellungen](#automatisierung) des Mixers projektspezifisch anpassen.
-* M3U-Playliste importieren (Ctrl+I): Importiert eine M3U-Playliste mit Audiodateien oder URLs und verteilt sie auf freie Decks. Bei Bedarf werden automatisch weitere Decks angehängt.
-* M3U-Playliste exportieren (Ctrl+E): Exportiert die in den Decks geladenen Dateien und URLs als M3U- oder M3U8-Playliste. 
+* M3U-Playliste importieren (STRG+I): Importiert eine M3U-Playliste mit Audiodateien oder URLs und verteilt sie auf freie Decks. Bei Bedarf werden automatisch weitere Decks angehängt.
+* M3U-Playliste exportieren (STRG+E): Exportiert die in den Decks geladenen Dateien und URLs als M3U- oder M3U8-Playliste. 
 * Letzte Dateien: Enthält eine Liste der zuletzt geöffneten Dateien. Hierbei handelt es sich jedoch um die geladenen Audiodateien, nicht um die Projektdateien. Die Liste kann bei Bedarf auch gelöscht werden.
 * Beenden (Alt+F4): Beendet das Programm.
 
 #### Deck
 
-* Neues Deck (Ctrl+Shift+N): Fügt an der ausgewählten Position ein neues Deck ein. Ist kein Deck ausgewählt, wird das neue Deck am Ende der Liste erstellt.
-* Deck löschen (Shift+Entf): Entlädt und entfernt das ausgewählte Deck.
+* Neues Deck (STRG+Umschalt+N): Fügt an der ausgewählten Position ein neues Deck ein. Ist kein Deck ausgewählt, wird das neue Deck am Ende der Liste erstellt.
+* Deck löschen (Umschalt+Entf): Entlädt und entfernt das ausgewählte Deck.
 * Deck nach oben/unten verschieben: Ändert die Position des ausgewählten Decks in der Liste.
-* Datei laden (Ctrl+F): Lädt eine Audiodatei in das gewählte Deck. 
-* URL laden (Ctrl+U): Öffnet einen Internetstream im gewählten Deck.
-* Soundkarteneingang laden (Ctrl+D): Ermöglicht die Wiedergabe einer an den Computer angeschlossenen Audioquelle (Mikrofon, Line). 
+* Datei laden (STRG+F): Lädt eine Audiodatei in das gewählte Deck. 
+* URL laden (STRG+U): Öffnet einen Internetstream im gewählten Deck.
+* Soundkarteneingang laden (STRG+D): Ermöglicht die Wiedergabe einer an den Computer angeschlossenen Audioquelle (Mikrofon, Line). 
 * Introdatei festlegen: Ermöglicht das festlegen einer Intro-Audiodatei, welche beim Umschalten auf das Deck abgespielt wird.
 * Introdatei löschen: Entfernt die zuvor festgelegte Intro-Audiodatei aus dem Deck.
 * Deck umbenennen (F2): Erlaubt das Hinterlegen eines benutzerdefinierten Decknamens. 
-* Deck entladen (Del/Entf): Entfernt die auf dem gewählten Deck geladene Datei.
+* Deck entladen (Entf): Entfernt die auf dem gewählten Deck geladene Datei.
 * Deck-Audioeffekte: Konfiguriert die integrierten und VST3-Effekte des ausgewählten Decks.
-* Deckaufnahme starten (Ctrl+Shift+R): Ermöglicht eine individuelle Deckaufnahme, unabhängig vom gewählten Betriebsmodus. 
+* Deckaufnahme starten (STRG+Umschalt+R): Ermöglicht eine individuelle Deckaufnahme, unabhängig vom gewählten Betriebsmodus. 
 
 #### Wiedergabe
 
-* Wiedergabe/Pause aller Decks (Ctrl+P): Schaltet die Wiedergabe auf allen geladenen Decks um.
-* Alle Decks stoppen (CTRL+Punkt): Beendet die Wiedergabe auf allen geladenen Decks, und setzt die Zeitanzeige zurück.
-* Aktives Deck abspielen (CTRL+Shift+P): Spielt nur das in der Deckliste ausgewählte Deck ab. 
-* Aktives Deck stoppen (CTRL+Shift+Punkt): Beendet nur die Wiedergabe auf dem in der Deckliste ausgewählten Deck.
-* Stummschaltung umschalten (Ctrl+M): Schaltet das aktive Deck lautlos.
-* Wiederholung umschalten (Ctrl+L): Schaltet die Loopwiedergabe für lokale Audiodateien ein oder aus.
-* Zu Zeitmarke springen (Ctrl+J): Erlaubt das Ansteuern einer bestimmten Zeitmarke im Format `HH:MM:SS`.
+* Wiedergabe/Pause aller Decks (STRG+P): Schaltet die Wiedergabe auf allen geladenen Decks um.
+* Alle Decks stoppen (STRG+Punkt): Beendet die Wiedergabe auf allen geladenen Decks, und setzt die Zeitanzeige zurück.
+* Aktives Deck abspielen (STRG+Umschalt+P): Spielt nur das in der Deckliste ausgewählte Deck ab. 
+* Aktives Deck stoppen (STRG+Umschalt+Punkt): Beendet nur die Wiedergabe auf dem in der Deckliste ausgewählten Deck.
+* Stummschaltung umschalten (STRG+M): Schaltet das aktive Deck lautlos.
+* Wiederholung umschalten (STRG+L): Schaltet die Loopwiedergabe für lokale Audiodateien ein oder aus.
+* Zu Zeitmarke springen (STRG+J): Erlaubt das Ansteuern einer bestimmten Zeitmarke im Format `HH:MM:SS`.
 
 #### Ansicht
 
-* Statusleiste (Ctrl+T): Schaltet die Anzeige der Statusleiste um.
+* Statusleiste (STRG+T): Schaltet die Anzeige der Statusleiste um.
 * Pegelanzeige: Aktiviert oder deaktiviert die Anzeige des Lautstärkepegels im aktuellen Deck.
-* Theme wechseln (Ctrl+Shift+T): Schaltet die Programmoberfläche zwischen hellem und dunklem Theme um.
+* Theme wechseln (STRG+Umschalt+T): Schaltet die Programmoberfläche zwischen hellem und dunklem Theme um.
 
 #### Werkzeuge
 
-* Aufnahme starten/beenden (Ctrl+R): Startet die Live-Aufnahme des Ausgabemixers. Wenn in den Programmoptionen kein Ausgabeverzeichnis festgelegt wurde, fragt das Programm vor dem Starten der Aufnahme nach dem Verzeichnis zum Speichern der Datei. 
+* Aufnahme starten/beenden (STRG+R): Startet die Live-Aufnahme des Ausgabemixers. Wenn in den Programmoptionen kein Ausgabeverzeichnis festgelegt wurde, fragt das Programm vor dem Starten der Aufnahme nach dem Verzeichnis zum Speichern der Datei. 
 * Livestream starten/stoppen (F8): Startet den Livestream, um das Mixersignal an einen Icecast-Server zu senden. Zuvor müssen die Zugangsdaten in den Programmeinstellungen hinterlegt werden. 
-* Audioeffekte (Ctrl+Shift+E): Öffnet ein Fenster zum Konfigurieren der integrierten und VST3-Mastereffekte.
-* Sleep-Timer (Ctrl+Shift+I): Beendet die Wiedergabe nach der eingestellten Anzahl Minuten und fährt den Rechner falls gewünscht herunter. 
-* Optionen (Ctrl+Shift+O): Öffnet die Programmeinstellungen.
+* Audioeffekte (STRG+Umschalt+E): Öffnet ein Fenster zum Konfigurieren der integrierten und VST3-Mastereffekte.
+* Sleep-Timer (STRG+Umschalt+I): Beendet die Wiedergabe nach der eingestellten Anzahl Minuten und fährt den Rechner falls gewünscht herunter. 
+* Optionen (STRG+Umschalt+O): Öffnet die Programmeinstellungen.
 
 #### Hilfe
 
 * Dokumentation (F1): Öffnet diese Hilfedatei. Ist keine Hilfe vorhanden, wird stattdessen die Webseite des Programms geladen.
-* Webseite öffnen (Ctrl+F1): Öffnet die Webseite des Programms.
+* Webseite öffnen (STRG+F1): Öffnet die Webseite des Programms.
 * Über: Enthält Kurzinformationen zum Programm.
 
 ### Der Arbeitsbereich
@@ -169,11 +169,11 @@ Die Deckliste dient zur Auswahl des aktiven Decks. Um das Deck zu wechseln, muss
 
 * Wiedergabesteuerung: Abspielen/Pause und Stopp
 * Menü: Öffnet das Kontextmenü des gewählten Decks.
-* Lautstärke (Ctrl+Hoch/Runter): Regelt die Lautstärke des aktiven Decks.
-* Balance (Ctrl+Links/Rechts): Regelt die Balance des aktiven Decks.
-* Stumm (Ctrl+M): Schaltet das Deck lautlos.
-* Wiederholen (Ctrl+L): Schaltet die Loopwiedergabe für lokale Audiodateien ein oder aus.
-* Position (Alt+Links/Rechts): Ermöglicht das Spulen in lokalen Audiodateien. Mittels Alt+Shift+Links/Rechts kann in 30-Sekunden-Sprüngen navigiert werden.
+* Lautstärke (STRG+Hoch/Runter): Regelt die Lautstärke des aktiven Decks.
+* Balance (STRG+Links/Rechts): Regelt die Balance des aktiven Decks.
+* Stumm (STRG+M): Schaltet das Deck lautlos.
+* Wiederholen (STRG+L): Schaltet die Loopwiedergabe für lokale Audiodateien ein oder aus.
+* Position (Alt+Links/Rechts): Ermöglicht das Spulen in lokalen Audiodateien. Mittels Alt+Umschalt+Links/Rechts kann in 30-Sekunden-Sprüngen navigiert werden.
 * Pegel: Enthält eine visuelle Darstellung des Lautstärkepegels sowie die Angabe in dB. 
 
 ### Statusleiste
@@ -186,7 +186,7 @@ Die Statusleiste ist in 3 Bereiche aufgeteilt:
 
 ## Programmoptionen
 
-Die Optionen sind über das Menü Werkzeuge oder mittels Ctrl+Shift+O aufrufbar. Über die Kategorieliste können die einzelnen Einstellungsseiten angewählt werden. Die Schaltfläche „OK” speichert sämtliche Einstellungen und schließt den Dialog, während die Übernehmen-Schaltfläche nur die Einstellungen der aktuellen Kategorie speichert und den Dialog geöffnet lässt. Einige Optionen erfordern möglicherweise einen Neustart des Programms, worauf beim Speichern hingewiesen wird. 
+Die Optionen sind über das Menü Werkzeuge oder mittels STRG+Umschalt+O aufrufbar. Über die Kategorieliste können die einzelnen Einstellungsseiten angewählt werden. Die Schaltfläche „OK” speichert sämtliche Einstellungen und schließt den Dialog, während die Übernehmen-Schaltfläche nur die Einstellungen der aktuellen Kategorie speichert und den Dialog geöffnet lässt. Einige Optionen erfordern möglicherweise einen Neustart des Programms, worauf beim Speichern hingewiesen wird. 
 
 ### Allgemein
 
