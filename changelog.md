@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.9.0 (Vogelzug)] - 2026-10-06
+
+* The deck list is now fully dynamic, supporting the creation, movement and deletion of decks in real time.
+* Effect chains have been reorganised into master and per-deck dialogues. Master effects can still be accessed from the Tools menu, whereas per-deck effects can be found in the Deck menu.
+* Status and TTS messages have been added for deck creation, unavailable decks, and an empty deck list.
+* Fixed the issue of the spacebar play/pause event being triggered when no deck was selected but still focused. 
+
 ## [v0.8.0 (Regentonne)] - 2026-09-16
 
 * Replace three dots with Ellipsis in menus
