@@ -107,7 +107,7 @@ The program window largely follows a standard layout, consisting of a menu bar, 
 
 #### Deck
 
-* New Deck (Ctrl+Shift+N): Inserts a new deck at the selected position and opens the naming dialog.
+* New Deck (Ctrl+Shift+N): Inserts a new deck at the selected position, last position if no deck is selected.
 * Delete Deck (Shift+Del): Unloads and removes the selected deck.
 * Move Deck Up/Down: Changes the selected deck's position in the list.
 * Load File (Ctrl+F): Loads an audio file into the selected deck.
@@ -297,7 +297,7 @@ To avoid having to manually reload all decks every time the player is opened, Mu
 * Deck contents: Name, loaded file/URL/sound input, multiroom device, volume/balance, mute, and loop
 * Loaded effects with all parameters, if any
 
-Changes in the mixer and the deck list are automatically detected by the player and indicated by an asterisk in the title bar as unsaved project changes. When closing the player, the program will ask whether the changes should be saved. The applied effects currently need to be saved manually, but triggering the save function from the File menu (Ctrl+S) is sufficient for this purpose.
+Changes in the mixer and the deck list are automatically detected by the player and indicated by an asterisk in the title bar as unsaved project changes. When closing the player, the program will ask whether the changes should be saved. 
 
 ## Further Reading
 

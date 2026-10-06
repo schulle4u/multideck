@@ -107,7 +107,7 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 
 #### Deck
 
-* Neues Deck (Ctrl+Shift+N): Fügt an der ausgewählten Position ein neues Deck ein und öffnet den Dialog zum Benennen.
+* Neues Deck (Ctrl+Shift+N): Fügt an der ausgewählten Position ein neues Deck ein. Ist kein Deck ausgewählt, wird das neue Deck am Ende der Liste erstellt.
 * Deck löschen (Shift+Entf): Entlädt und entfernt das ausgewählte Deck.
 * Deck nach oben/unten verschieben: Ändert die Position des ausgewählten Decks in der Liste.
 * Datei laden (Ctrl+F): Lädt eine Audiodatei in das gewählte Deck. 
@@ -297,7 +297,7 @@ Um nicht bei jedem Öffnen des Players alle Decks manuell neu laden zu müssen, 
 * Deck-Inhalte: Name, geladene Datei/URL/Soundeingang, Multiroom-Geräte, Lautstärke/Balance, Stummschaltung und Wiederholung.
 * Geladene Effekte mit allen Parametern, sofern zutreffend
 
-Veränderungen im Mixer sowie der Deckliste werden vom Player automatisch erkannt und durch einen Stern in der Titelleiste als nicht gespeicherte Änderung am Projekt gekennzeichnet. Beim Schließen des Players fragt das Programm, ob die Änderungen übernommen werden sollen. Die angewendeten Effekte müssen momentan manuell gespeichert werden, hierzu reicht aber das Auslösen der Speicherfunktion im Datei-Menü (Ctrl+S). 
+Veränderungen im Mixer sowie der Deckliste werden vom Player automatisch erkannt und durch einen Stern in der Titelleiste als nicht gespeicherte Änderung am Projekt gekennzeichnet. Beim Schließen des Players fragt das Programm, ob die Änderungen übernommen werden sollen.  
 
 ## Weiterführende Links
 
