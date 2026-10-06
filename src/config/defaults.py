@@ -157,9 +157,9 @@ VALID_DECK_RANGE = [1, 128]
 
 # Application info
 APP_NAME = 'MultiDeck Audio Player'
-APP_VERSION = '0.8.0'
-APP_BUNDLE_ID = 'com.multideck.audioplayer'
-APP_CODE_NAME = 'Regentonne'
+APP_VERSION = '0.9.0'
+APP_BUNDLE_ID = 'dev.m45.multideck'
+APP_CODE_NAME = 'Vogelzug'
 APP_AUTHOR = 'Steffen Schultz'
 APP_WEBSITE = 'https://m45.dev'
 APP_LICENSE = 'MIT License'
