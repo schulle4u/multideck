@@ -163,7 +163,9 @@ Im linken Bereich des Fensters befinden sich die Auswahl des Betriebsmodus, die 
 
 #### Deckliste
 
-Die Deckliste dient zur Auswahl des aktiven Decks. Um das Deck zu wechseln, muss es lediglich mit den Pfeiltasten oder der Maus ausgewählt werden. Neben dem Decknamen wird der geladene Inhalt angezeigt sowie der Aufnahmestatus und das gewählte Ausgabegerät. Über das Kontextmenü stehen  die Funktionen aus dem Deckmenü sowie zum Ändern des Ausgabegeräts zur Verfügung: 
+Die Deckliste dient zur Auswahl des aktiven Decks. Um das Deck zu wechseln, muss es lediglich mit den Pfeiltasten oder der Maus ausgewählt werden. Neben dem Decknamen wird der geladene Inhalt angezeigt sowie der Aufnahmestatus und das gewählte Ausgabegerät. Über das Kontextmenü stehen  die Funktionen aus dem Deckmenü sowie zum Ändern des Ausgabegeräts zur Verfügung. 
+
+Auch bei nicht fokussierter Deckliste besteht die Möglichkeit, das aktive Deck zu wechseln. Mit STRG+Tab bzw. STRG+Umschalt+Tab schaltet man zum nächsten bzw. vorherigen Deck. Darüber hinaus kann man mit den Tasten 1 bis 0 auf der Ziffernreihe eines der ersten 10 Decks auswählen. Mit gedrückter Umschalttaste gelangt man zu den Decks 11 bis 20.
 
 #### Steuerung für aktives Deck
 

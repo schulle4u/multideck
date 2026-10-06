@@ -165,6 +165,8 @@ The left area of the window contains the operating mode selector, the global pla
 
 The deck list is used to select the active deck. To switch between decks, simply select one using the arrow keys or the mouse. The loaded content is displayed next to the deck name, along with status information and output device. 
 
+Even when a deck list is not selected, you can still switch to a different active deck. Use CTRL+Tab or CTRL+Shift+Tab to switch to the next or previous deck, respectively. You can also use the keys 1 through 0 on the number row to select one of the first 10 decks. Hold down the Shift key to access decks 11 through 20.
+
 #### Active Deck Controls
 
 * Playback controls: Play/Pause and Stop
