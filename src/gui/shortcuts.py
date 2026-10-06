@@ -12,7 +12,7 @@ def setup_keyboard_shortcuts(owner):
     """Setup keyboard accelerators"""
     accel_entries = []
 
-    # Ctrl+1 to Ctrl+0 for deck selection, Ctrl + Alt if more than 10 decks
+    # 1 to 0 for deck selection, Shift if more than 10 decks
     for i in range(1, 21):
         digit = i % 10
         key = ord(str(digit)) if digit != 0 else ord('0')

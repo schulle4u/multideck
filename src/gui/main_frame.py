@@ -2165,7 +2165,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, handler, id=accel_id)
 
     def _on_deck_shortcut(self, deck_index):
-        """Handle Ctrl+N deck shortcut"""
+        """Handle number row deck shortcut"""
         if deck_index < len(self.mixer.decks):
             intro_started = self.mixer.set_active_deck(deck_index, trigger_switch_event=True)
             deck = self.mixer.decks[deck_index]
