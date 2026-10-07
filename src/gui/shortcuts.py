@@ -17,7 +17,7 @@ def setup_keyboard_shortcuts(owner):
         digit = i % 10
         key = ord(str(digit)) if digit != 0 else ord('0')
         if i <= 10:
-            modifiers = wx.WXK_NONE
+            modifiers = wx.ACCEL_NORMAL
         else:
             modifiers = wx.ACCEL_SHIFT
         owner._add_keyboard_shortcut(
