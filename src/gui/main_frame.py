@@ -972,7 +972,7 @@ class MainFrame(wx.Frame):
         menu.Destroy()
 
     def _on_new_deck(self, event=None):
-        """Insert a new deck at the selected position and offer to name it."""
+        """Insert a new deck at the selected position."""
         selection = self.deck_listbox.GetSelectedRow()
         insert_at = None if selection == wx.NOT_FOUND else selection
         deck = self.mixer.create_deck(insert_at)
