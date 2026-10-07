@@ -1,6 +1,6 @@
 # Changelog
 
-## [v0.9.0 (Vogelzug)] - 2026-10-06
+## [v0.9.0 (Vogelzug)] - 2026-10-07
 
 * The deck list is now fully dynamic, supporting the creation, movement and deletion of decks in real time.
 * Effect chains have been reorganised into master and per-deck dialogues. Master effects can still be accessed from the Tools menu, whereas per-deck effects can be found in the Deck menu.
