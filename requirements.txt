@@ -17,8 +17,7 @@ configparser>=7.2.0
 numpy>=2.5.3
 
 # Audio Effects
-# V0.9.24 causes Illegal Instructions on linux machines, therefore we stay at 0.9.23 for the moment
-pedalboard==0.9.23
+pedalboard>=0.9.26
 
 # Text-to-speech and screen reader announcement support
 prismatoid>=0.18.2

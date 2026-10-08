@@ -40,7 +40,7 @@ classifiers = [
 dependencies = [
     "configparser>=7.2.0",
     "numpy>=2.5.3",
-    "pedalboard==0.9.23",
+    "pedalboard>=0.9.26",
     "prismatoid>=0.18.2",
     "sounddevice>=0.5.6",
     "soundfile>=0.14.0",
