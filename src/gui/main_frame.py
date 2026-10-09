@@ -1256,11 +1256,13 @@ class MainFrame(wx.Frame):
         if deck and deck.can_seek():
             deck.seek_relative(5.0)
             self._update_position_display(deck)
-            self.SetStatusText(_("{}: {} / {}").format(
+            message = _("{}: {} / {}").format(
                 deck.name,
                 format_time(deck.get_position_seconds()),
                 format_time(self.mixer.get_deck_duration_seconds(deck))
-            ), 0)
+            )
+            self.SetStatusText(message, 0)
+            self.tts_manager.speak(message)
 
     def _on_seek_backward(self, event):
         """Seek backward 5 seconds"""
@@ -1268,11 +1270,13 @@ class MainFrame(wx.Frame):
         if deck and deck.can_seek():
             deck.seek_relative(-5.0)
             self._update_position_display(deck)
-            self.SetStatusText(_("{}: {} / {}").format(
+            message = _("{}: {} / {}").format(
                 deck.name,
                 format_time(deck.get_position_seconds()),
                 format_time(self.mixer.get_deck_duration_seconds(deck))
-            ), 0)
+            )
+            self.SetStatusText(message, 0)
+            self.tts_manager.speak(message)
 
     def _on_seek_forward_large(self, event):
         """Seek forward 30 seconds"""
@@ -1280,6 +1284,13 @@ class MainFrame(wx.Frame):
         if deck and deck.can_seek():
             deck.seek_relative(30.0)
             self._update_position_display(deck)
+            message = _("{}: {} / {}").format(
+                deck.name,
+                format_time(deck.get_position_seconds()),
+                format_time(self.mixer.get_deck_duration_seconds(deck))
+            )
+            self.SetStatusText(message, 0)
+            self.tts_manager.speak(message)
 
     def _on_seek_backward_large(self, event):
         """Seek backward 30 seconds"""
@@ -1287,6 +1298,13 @@ class MainFrame(wx.Frame):
         if deck and deck.can_seek():
             deck.seek_relative(-30.0)
             self._update_position_display(deck)
+            message = _("{}: {} / {}").format(
+                deck.name,
+                format_time(deck.get_position_seconds()),
+                format_time(self.mixer.get_deck_duration_seconds(deck))
+            )
+            self.SetStatusText(message, 0)
+            self.tts_manager.speak(message)
 
     def _on_jump_to_time(self, event):
         """Show dialog to jump to specific timecode"""
@@ -2276,6 +2294,7 @@ class MainFrame(wx.Frame):
             self.active_volume_slider.SetValue(new_value)
             self._update_deck_panel(deck.deck_id)
             self.SetStatusText(_("{}: Volume {}%").format(deck.name, new_value), 0)
+            self.tts_manager.speak(_("Deck volume {}%").format(new_value))
 
     def _on_deck_balance_change(self, delta):
         """Handle Ctrl+Left/Right for deck balance change"""
@@ -2290,6 +2309,7 @@ class MainFrame(wx.Frame):
                 _("Left {}%").format(abs(new_value)) if new_value < 0 else _("Right {}%").format(new_value)
             )
             self.SetStatusText(_("{}: Balance {}").format(deck.name, balance_text), 0)
+            self.tts_manager.speak(_("Deck balance {}").format(balance_text))
 
     def _on_master_volume_shortcut(self, delta):
         """Handle Ctrl+Shift+Up/Down for master volume change"""
@@ -2299,6 +2319,7 @@ class MainFrame(wx.Frame):
         self._set_master_volume_value_label(new_value)
         self.mixer.set_master_volume(new_value / 100.0)
         self.SetStatusText(f"{_('Master')}: {new_value}%", 2)
+        self.tts_manager.speak(_("Master volume {}%").format(new_value))
 
     def _on_toggle_recording(self, event):
         """Handle Ctrl+R for recording toggle"""
