@@ -342,6 +342,85 @@ class RemainingRegressionTests(unittest.TestCase):
         self.assertTrue(finished.is_set())
         self.assertEqual(recorder._pre_roll_frames_count, 2)
 
+    def test_deck_recording_without_playback_requires_confirmation(self):
+        deck = Deck(1)
+        deck.name = "Speech"
+        starts = []
+        mixer = SimpleNamespace(
+            is_deck_recording=lambda _deck_id: False,
+            set_recorder_config=lambda _config: self.fail(
+                "recorder must not be configured after declining"
+            ),
+            start_deck_recording=lambda deck_id, output_dir: starts.append(
+                (deck_id, output_dir)
+            ),
+        )
+        frame = SimpleNamespace(
+            mixer=mixer,
+            config_manager=SimpleNamespace(
+                get=lambda section, option, default='': "recordings"
+            ),
+        )
+
+        with mock.patch("gui.main_frame.wx.MessageBox", return_value=wx.NO) as message_box:
+            MainFrame._on_toggle_deck_recording(frame, deck)
+
+        self.assertEqual(starts, [])
+        self.assertIn("No preceding silence", message_box.call_args.args[0])
+        self.assertTrue(message_box.call_args.args[2] & wx.YES_NO)
+
+    def test_deck_recording_confirmation_can_start_recording(self):
+        deck = Deck(1)
+        deck.name = "Speech"
+        calls = []
+        mixer = SimpleNamespace(
+            is_deck_recording=lambda _deck_id: False,
+            set_recorder_config=lambda config: calls.append(("config", config)),
+            start_deck_recording=lambda deck_id, output_dir: calls.append(
+                ("start", deck_id, output_dir)
+            ) or True,
+        )
+        frame = SimpleNamespace(
+            mixer=mixer,
+            config_manager=SimpleNamespace(
+                get=lambda section, option, default='': "recordings"
+            ),
+            _get_recorder_config=lambda: {"format": "wav"},
+        )
+
+        with mock.patch("gui.main_frame.wx.MessageBox", return_value=wx.YES):
+            MainFrame._on_toggle_deck_recording(frame, deck)
+
+        self.assertEqual(
+            calls,
+            [("config", {"format": "wav"}), ("start", deck.deck_id, "recordings")],
+        )
+
+    def test_playing_deck_recording_starts_without_confirmation(self):
+        deck = Deck(1)
+        deck.is_playing = True
+        starts = []
+        mixer = SimpleNamespace(
+            is_deck_recording=lambda _deck_id: False,
+            set_recorder_config=lambda _config: None,
+            start_deck_recording=lambda deck_id, output_dir: starts.append(
+                (deck_id, output_dir)
+            ) or True,
+        )
+        frame = SimpleNamespace(
+            mixer=mixer,
+            config_manager=SimpleNamespace(
+                get=lambda section, option, default='': "recordings"
+            ),
+            _get_recorder_config=lambda: {},
+        )
+
+        with mock.patch("gui.main_frame.wx.MessageBox") as message_box:
+            MainFrame._on_toggle_deck_recording(frame, deck)
+
+        message_box.assert_not_called()
+        self.assertEqual(starts, [(deck.deck_id, "recordings")])
+
     def test_livestream_audio_submission_never_waits_for_control_lock(self):
         streamer = IcecastStreamer(config={})
         streamer.is_streaming = True

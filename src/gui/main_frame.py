@@ -2485,6 +2485,19 @@ class MainFrame(wx.Frame):
         if self.mixer.is_deck_recording(deck.deck_id):
             self.mixer.stop_deck_recording(deck.deck_id)
         else:
+            if not deck.is_playing:
+                result = wx.MessageBox(
+                    _(
+                        "Playback for '{}' has not started yet. The recording will only "
+                        "contain audio once deck playback starts. No preceding silence "
+                        "will be recorded.\n\nStart recording anyway?"
+                    ).format(deck.name),
+                    _("Deck Playback Not Started"),
+                    wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING,
+                )
+                if result != wx.YES:
+                    return
+
             output_dir = self.config_manager.get('Recorder', 'output_directory', '')
             if not output_dir:
                 dlg = wx.DirDialog(self, _("Choose recording output directory"))
