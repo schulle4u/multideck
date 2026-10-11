@@ -2293,8 +2293,10 @@ class MainFrame(wx.Frame):
             deck.set_volume(new_value / 100.0)
             self.active_volume_slider.SetValue(new_value)
             self._update_deck_panel(deck.deck_id)
-            self.SetStatusText(_("{}: Volume {}%").format(deck.name, new_value), 0)
-            self.tts_manager.speak(_("Deck volume {}%").format(new_value))
+            self._mark_project_modified()
+            message = _("{}: Volume {}%").format(deck.name, new_value)
+            self.SetStatusText(message, 0)
+            self.tts_manager.speak(message)
 
     def _on_deck_balance_change(self, delta):
         """Handle Ctrl+Left/Right for deck balance change"""
@@ -2305,11 +2307,13 @@ class MainFrame(wx.Frame):
             deck.set_balance(new_value / 100.0)
             self.active_balance_slider.SetValue(new_value)
             self._update_deck_panel(deck.deck_id)
+            self._mark_project_modified()
             balance_text = _("Center") if new_value == 0 else (
                 _("Left {}%").format(abs(new_value)) if new_value < 0 else _("Right {}%").format(new_value)
             )
-            self.SetStatusText(_("{}: Balance {}").format(deck.name, balance_text), 0)
-            self.tts_manager.speak(_("Deck balance {}").format(balance_text))
+            message = _("{}: Balance {}").format(deck.name, balance_text)
+            self.SetStatusText(message, 0)
+            self.tts_manager.speak(message)
 
     def _on_master_volume_shortcut(self, delta):
         """Handle Ctrl+Shift+Up/Down for master volume change"""
@@ -2318,8 +2322,10 @@ class MainFrame(wx.Frame):
         self.master_volume_slider.SetValue(new_value)
         self._set_master_volume_value_label(new_value)
         self.mixer.set_master_volume(new_value / 100.0)
-        self.SetStatusText(f"{_('Master')}: {new_value}%", 2)
-        self.tts_manager.speak(_("Master volume {}%").format(new_value))
+        self._mark_project_modified()
+        message = f"{_('Master')}: {new_value}%"
+        self.SetStatusText(message, 2)
+        self.tts_manager.speak(message)
 
     def _on_toggle_recording(self, event):
         """Handle Ctrl+R for recording toggle"""
