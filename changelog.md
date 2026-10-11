@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+* In solo and automatic mode, advance every non-audible deck to ensure that switching decks does not resume from a stale position.
+* Mark the project as modified when pressing volume and balance shortcuts.
+* Speak volume and balance slider status messages when hotkeys are pressed.
+
 ## [v0.9.0 (Vogelzug)] - 2026-10-07
 
 * The deck list is now fully dynamic, supporting the creation, movement and deletion of decks in real time.
