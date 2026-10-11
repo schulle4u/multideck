@@ -528,8 +528,10 @@ class Mixer:
                     result = audio
                 handled_deck_ids.add(deck.deck_id)
 
-        # Feed recorders for non-active playing decks that have active recorders
-        self._feed_non_active_deck_recorders(frames, handled_deck_ids)
+        # Advance every non-audible deck so switching decks does not resume from
+        # a stale position. Their audio is rendered for state/recording purposes
+        # but deliberately left out of the audible solo mix.
+        self._advance_non_audible_decks(frames, handled_deck_ids)
 
         return result
 
@@ -575,8 +577,9 @@ class Mixer:
                 self._feed_deck_recorder(to_deck.deck_id, to_audio)
             handled_deck_ids.add(to_deck.deck_id)
 
-        # Feed recorders for non-active playing decks that have active recorders
-        self._feed_non_active_deck_recorders(frames, handled_deck_ids)
+        # Keep all other playing decks in sync while the crossfade decks are
+        # the only ones included in the audible output.
+        self._advance_non_audible_decks(frames, handled_deck_ids)
 
         # Create output buffer
         output = self.audio_engine.create_silence(frames)
@@ -923,21 +926,22 @@ class Mixer:
             except Exception as e:
                 logger.error(f"Error feeding deck {deck_id} recorder: {e}")
 
-    def _feed_non_active_deck_recorders(self, frames: int, exclude_deck_ids: set):
+    def _advance_non_audible_decks(self, frames: int, exclude_deck_ids: set):
         """
-        Generate and feed audio for decks that are playing but not part of the
-        current audible output (e.g. non-active decks in solo mode).
-        Also generates audio for level metering when level-based switching is active.
+        Advance playing decks that are not part of the current audible output.
+
+        Rendering and discarding these blocks keeps playback positions, streams,
+        effects, level meters, and optional per-deck recorders current while solo
+        and automatic modes keep those decks inaudible.
 
         Args:
             frames: Number of frames to generate
             exclude_deck_ids: Set of deck IDs already handled
         """
-        need_levels = self.level_switch_enabled and self.mode == MODE_AUTOMATIC
         for deck in self.deck_snapshot():
             if deck.deck_id in exclude_deck_ids:
                 continue
-            if deck.is_playing and (deck.deck_id in self.deck_recorders or need_levels):
+            if deck.is_playing:
                 audio = self._get_deck_audio(deck, frames)
                 if audio is not None:
                     self._feed_deck_recorder(deck.deck_id, audio)

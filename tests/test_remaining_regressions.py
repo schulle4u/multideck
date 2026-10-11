@@ -28,12 +28,36 @@ class RemainingRegressionTests(unittest.TestCase):
             sample_rate=48000,
             buffer_size=512,
             device=None,
+            create_silence=lambda frames: np.zeros((frames, 2), dtype=np.float32),
             start_stream=lambda callback: running.update(value=True),
             stop_stream=lambda: running.update(value=False),
             is_running=lambda: running["value"],
             is_null_output_device=lambda: False,
         )
         return Mixer(engine, num_decks=deck_count)
+
+    def test_solo_mode_advances_non_active_playing_decks_without_mixing_them(self):
+        mixer = self._make_mixer()
+        mixer.active_deck_index = 0
+        for deck in mixer.decks:
+            deck.is_playing = True
+
+        rendered_ids = []
+
+        def render(deck, frames):
+            rendered_ids.append(deck.deck_id)
+            return np.full((frames, 2), deck.deck_id, dtype=np.float32)
+
+        mixer._get_deck_audio = render
+        mixer._feed_deck_recorder = mock.Mock()
+
+        result = mixer._generate_solo_mode(4)
+
+        self.assertEqual(rendered_ids, [deck.deck_id for deck in mixer.decks])
+        np.testing.assert_array_equal(
+            result,
+            np.full((4, 2), mixer.decks[0].deck_id, dtype=np.float32),
+        )
 
     def test_dynamic_decks_keep_identity_when_inserted_and_moved(self):
         mixer = self._make_mixer()
