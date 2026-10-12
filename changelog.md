@@ -1,11 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [V0.9.1 (Kartoffelsalat) - 2026-10-12]
 
+* Added full license text to about box
 * Warn the user when trying to record a deck for which the playback hasn't started yet.
 * In solo and automatic mode, advance every non-audible deck to ensure that switching decks does not resume from a stale position.
 * Mark the project as modified when pressing volume and balance shortcuts.
-* Speak volume and balance slider status messages when hotkeys are pressed.
+* Speak volume and balance slider status messages when shortcuts are pressed.
 
 ## [v0.9.0 (Vogelzug)] - 2026-10-07
 
