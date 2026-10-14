@@ -37,7 +37,7 @@ An accessible, cross-platform audio player that enables simultaneous playback of
 
 ### Prerequisites
 
-- Python 3.10 or higher (compatible with Python 3.14+)
+- Python 3.10 or higher (compatible with Python 3.15+)
 - FFmpeg (for MP3 support and internet streaming)
 
 #### Installing FFmpeg
@@ -137,12 +137,12 @@ tools/                         # Development helpers
 
 ## Requirements
 
-- Python 3.10+ (compatible with Python 3.14+)
-- wxPython 4.3.0+
+- Python 3.10+ (compatible with Python 3.15+)
+- wxPython 4.3.2+
 - [M45wxControls](https://github.com/schulle4u/m45wxcontrols)
-- sounddevice 0.4.6+
-- soundfile 0.12.1+
-- numpy 1.24.0+
+- sounddevice 0.5.6+
+- soundfile 0.14.0+
+- numpy 2.5.4+
 - FFmpeg (external tool, must be in PATH)
 
 ## License
