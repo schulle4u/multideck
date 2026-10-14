@@ -51,17 +51,17 @@ class MultiDeckApp(wx.App):
             wx_language = wx.LANGUAGE_DEFAULT
             gettext_language = None
             system_language = get_i18n().language
-            logger.debug("Detected system language: " + str(system_language))
+            logger.debug(f"Detected system language: {str(system_language)}")
         else:
             info = wx.Locale.FindLanguageInfo(language.replace("-", "_"))
             wx_language = info.Language if info else wx.LANGUAGE_DEFAULT
             gettext_language = language.split("_", 1)[0]
-            logger.debug("Language set to: " + str(gettext_language))
+            logger.debug(f"Language set to: {str(gettext_language)}")
 
         # Add locale directory in case wxstd.mo is not avalable in wx packages
         locale_dir = I18n.get_locale_dir(self)
         wx.Locale.AddCatalogLookupPathPrefix(str(locale_dir))
-        logger.debug("Looking for additional language files at " + str(locale_dir))
+        logger.debug(f"Looking for additional language files at {str(locale_dir)}")
 
         self.locale = wx.Locale(wx_language)
         if not self.locale.IsOk():
@@ -74,6 +74,7 @@ class MultiDeckApp(wx.App):
         # Create and show main frame
         self.frame = MainFrame()
         self.frame.Show()
+        logger.debug(f"GUI loaded using wxPython v{wx.__version__}")
 
         # An explicitly supplied project takes precedence over the remembered one.
         if not self.project_file:

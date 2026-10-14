@@ -30,6 +30,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.15",
     "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.12",
@@ -39,19 +40,19 @@ classifiers = [
 ]
 dependencies = [
     "configparser>=7.2.0",
-    "numpy>=2.5.3",
+    "numpy>=2.5.4",
     "pedalboard>=0.9.26",
-    "prismatoid>=0.18.2",
+    "prismatoid>=0.18.3",
     "sounddevice>=0.5.6",
     "soundfile>=0.14.0",
-    "wxPython>=4.3.1",
+    "wxPython>=4.3.2",
     "m45wxcontrols @ https://github.com/schulle4u/m45wxcontrols/releases/download/v0.3.0/m45wxcontrols-0.3.0-py3-none-any.whl",
 ]
 
 [project.optional-dependencies]
 build = [
     "pyinstaller>=6.22.3",
-    "markdown>=3.10.3",
+    "markdown>=3.11",
     "pillow>=12.3.0",
 ]
 
