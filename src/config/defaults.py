@@ -28,7 +28,7 @@ DEFAULT_CONFIG = {
         'show_statusbar': True,
         'show_level_meter': True,
         'deck_list_focus': True,
-        'force_dataview': False,
+        'deck_list_type': 'auto',
         'window_width': 1200,
         'window_height': 800,
     },

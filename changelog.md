@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+* The hidden setting `force_dataview` has been replaced with `deck_list_type`, which allows you to select your desired deck list control directly.
+
 ## [V0.9.1 (Kartoffelsalat) - 2026-10-12]
 
 * Added full license text to about box
