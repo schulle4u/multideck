@@ -469,60 +469,6 @@ class EffectsDialog(wx.Dialog):
             state['listbox'].SetSelection(new_idx)
             self._on_vst_selected(state, effect_chain, chain_name)
 
-    def _on_vst_add(self, state, effect_chain, chain_name, parent):
-        wildcard = (
-            "VST3 Plugins (*.vst3)|*.vst3"
-            "|AU Plugins (*.component)|*.component"
-            "|All Files (*.*)|*.*"
-        )
-        dlg = wx.FileDialog(
-            self, _("Load VST Plugin"),
-            wildcard=wildcard,
-            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
-        )
-        if dlg.ShowModal() != wx.ID_OK:
-            dlg.Destroy()
-            return
-        path = dlg.GetPath()
-        dlg.Destroy()
-
-        # pedalboard's load_plugin() must run on the main (UI) thread because
-        # JUCE's VST3 host initialisation requires it, especially for reloads.
-        # A background thread cannot be used here.
-        #
-        # wx.SafeYield() processes all pending paint/accessibility events so
-        # that the loading label and busy cursor are rendered before the
-        # blocking call freezes the GUI. This gives the user visible feedback.
-        plugin_filename = os.path.basename(path)
-        state['load_status'].SetLabel(_("Loading {}…").format(plugin_filename))
-        state['load_status'].Show(True)
-        state['mgmt_panel'].Layout()
-        state['add_btn'].Disable()
-        wx.BeginBusyCursor()
-        wx.SafeYield(None, True)
-
-        try:
-            error = effect_chain.add_vst(path)
-        finally:
-            wx.EndBusyCursor()
-            state['load_status'].SetLabel("")
-            state['load_status'].Show(False)
-            state['mgmt_panel'].Layout()
-            state['add_btn'].Enable()
-            self._update_vst_buttons(state, effect_chain)
-
-        if error:
-            wx.MessageBox(
-                _("Failed to load VST plugin:\n{}").format(error),
-                _("VST Load Error"),
-                wx.OK | wx.ICON_ERROR,
-            )
-        else:
-            self._refresh_vst_list(state, effect_chain)
-            new_idx = len(effect_chain.vst_slots) - 1
-            state['listbox'].SetSelection(new_idx)
-            self._on_vst_selected(state, effect_chain, chain_name)
-
     def _on_vst_remove(self, state, effect_chain, chain_name):
         idx = state['listbox'].GetSelection()
         if idx == wx.NOT_FOUND:

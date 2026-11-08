@@ -54,8 +54,6 @@ class StreamHandler:
 
         # Metadata
         self.stream_title = ""
-        self.stream_genre = ""
-        self.stream_bitrate = ""
 
         # FFmpeg process
         self._ffmpeg_process: Optional[subprocess.Popen] = None
@@ -308,16 +306,6 @@ class StreamHandler:
             logger.error(f"Error getting stream audio data: {e}")
             return np.zeros((num_samples, 2), dtype=np.float32)
 
-    def has_data(self) -> bool:
-        """Check if buffer has data"""
-        with self.buffer_lock:
-            return len(self.decoded_buffer) > 0
-
-    def clear_buffer(self):
-        """Clear audio buffer"""
-        with self.buffer_lock:
-            self.decoded_buffer.clear()
-
     def set_reconnect_settings(self, auto_reconnect: bool = True,
                                reconnect_wait: int = 5,
                                max_attempts: int = 5):
@@ -332,27 +320,6 @@ class StreamHandler:
         self.auto_reconnect = auto_reconnect
         self.reconnect_wait = reconnect_wait
         self.max_reconnect_attempts = max_attempts
-
-    def get_status(self) -> dict:
-        """
-        Get stream status.
-
-        Returns:
-            Status dictionary
-        """
-        with self.buffer_lock:
-            buffer_samples = sum(len(chunk) for chunk in self.decoded_buffer)
-
-        return {
-            'url': self.url,
-            'connected': self.is_connected,
-            'running': self.is_running,
-            'title': self.stream_title,
-            'genre': self.stream_genre,
-            'bitrate': self.stream_bitrate,
-            'buffer_samples': buffer_samples,
-            'buffer_seconds': buffer_samples / self.sample_rate if self.sample_rate > 0 else 0,
-        }
 
     def __del__(self):
         """Cleanup on deletion"""

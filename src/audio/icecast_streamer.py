@@ -345,22 +345,5 @@ class IcecastStreamer:
             except queue.Full:
                 self.frames_dropped += len(chunk)
 
-    def get_stream_info(self) -> dict:
-        return {
-            'is_streaming': self.is_streaming,
-            'stream_url': self.get_public_stream_url(),
-            'codec': self.config.get('codec', 'mp3'),
-            'bitrate': self.config.get('bitrate', 192),
-            'frames_streamed': self.frames_streamed,
-            'frames_dropped': self.frames_dropped,
-            'auto_reconnect': self.config.get('auto_reconnect', True),
-            'reconnect_wait': self.config.get('reconnect_wait', 5),
-            'queue_blocks': self.config.get('queue_blocks', 64),
-            'writer_poll_ms': self.config.get('writer_poll_ms', 100),
-            'ffmpeg_close_timeout': self.config.get('ffmpeg_close_timeout', 5.0),
-            'ffmpeg_loglevel': self.config.get('ffmpeg_loglevel', 'error'),
-            'last_error': self.last_error,
-        }
-
     def __del__(self):
         self.stop_streaming(notify=False)

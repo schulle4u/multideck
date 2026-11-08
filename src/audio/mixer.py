@@ -1197,19 +1197,6 @@ class Mixer:
         # Fallback to deck's own audio_data
         return deck.get_duration_seconds()
 
-    def seek_deck(self, deck_index: int, position_seconds: float):
-        """
-        Seek a deck to a specific position.
-
-        Args:
-            deck_index: Deck index (0-based)
-            position_seconds: Target position in seconds
-        """
-        if 0 <= deck_index < len(self.decks):
-            deck = self.decks[deck_index]
-            if not deck.is_stream:
-                deck.seek(position_seconds)
-
     def ensure_deck_loaded(self, deck: Deck) -> bool:
         """
         Ensure audio data is loaded for a deck before playback.
@@ -1243,12 +1230,6 @@ class Mixer:
                 )
 
         return False
-
-    def preload_all_decks(self):
-        """Preload audio for all decks that have files loaded"""
-        for deck in self.deck_snapshot():
-            if deck.file_path and not deck.is_stream:
-                self.ensure_deck_loaded(deck)
 
     def play_all(self):
         """Start playback on all loaded decks"""

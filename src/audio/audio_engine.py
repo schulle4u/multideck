@@ -247,27 +247,6 @@ class AudioEngine:
                 logger.error(f"Error querying audio devices: {e}")
                 return []
 
-    def get_default_device(self) -> Optional[dict]:
-        """
-        Get default audio output device.
-        Thread-safe method that acquires lock during device query.
-
-        Returns:
-            Default device dictionary or None
-        """
-        with self._lock:
-            try:
-                device = sd.query_devices(kind='output')
-                return {
-                    'index': sd.default.device[1],
-                    'name': device['name'],
-                    'channels': device['max_output_channels'],
-                    'sample_rate': device['default_samplerate'],
-                }
-            except Exception as e:
-                logger.error(f"Error getting default device: {e}")
-                return None
-
     def load_audio_file(self, file_path: str) -> Optional[tuple]:
         """
         Load audio file and return audio data and metadata.
@@ -616,49 +595,6 @@ class AudioEngine:
     def is_running(self) -> bool:
         """Check if audio stream is running"""
         return self._running
-
-    @staticmethod
-    def get_audio_duration(file_path: str) -> Optional[float]:
-        """
-        Get duration of audio file in seconds.
-
-        Args:
-            file_path: Path to audio file
-
-        Returns:
-            Duration in seconds or None on error
-        """
-        try:
-            info = sf.info(file_path)
-            return info.duration
-        except Exception:
-            # Try with FFmpeg for MP3 and other formats
-            if FFMPEG_AVAILABLE:
-                try:
-                    cmd = [
-                        'ffprobe',
-                        '-v', 'error',
-                        '-show_entries', 'format=duration',
-                        '-of', 'default=noprint_wrappers=1:nokey=1',
-                        file_path
-                    ]
-
-                    creationflags = 0
-                    if hasattr(subprocess, 'CREATE_NO_WINDOW'):
-                        creationflags = subprocess.CREATE_NO_WINDOW
-
-                    result = subprocess.run(
-                        cmd,
-                        capture_output=True,
-                        creationflags=creationflags
-                    )
-
-                    if result.returncode == 0:
-                        duration_str = result.stdout.decode('utf-8').strip()
-                        return float(duration_str)
-                except Exception:
-                    pass
-        return None
 
     def set_device(self, device, callback=None) -> bool:
         """

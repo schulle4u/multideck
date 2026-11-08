@@ -139,11 +139,6 @@ class ThemeManager:
         if callback not in self._callbacks:
             self._callbacks.append(callback)
 
-    def unregister_callback(self, callback):
-        """Unregister a theme change callback"""
-        if callback in self._callbacks:
-            self._callbacks.remove(callback)
-
     def apply_theme(self, window: wx.Window, recursive: bool = True):
         """
         Apply current theme to a window and optionally its children.
@@ -257,23 +252,3 @@ class ThemeManager:
         except Exception:
             # Silently ignore widgets that don't support theming
             pass
-
-    def get_status_color(self, status: str) -> wx.Colour:
-        """
-        Get color for a status indicator.
-
-        Args:
-            status: 'playing', 'paused', 'error', or other
-
-        Returns:
-            Appropriate wx.Colour
-        """
-        colors = self.colors
-        if status == 'playing':
-            return colors['playing']
-        elif status == 'paused':
-            return colors['paused']
-        elif status == 'error':
-            return colors['error']
-        else:
-            return colors['fg']

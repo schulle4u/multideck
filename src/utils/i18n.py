@@ -113,16 +113,6 @@ class I18n:
             # Use NullTranslations as fallback
             self.translation = gettext.NullTranslations()
 
-    def set_language(self, language: str):
-        """
-        Change current language.
-
-        Args:
-            language: Language code (e.g., 'en', 'de')
-        """
-        self.language = self._normalize_language(language)
-        self._load_translation()
-
     def gettext(self, message: str) -> str:
         """
         Translate a message.

@@ -80,23 +80,6 @@ def parse_time(time_str: str) -> float:
         return None
 
 
-def format_file_size(bytes_size: int) -> str:
-    """
-    Format file size in bytes to human-readable format.
-
-    Args:
-        bytes_size: Size in bytes
-
-    Returns:
-        Formatted size string
-    """
-    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-        if bytes_size < 1024.0:
-            return f"{bytes_size:.1f} {unit}"
-        bytes_size /= 1024.0
-    return f"{bytes_size:.1f} PB"
-
-
 def generate_recording_filename(format_ext: str = 'wav', prefix: str = 'recording') -> str:
     """
     Generate filename for recording.
@@ -110,50 +93,6 @@ def generate_recording_filename(format_ext: str = 'wav', prefix: str = 'recordin
     """
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     return f"{prefix}_{timestamp}.{format_ext}"
-
-
-def validate_url(url: str) -> bool:
-    """
-    Validate if string is a valid URL.
-
-    Args:
-        url: URL string to validate
-
-    Returns:
-        True if valid URL
-    """
-    return url.startswith(('http://', 'https://'))
-
-
-def get_file_extension(filepath: str) -> str:
-    """
-    Get file extension (lowercase, without dot).
-
-    Args:
-        filepath: File path
-
-    Returns:
-        File extension
-    """
-    return Path(filepath).suffix.lower().lstrip('.')
-
-
-def ensure_directory(directory: str) -> bool:
-    """
-    Ensure directory exists, create if not.
-
-    Args:
-        directory: Directory path
-
-    Returns:
-        True if directory exists or was created
-    """
-    try:
-        Path(directory).mkdir(parents=True, exist_ok=True)
-        return True
-    except Exception as e:
-        print(f"Error creating directory: {e}")
-        return False
 
 
 def sanitize_filename(filename: str) -> str:

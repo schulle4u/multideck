@@ -429,10 +429,6 @@ class MainFrame(wx.Frame):
         self._update_deck_listbox()
         self._update_active_deck_controls()
 
-    def _on_deck_play(self, deck):
-        """Handle deck play request - preload audio to prevent underflow"""
-        self._ensure_deck_ready_for_playback(deck)
-
     def _on_deck_load_file(self, deck):
         """Handle deck file loading"""
         dlg = wx.FileDialog(
@@ -1392,14 +1388,6 @@ class MainFrame(wx.Frame):
                     self._updating_deck_listbox = False
             self._update_active_deck_controls()
 
-    def _on_deck_info_changed(self, deck):
-        """Handle deck info changes (name, loaded file, etc.)"""
-        self._update_deck_listbox()
-        # Update active controls if this deck is selected
-        selection = self.deck_listbox.GetSelectedRow()
-        if selection != wx.NOT_FOUND and selection == self.mixer.index_of_deck(deck.deck_id):
-            self._update_active_deck_controls()
-
     def _preload_deck_audio(self, deck):
         """Preload audio data for a deck to avoid stuttering on first playback"""
         if deck.file_path and not deck.is_stream:
@@ -1833,17 +1821,6 @@ class MainFrame(wx.Frame):
         """Import M3U playlist into free decks"""
         self.playlist_service.import_m3u()
 
-    def _parse_m3u_file(self, m3u_path):
-        """Parse M3U file and return list of file paths/URLs.
-
-        Handles:
-        - Extended M3U format (#EXTM3U, #EXTINF lines are ignored)
-        - Relative and absolute paths
-        - HTTP/HTTPS URLs
-        - UTF-8 and Latin-1 encodings
-        """
-        return self.playlist_service.parse_m3u_file(m3u_path)
-
     def _on_export_m3u(self, event):
         """Export loaded deck files/URLs to M3U playlist"""
         self.playlist_service.export_m3u()
@@ -2023,16 +2000,6 @@ class MainFrame(wx.Frame):
             self._apply_audio_device_change(new_device)
         elif self.mixer.mode == MODE_MULTIROOM:
             self.mixer.restart_multiroom_routing()
-
-    def apply_automation_settings(self):
-        """Apply automation settings from config to current mixer"""
-        self.mixer.auto_switch_interval = self.config_manager.getint('Automation', 'switch_interval', 10)
-        self.mixer.crossfade_enabled = self.config_manager.getboolean('Automation', 'crossfade_enabled', True)
-        self.mixer.crossfade_duration = self.config_manager.getfloat('Automation', 'crossfade_duration', 2.0)
-        self.mixer.level_switch_enabled = self.config_manager.getboolean('Automation', 'level_switch_enabled', False)
-        self.mixer.level_threshold_db = self.config_manager.getfloat('Automation', 'level_threshold_db', -30.0)
-        self.mixer.level_hysteresis_db = self.config_manager.getfloat('Automation', 'level_hysteresis_db', 3.0)
-        self.mixer.level_hold_time = self.config_manager.getfloat('Automation', 'level_hold_time', 3.0)
 
     def apply_recorder_settings(self):
         """Apply recorder settings from config at runtime"""

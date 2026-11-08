@@ -206,20 +206,6 @@ class SoundCardInputHandler:
 
         return result
 
-    def get_status(self) -> dict:
-        """Return status information for diagnostics."""
-        with self._buffer_lock:
-            buffer_seconds = (self._buffered_samples / self.target_sample_rate
-                              if self.target_sample_rate > 0 else 0.0)
-        return {
-            'device_id': self.device_id,
-            'device_name': self.device_name,
-            'is_running': self.is_running,
-            'is_connected': self.is_connected,
-            'buffer_seconds': buffer_seconds,
-            'sample_rate': self.target_sample_rate,
-        }
-
     @staticmethod
     def get_available_input_devices() -> list:
         """

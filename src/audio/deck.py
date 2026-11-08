@@ -403,17 +403,6 @@ class Deck:
             return 0.0
         return len(self.audio_data) / self.sample_rate
 
-    def get_duration_samples(self) -> int:
-        """
-        Get total duration in samples.
-
-        Returns:
-            Duration in samples, or 0 if not available
-        """
-        if self.audio_data is None:
-            return 0
-        return len(self.audio_data)
-
     def can_seek(self) -> bool:
         """
         Check if seeking is supported for this deck.
@@ -521,31 +510,6 @@ class Deck:
                 self.on_state_change(self.deck_id, old_state, new_state)
             except Exception as e:
                 logger.error(f"Error in state change callback: {e}")
-
-    def get_info(self) -> dict:
-        """
-        Get deck information.
-
-        Returns:
-            Dictionary with deck information
-        """
-        return {
-            'id': self.deck_id,
-            'name': self.name,
-            'state': self.state,
-            'file_path': self.file_path,
-            'intro_file': self.intro_file,
-            'is_stream': self.is_stream,
-            'output_device_id': self.output_device_id,
-            'output_device_name': self.output_device_name,
-            'volume': self.volume,
-            'balance': self.balance,
-            'mute': self.mute,
-            'loop': self.loop,
-            'is_playing': self.is_playing,
-            'is_paused': self.is_paused,
-            'position': self.position,
-        }
 
     def to_dict(self) -> dict:
         """

@@ -102,20 +102,6 @@ class TTSManager:
             return [str(worker_path), *args]
         return [sys.executable, self._worker_script(), *args]
 
-    def _run_worker_json(self, *args, timeout: float = 5.0):
-        try:
-            result = subprocess.run(
-                self._worker_command(*args),
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                check=True,
-            )
-            return json.loads(result.stdout or "[]")
-        except Exception as e:
-            logger.debug("Prism worker command failed: %s", e)
-            return []
-
     def _speak_with_worker(self, text: str, engine_name: str, voice_name: str,
                            rate: int, volume: int):
         self.stop()

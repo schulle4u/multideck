@@ -10,7 +10,6 @@ import threading
 import numpy as np
 from collections import deque
 from pathlib import Path
-from datetime import datetime
 from typing import Optional, Callable
 
 from config.defaults import RECORDING_FORMATS
@@ -62,10 +61,8 @@ class Recorder:
         self._pre_roll_seconds = max(0.0, min(120.0, pre_roll_seconds))  # 0-120 seconds
         self._pre_roll_buffer: deque = deque()
         self._pre_roll_frames_count = 0  # Track total frames in buffer
-        self._pre_roll_enabled = True  # Can be disabled to save memory
 
         # Statistics
-        self.recording_start_time: Optional[datetime] = None
         self.frames_recorded = 0
 
         # Threading
@@ -110,42 +107,6 @@ class Recorder:
                 self._pre_roll_buffer.clear()
                 self._pre_roll_frames_count = 0
 
-    def get_pre_roll_seconds(self) -> float:
-        """
-        Get current pre-roll buffer duration.
-
-        Returns:
-            Pre-roll duration in seconds
-        """
-        with self._lock:
-            return self._pre_roll_seconds
-
-    def set_pre_roll_enabled(self, enabled: bool):
-        """
-        Enable or disable pre-roll buffering.
-
-        Args:
-            enabled: True to enable, False to disable
-        """
-        with self._lock:
-            self._pre_roll_enabled = enabled
-            if not enabled:
-                self._pre_roll_buffer.clear()
-                self._pre_roll_frames_count = 0
-
-    def get_pre_roll_buffer_fill(self) -> float:
-        """
-        Get current pre-roll buffer fill level as percentage.
-
-        Returns:
-            Buffer fill percentage (0.0 to 1.0)
-        """
-        with self._lock:
-            if self._pre_roll_seconds <= 0:
-                return 0.0
-            max_frames = int(self.sample_rate * self._pre_roll_seconds)
-            return min(1.0, self._pre_roll_frames_count / max_frames) if max_frames > 0 else 0.0
-
     def buffer_frames(self, audio_data: np.ndarray):
         """
         Buffer audio frames for pre-roll (always active, even when not recording).
@@ -156,7 +117,7 @@ class Recorder:
         """
         try:
             with self._lock:
-                if not self._pre_roll_enabled or self._pre_roll_seconds <= 0:
+                if self._pre_roll_seconds <= 0:
                     return
                 if self.is_recording:
                     # Don't buffer while recording (frames go directly to file)
@@ -227,19 +188,6 @@ class Recorder:
             # FFmpeg recording - always use 16-bit for FFmpeg input
             self._ffmpeg_process.stdin.write(audio_bytes)
 
-    def get_available_formats(self) -> list:
-        """
-        Get list of available recording formats.
-
-        Returns:
-            List of available format names
-        """
-        return [
-            format_key
-            for format_key, format_info in self.FORMATS.items()
-            if FFMPEG_AVAILABLE or format_info.get('native', False)
-        ]
-
     def start_recording(self, output_file: Optional[str] = None,
                        output_directory: Optional[str] = None) -> bool:
         """
@@ -292,7 +240,6 @@ class Recorder:
                     self._start_ffmpeg_recording(format_info)
 
                 self.is_recording = True
-                self.recording_start_time = datetime.now()
                 self.frames_recorded = 0
 
                 # Write pre-roll buffer first (retrospective recording)
@@ -411,53 +358,6 @@ class Recorder:
             logger.error(f"Error writing frames: {e}")
             if self.on_error:
                 self.on_error(f"Error during recording: {e}")
-
-    def get_recording_duration(self) -> float:
-        """
-        Get current recording duration in seconds.
-
-        Returns:
-            Duration in seconds
-        """
-        if not self.is_recording or not self.recording_start_time:
-            return 0.0
-
-        elapsed = datetime.now() - self.recording_start_time
-        return elapsed.total_seconds()
-
-    def get_recording_info(self) -> dict:
-        """
-        Get recording information.
-
-        Returns:
-            Dictionary with recording info
-        """
-        return {
-            'is_recording': self.is_recording,
-            'output_file': self.output_file,
-            'format': self.format,
-            'sample_rate': self.sample_rate,
-            'channels': self.channels,
-            'bit_depth': self.bit_depth,
-            'bitrate': self.bitrate,
-            'duration': self.get_recording_duration(),
-            'frames_recorded': self.frames_recorded,
-            'pre_roll_seconds': self._pre_roll_seconds,
-            'pre_roll_buffer_fill': self.get_pre_roll_buffer_fill(),
-        }
-
-    def format_duration(self) -> str:
-        """
-        Format recording duration as HH:MM:SS.
-
-        Returns:
-            Formatted duration string
-        """
-        duration = self.get_recording_duration()
-        hours = int(duration // 3600)
-        minutes = int((duration % 3600) // 60)
-        seconds = int(duration % 60)
-        return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
     def __del__(self):
         """Cleanup on deletion"""
