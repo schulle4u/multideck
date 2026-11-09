@@ -4,6 +4,7 @@ Effects dialog
 import wx
 import os
 import sys
+from m45wxcontrols import AccessibleListbook
 from gui.dialogs.accessibility import _ValueDisplayAccessible, _FormattedSliderAccessible
 from utils.i18n import _
 
@@ -42,7 +43,7 @@ class EffectsDialog(wx.Dialog):
             self.Bind(wx.EVT_SHOW, self._on_first_show)
 
         # Focus category list on dialog open
-        self.category_list.SetFocus()
+        self.book.GetListBox().SetFocus()
 
         self.Bind(wx.EVT_CLOSE, self._on_close)
         self.Bind(wx.EVT_CHAR_HOOK, self._on_char_hook)
@@ -53,9 +54,10 @@ class EffectsDialog(wx.Dialog):
         if not event.IsShown():
             return
         self.Unbind(wx.EVT_SHOW)
-        sz = self.page_container.GetClientSize()
+        sz = self.book.GetPageArea().GetClientSize()
         if sz.width > 0 and sz.height > 0:
-            for page in self.pages:
+            for index in range(self.book.GetPageCount()):
+                page = self.book.GetPage(index)
                 if not page.IsShown():
                     page.SetSize(0, 0, sz.width, sz.height)
                     page.Layout()
@@ -73,19 +75,6 @@ class EffectsDialog(wx.Dialog):
             self.main_frame._effects_dialog = None
         self.Destroy()
 
-    def _on_page_changed(self, event):
-        """Handle category selection change - switch page."""
-        event.Skip()
-        self._show_page(self.category_list.GetSelection())
-
-    def _show_page(self, idx):
-        """Show page at idx, hide all others."""
-        target = self.pages[idx]
-        for i, page in enumerate(self.pages):
-            page.Show(i == idx)
-        self.page_container.Layout()
-        target.Layout()
-
     def _fit_to_pages(self):
         """Fit the dialog to its initial content with minimum size constraints."""
         self.Fit()
@@ -93,52 +82,27 @@ class EffectsDialog(wx.Dialog):
         self.SetSize(max(size.width, 700), max(size.height, 600))
 
     def _create_ui(self):
-        """Create the dialog UI with ListBox + page container."""
+        """Create the dialog UI with accessible category navigation."""
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        book_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
         # A dialog owns one chain. This keeps dynamic deck changes independent
         # from the master-effects UI and from other decks.
-        page_names = [
-            _("Built-in Effects"),
-            _("VST Plugins"),
-        ]
-
-        list_sizer = wx.BoxSizer(wx.VERTICAL)
-        list_label = wx.StaticText(panel, label=_("&Effect Chains"))
-        list_sizer.Add(list_label, 0, wx.LEFT | wx.TOP | wx.BOTTOM, 5)
-        self.category_list = wx.ListBox(panel, choices=page_names)
-        self.category_list.SetName(_("Effect Chains"))
-        self.category_list.SetLabel(_("Effect Chains"))
-        self.category_list.SetSelection(0)
-        list_sizer.Add(self.category_list, 1, wx.EXPAND | wx.ALL, 5)
-        book_sizer.Add(list_sizer, 0, wx.EXPAND)
-
-        self.page_container = wx.Panel(panel)
-        self.page_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.pages = []
+        self.book = AccessibleListbook(panel, name=_("Effect Chains"))
+        self.book.SetStaticLabel(_("&Effect Chains"))
+        self.book.GetListBox().SetName(_("Effect Chains"))
+        self.book.GetListBox().SetLabel(_("Effect Chains"))
 
         effect_panel = self._create_effect_panel(
-            self.page_container, self.effect_chain, self.chain_name)
-        self.page_sizer.Add(effect_panel, 1, wx.EXPAND)
-        self.pages.append(effect_panel)
+            self.book.GetPageArea(), self.effect_chain, self.chain_name)
+        self.book.AddPage(effect_panel, _("Built-in Effects"))
 
         # Master VST page
         vst_panel = self._create_vst_panel(
-            self.page_container, self.effect_chain, self.chain_name)
-        vst_panel.Show(False)
-        self.page_sizer.Add(vst_panel, 1, wx.EXPAND)
-        self.pages.append(vst_panel)
+            self.book.GetPageArea(), self.effect_chain, self.chain_name)
+        self.book.AddPage(vst_panel, _("VST Plugins"))
 
-        self.page_container.SetSizer(self.page_sizer)
-
-        book_sizer.Add(self.page_container, 1, wx.EXPAND | wx.ALL, 5)
-
-        self.category_list.Bind(wx.EVT_LISTBOX, self._on_page_changed)
-
-        main_sizer.Add(book_sizer, 1, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(self.book, 1, wx.EXPAND | wx.ALL, 5)
 
         # Close button
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)

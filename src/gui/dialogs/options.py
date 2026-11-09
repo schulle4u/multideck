@@ -8,7 +8,7 @@ import sounddevice as sd
 from utils.i18n import _, I18n, get_i18n
 from config.defaults import LANGUAGE_NAMES, VALID_DECK_RANGE, RECORDING_FORMATS
 from utils.helpers import check_ffmpeg
-from m45wxcontrols import AccessibleSpinCtrl
+from m45wxcontrols import AccessibleListbook, AccessibleSpinCtrl
 
 from utils.logger import get_logger
 
@@ -51,7 +51,7 @@ class OptionsDialog(wx.Dialog):
             self.theme_manager.apply_theme(self)
 
         # Focus category list on dialog open
-        self.category_list.SetFocus()
+        self.book.GetListBox().SetFocus()
 
         if sys.platform != 'win32':
             self.Bind(wx.EVT_SHOW, self._on_first_show)
@@ -65,9 +65,10 @@ class OptionsDialog(wx.Dialog):
         if not event.IsShown():
             return
         self.Unbind(wx.EVT_SHOW)
-        sz = self.page_container.GetClientSize()
+        sz = self.book.GetPageArea().GetClientSize()
         if sz.width > 0 and sz.height > 0:
-            for page in self.pages:
+            for index in range(self.book.GetPageCount()):
+                page = self.book.GetPage(index)
                 if not page.IsShown():
                     page.SetSize(0, 0, sz.width, sz.height)
                     page.Layout()
@@ -77,67 +78,23 @@ class OptionsDialog(wx.Dialog):
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # ListBox (left) + page container (right) for option categories.
-        # Uses manual Show/Hide instead of wx.Simplebook/Listbook/Notebook
-        # to avoid focus-stealing and double screen reader announcements.
-        book_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.book = AccessibleListbook(panel, name=_("Categories"))
+        self.book.SetStaticLabel(_("Cate&gories"))
+        self.book.GetListBox().SetName(_("Categories"))
+        self.book.GetListBox().SetLabel(_("Categories"))
 
-        page_names = [_("General"), _("Audio"), _("Automation"),
-                      _("Recorder"), _("Streaming"), _("Text-to-Speech")]
-        list_sizer = wx.BoxSizer(wx.VERTICAL)
-        list_label = wx.StaticText(panel, label=_("Cate&gories"))
-        list_sizer.Add(list_label, 0, wx.LEFT | wx.TOP | wx.BOTTOM, 5)
-        self.category_list = wx.ListBox(panel, choices=page_names)
-        self.category_list.SetName(_("Categories"))
-        self.category_list.SetLabel(_("Categories"))
-        self.category_list.SetSelection(0)
-        list_sizer.Add(self.category_list, 1, wx.EXPAND | wx.ALL, 5)
-        book_sizer.Add(list_sizer, 0, wx.EXPAND)
+        page_definitions = [
+            (_("General"), self._create_general_tab),
+            (_("Audio"), self._create_audio_tab),
+            (_("Automation"), self._create_automation_tab),
+            (_("Recorder"), self._create_recorder_tab),
+            (_("Streaming"), self._create_streaming_tab),
+            (_("Text-to-Speech"), self._create_tts_tab),
+        ]
+        for label, create_page in page_definitions:
+            self.book.AddPage(create_page(self.book.GetPageArea()), label)
 
-        self.page_container = wx.Panel(panel)
-        self.page_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.pages = []
-
-        # General page
-        general_panel = self._create_general_tab(self.page_container)
-        self.page_sizer.Add(general_panel, 1, wx.EXPAND)
-        self.pages.append(general_panel)
-
-        # Remaining pages hidden at creation; shown on demand via _show_page()
-        audio_panel = self._create_audio_tab(self.page_container)
-        audio_panel.Show(False)
-        self.page_sizer.Add(audio_panel, 1, wx.EXPAND)
-        self.pages.append(audio_panel)
-
-        # Automation page (hidden at creation)
-        automation_panel = self._create_automation_tab(self.page_container)
-        automation_panel.Show(False)
-        self.page_sizer.Add(automation_panel, 1, wx.EXPAND)
-        self.pages.append(automation_panel)
-
-        # Recorder page (hidden at creation)
-        recorder_panel = self._create_recorder_tab(self.page_container)
-        recorder_panel.Show(False)
-        self.page_sizer.Add(recorder_panel, 1, wx.EXPAND)
-        self.pages.append(recorder_panel)
-
-        # Streaming page (hidden at creation)
-        streaming_panel = self._create_streaming_tab(self.page_container)
-        streaming_panel.Show(False)
-        self.page_sizer.Add(streaming_panel, 1, wx.EXPAND)
-        self.pages.append(streaming_panel)
-
-        # Text-to-Speech page (hidden at creation)
-        tts_panel = self._create_tts_tab(self.page_container)
-        tts_panel.Show(False)
-        self.page_sizer.Add(tts_panel, 1, wx.EXPAND)
-        self.pages.append(tts_panel)
-
-        self.page_container.SetSizer(self.page_sizer)
-
-        book_sizer.Add(self.page_container, 1, wx.EXPAND | wx.ALL, 5)
-
-        main_sizer.Add(book_sizer, 1, wx.EXPAND | wx.ALL, 10)
+        main_sizer.Add(self.book, 1, wx.EXPAND | wx.ALL, 10)
 
         # Buttons: OK, Cancel, Apply
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -168,8 +125,8 @@ class OptionsDialog(wx.Dialog):
         self.apply_button.Bind(wx.EVT_BUTTON, self._on_apply)
         self.Bind(wx.EVT_CLOSE, self._on_close)
 
-        # Bind category selection to switch pages and update Apply button
-        self.category_list.Bind(wx.EVT_LISTBOX, self._on_page_changed)
+        # Update Apply button after the book switches pages
+        self.book.Bind(wx.EVT_LISTBOOK_PAGE_CHANGED, self._on_page_changed)
 
         # Bind change events on all controls to update Apply button state
         # Note: theme_choice is excluded here because it already has a dedicated
@@ -1028,7 +985,7 @@ class OptionsDialog(wx.Dialog):
 
     def _get_active_tab_name(self):
         """Get the name of the currently active tab"""
-        idx = self.category_list.GetSelection()
+        idx = self.book.GetSelection()
         if 0 <= idx < len(self.TAB_NAMES):
             return self.TAB_NAMES[idx]
         return ''
@@ -1043,18 +1000,9 @@ class OptionsDialog(wx.Dialog):
         self.apply_button.Enable(self._has_tab_changes(tab_name))
 
     def _on_page_changed(self, event):
-        """Handle category selection change - switch page and update Apply button"""
+        """Update Apply button after a category selection change."""
         event.Skip()
-        self._show_page(self.category_list.GetSelection())
         self._update_apply_state()
-
-    def _show_page(self, idx):
-        """Show page at idx, hide all others."""
-        target = self.pages[idx]
-        for i, page in enumerate(self.pages):
-            page.Show(i == idx)
-        self.page_container.Layout()
-        target.Layout()
 
     def _fit_to_pages(self):
         """Fit the dialog to its initial content with minimum size constraints."""
