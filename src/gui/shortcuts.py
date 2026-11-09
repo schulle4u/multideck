@@ -43,10 +43,10 @@ def setup_keyboard_shortcuts(owner):
     # Ctrl+L for loop active deck
     owner._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('L'), owner._on_loop_active_deck)
 
-    # Ctrl+R for recorder toggle
-    owner._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('R'), owner._on_toggle_recording)
+    # Ctrl+R for the master recorder dialog
+    owner._add_keyboard_shortcut(accel_entries, wx.ACCEL_CTRL, ord('R'), owner._on_show_recorder_dialog)
 
-    # Ctrl+Shift+R for per-deck recording toggle
+    # Ctrl+Shift+R for the deck recorder dialog
     owner._add_keyboard_shortcut(
         accel_entries,
         wx.ACCEL_CTRL | wx.ACCEL_SHIFT,

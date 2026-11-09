@@ -118,7 +118,7 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 * Deck umbenennen (F2): Erlaubt das Hinterlegen eines benutzerdefinierten Decknamens. 
 * Deck entladen (Entf): Entfernt die auf dem gewählten Deck geladene Datei.
 * Deck-Audioeffekte: Konfiguriert die integrierten und VST3-Effekte des ausgewählten Decks.
-* Deckaufnahme starten (STRG+Umschalt+R): Ermöglicht eine individuelle Deckaufnahme, unabhängig vom gewählten Betriebsmodus. 
+* Deck-Aufnahme (STRG+Umschalt+R): Öffnet den Aufnahmedialog für das ausgewählte Deck, unabhängig vom gewählten Betriebsmodus.
 
 #### Wiedergabe
 
@@ -138,7 +138,7 @@ Das Programmfenster entspricht weitgehend einer Standardansicht, bestehend aus M
 
 #### Werkzeuge
 
-* Aufnahme starten/beenden (STRG+R): Startet die Live-Aufnahme des Ausgabemixers. Wenn in den Programmoptionen kein Ausgabeverzeichnis festgelegt wurde, fragt das Programm vor dem Starten der Aufnahme nach dem Verzeichnis zum Speichern der Datei. 
+* Aufnahme (STRG+R): Öffnet den Aufnahmedialog für den Master-Ausgabemixer. Unter Aufnahme stehen Aufnahme/Pause, Fortsetzen und Stopp zur Verfügung. Eine Pause unterbricht die Aufnahme in derselben Datei. Ohne festgelegtes Ausgabeverzeichnis wird vor dem Start nach einem Ordner gefragt.
 * Livestream starten/stoppen (F8): Startet den Livestream, um das Mixersignal an einen Icecast-Server zu senden. Zuvor müssen die Zugangsdaten in den Programmeinstellungen hinterlegt werden. 
 * Audioeffekte (STRG+Umschalt+E): Öffnet ein Fenster zum Konfigurieren der integrierten und VST3-Mastereffekte.
 * Sleep-Timer (STRG+Umschalt+I): Beendet die Wiedergabe nach der eingestellten Anzahl Minuten und fährt den Rechner falls gewünscht herunter. 
@@ -212,6 +212,16 @@ Die Optionen sind über das Menü Werkzeuge oder mittels STRG+Umschalt+O aufrufb
 * Schwellenwert (dB): Angabe des Schwellenwertes zur automatischen Pegelumschaltung.
 * Hysterese (dB): Dieser Wert gibt der Umschaltung einen gewissen Spielraum, um allzu schnelles Umschalten zwischen den Decks zu verhindern. Berechnung: Schwellenwert Minus Hysterese.
 * Haltezeit (Sekunden): Kontrolliert nach erneutem Abfallen des Pegels die Mindestverweildauer auf dem Deck, bevor weitergeschaltet wird.
+
+### Aufnahmeplaner
+
+Der Aufnahmedialog bietet links die Kategorien Aufnahme und Planer. Im Werkzeugemenü bezieht er sich auf den Master-Ausgabemixer, im Deckmenü auf das ausgewählte Deck.
+
+Unter Planer lassen sich Aufnahmezeiten hinzufügen, bearbeiten, löschen und über die Checkboxen der Liste aktivieren oder deaktivieren. Jede Aufnahmezeit enthält einen frei wählbaren Namen, eine Startzeit, eine Endzeit (HH:MM) und die Wochentage des Starts (Montag bis Sonntag). Die Zeiten gelten wöchentlich in der lokalen Zeitzone. Liegt die Endzeit vor der Startzeit, läuft die Aufnahme über Mitternacht; gleiche Start- und Endzeiten sind nicht zulässig. Überlappende Zeiten desselben Ziels werden als zusammenhängende Aufnahme behandelt.
+
+Der Planer arbeitet auch bei geschlossenem Aufnahmedialog, solange MultiDeck geöffnet ist. Er startet keine Deckwiedergabe. Es gelten das Format, der Vorabpuffer und das Ausgabeverzeichnis aus den Aufnahmeoptionen. Fehlt beim Anlegen oder Aktivieren einer Zeit ein Ausgabeverzeichnis, wird nach einem Ordner gefragt. Manuell gestartete Aufnahmen werden vom Planer nicht beendet. Nach manuellem Stopp wird innerhalb desselben Zeitfensters nicht automatisch neu gestartet.
+
+Aufnahmezeiten werden beim Speichern mit dem Projekt gespeichert und beim Laden wiederhergestellt. Sie bleiben bei Verschieben eines Decks diesem Deck zugeordnet. Ein neues Projekt verwirft die bisherigen Zeiten. Die Projektdatei enthält die Abschnitte `[MasterSchedules]` und `[Deck1Schedules]` usw. mit den Feldern `slot1_enabled`, `slot1_name`, `slot1_start_time`, `slot1_end_time` und `slot1_weekdays` (1 = Montag, 7 = Sonntag).
 
 ### Aufnahme
 

@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from config.defaults import DEFAULT_CONFIG, VALID_DECK_RANGE
+from audio.recording_scheduler import schedules_from_dict, schedules_to_dict
 from utils.logger import get_logger
 
 # Module logger
@@ -332,6 +333,14 @@ class ProjectManager:
                 else:
                     project_data['deck_effects'].append({})
 
+            project_data['master_schedules'] = schedules_from_dict(
+                dict(config.items('MasterSchedules', raw=True))
+                if config.has_section('MasterSchedules') else {})
+            project_data['deck_schedules'] = [
+                schedules_from_dict(dict(config.items(f'Deck{i}Schedules', raw=True)))
+                if config.has_section(f'Deck{i}Schedules') else []
+                for i in range(1, deck_count + 1)
+            ]
             return project_data
         except Exception as e:
             raise Exception(f"Failed to load project: {e}")
@@ -339,7 +348,7 @@ class ProjectManager:
     @staticmethod
     def save_project(filepath: str, project_data: Dict):
         """Save project to .mdap file"""
-        config = configparser.ConfigParser()
+        config = configparser.ConfigParser(interpolation=None)
 
         try:
             # Add header comment
@@ -385,6 +394,17 @@ class ProjectManager:
                     config.add_section(section)
                     for key, value in fx_data.items():
                         config.set(section, key, str(value))
+
+            schedule_sections = [('MasterSchedules', project_data.get('master_schedules', []))]
+            schedule_sections.extend(
+                (f'Deck{i}Schedules', schedules)
+                for i, schedules in enumerate(project_data.get('deck_schedules', []), 1)
+                if i <= len(decks_data))
+            for section, schedules in schedule_sections:
+                if schedules:
+                    config.add_section(section)
+                    for key, value in schedules_to_dict(schedules).items():
+                        config.set(section, key, value)
 
             # Write beside the target and replace atomically so a failed save
             # cannot truncate the user's existing project file.

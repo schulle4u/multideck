@@ -53,6 +53,7 @@ class Recorder:
 
         # Recording state
         self.is_recording = False
+        self.is_paused = False
         self.output_file: Optional[str] = None
         self.wave_file: Optional[wave.Wave_write] = None
         self._ffmpeg_process: Optional[subprocess.Popen] = None
@@ -240,6 +241,7 @@ class Recorder:
                     self._start_ffmpeg_recording(format_info)
 
                 self.is_recording = True
+                self.is_paused = False
                 self.frames_recorded = 0
 
                 # Write pre-roll buffer first (retrospective recording)
@@ -321,6 +323,7 @@ class Recorder:
                     self._ffmpeg_process = None
 
                 self.is_recording = False
+                self.is_paused = False
                 output_file = self.output_file
                 self.output_file = None
 
@@ -335,6 +338,18 @@ class Recorder:
                 self.on_error(f"Failed to stop recording: {e}")
             return False
 
+    def pause_recording(self):
+        """Pause writing while keeping the current file open."""
+        with self._lock:
+            if self.is_recording:
+                self.is_paused = True
+
+    def resume_recording(self):
+        """Resume the current file without adding paused audio or pre-roll."""
+        with self._lock:
+            if self.is_recording:
+                self.is_paused = False
+
     def write_frames(self, audio_data: np.ndarray):
         """
         Write audio frames to recording.
@@ -347,6 +362,8 @@ class Recorder:
 
         try:
             with self._lock:
+                if not self.is_recording or self.is_paused:
+                    return
                 try:
                     self._write_chunk_internal(audio_data)
                     self.frames_recorded += len(audio_data)

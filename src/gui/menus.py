@@ -65,7 +65,7 @@ def _create_deck_menu(owner):
     owner.rename_item = owner.deck_menu.Append(wx.ID_ANY, _("Rename Deck") + " …\tF2")
     owner.unload_item = owner.deck_menu.Append(wx.ID_ANY, _("Unload Deck") + "\tDel")
     owner.deck_effects_item = owner.deck_menu.Append(wx.ID_ANY, _("Deck Audio Effects") + " …")
-    owner.record_deck_menu_item = owner.deck_menu.Append(wx.ID_ANY, _("Start Recording Deck") + "\tCtrl+Shift+R")
+    owner.record_deck_menu_item = owner.deck_menu.Append(wx.ID_ANY, _("Deck &Recorder...") + "\tCtrl+Shift+R")
     owner.unload_item.Enable(False)
     owner.record_deck_menu_item.Enable(False)
     return owner.deck_menu
@@ -100,7 +100,7 @@ def _create_view_menu(owner):
 def _create_tools_menu(owner):
     """Create the Tools menu."""
     tools_menu = wx.Menu()
-    owner.record_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Recording") + "\tCtrl+R")
+    owner.record_menu_item = tools_menu.Append(wx.ID_ANY, _("&Recorder...") + "\tCtrl+R")
     owner.stream_menu_item = tools_menu.Append(wx.ID_ANY, _("Start &Livestream") + "\tF8")
     tools_menu.AppendSeparator()
     owner.effects_menu_item = tools_menu.Append(wx.ID_ANY, _("Audio &Effects") + " …\tCtrl+Shift+E")
@@ -153,7 +153,7 @@ def _bind_menu_events(owner):
     owner.Bind(wx.EVT_MENU, owner._on_toggle_statusbar, owner.statusbar_item)
     owner.Bind(wx.EVT_MENU, owner._on_toggle_level_meter, owner.level_meter_item)
     owner.Bind(wx.EVT_MENU, owner._on_toggle_theme, owner.theme_item)
-    owner.Bind(wx.EVT_MENU, owner._on_toggle_recording, owner.record_menu_item)
+    owner.Bind(wx.EVT_MENU, owner._on_show_recorder_dialog, owner.record_menu_item)
     owner.Bind(wx.EVT_MENU, owner._on_toggle_livestream, owner.stream_menu_item)
     owner.Bind(wx.EVT_MENU, owner._on_show_effects_dialog, owner.effects_menu_item)
     owner.Bind(wx.EVT_MENU, owner._on_sleep_timer, owner.sleep_timer_menu_item)

@@ -872,7 +872,9 @@ class Mixer:
             filename = generate_recording_filename(fmt, prefix)
             output_file = str(Path(output_directory) / filename)
 
-            recorder.start_recording(output_file=output_file)
+            if not recorder.start_recording(output_file=output_file):
+                del self.deck_recorders[deck_id]
+                return False
             return True
 
         except Exception as e:

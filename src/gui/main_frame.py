@@ -19,6 +19,7 @@ from audio.audio_engine import AudioEngine
 from audio.icecast_streamer import IcecastStreamer
 from audio.mixer import Mixer
 from audio.recorder import Recorder
+from audio.recording_scheduler import RecordingScheduler
 from config.config_manager import ConfigManager, ProjectManager
 from config.defaults import (
     APP_NAME, APP_VERSION, APP_CODE_NAME, APP_AUTHOR, APP_WEBSITE, APP_LICENSE,
@@ -105,6 +106,9 @@ class MainFrame(wx.Frame):
         # UI components
         self.current_project_file = None
         self._project_modified = False  # Track unsaved changes
+        self.recording_scheduler = RecordingScheduler(
+            self._get_context_recorder, self._start_scheduled_recording,
+            self._stop_context_recording)
         self._setup_effect_change_tracking()
         self.playlist_service = M3UPlaylistService(self)
 
@@ -148,6 +152,11 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_TIMER, self._on_sleep_timer_elapsed, self._sleep_timer)
         self._sleep_timer_config = None
         self._sleep_timer_started_at = None
+
+        # Scheduling belongs to the application, not the modeless recorder dialog.
+        self._recording_timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self._on_recording_timer, self._recording_timer)
+        self._recording_timer.Start(1000)
 
     def _create_menu_bar(self):
         """Create menu bar"""
@@ -743,8 +752,6 @@ class MainFrame(wx.Frame):
         deck = self._get_selected_deck()
         has_deck = deck is not None
         is_loaded = has_deck and deck.state != DECK_STATE_EMPTY
-        can_record = is_loaded and not self._is_missing_local_deck_file(deck)
-        is_recording = has_deck and self.mixer.is_deck_recording(deck.deck_id)
 
         self.load_file_item.Enable(has_deck)
         self.load_url_item.Enable(has_deck)
@@ -758,12 +765,8 @@ class MainFrame(wx.Frame):
         deck_index = self.mixer.index_of_deck(deck.deck_id) if deck else -1
         self.move_deck_up_item.Enable(has_deck and deck_index > 0)
         self.move_deck_down_item.Enable(has_deck and deck_index < len(self.mixer.decks) - 1)
-        self.record_deck_menu_item.Enable(can_record)
+        self.record_deck_menu_item.Enable(has_deck)
         self._update_deck_output_device_menu_items()
-        if is_recording:
-            self.record_deck_menu_item.SetItemLabel(_("Stop Recording Deck") + "\tCtrl+Shift+R")
-        else:
-            self.record_deck_menu_item.SetItemLabel(_("Start Recording Deck") + "\tCtrl+Shift+R")
 
     def _update_streaming_ui(self):
         """Update only the UI elements that control the master livestream."""
@@ -826,10 +829,10 @@ class MainFrame(wx.Frame):
             self._on_deck_clear_intro_file(deck)
 
     def _on_selected_deck_toggle_recording(self, event):
-        """Toggle recording for the currently selected deck from the main menu."""
+        """Open the recorder for the currently selected deck."""
         deck = self._get_selected_deck()
-        if deck and deck.state != DECK_STATE_EMPTY:
-            self._on_toggle_deck_recording(deck)
+        if deck:
+            self._show_recorder_dialog(deck.deck_id)
 
     def _on_active_play_pause(self, event):
         """Handle play/pause for active deck"""
@@ -941,14 +944,9 @@ class MainFrame(wx.Frame):
         unload_item = menu.Append(wx.ID_ANY, _("Unload Deck") + "\tDel")
         deck_effects_item = menu.Append(wx.ID_ANY, _("Deck Audio Effects") + " …")
         unload_item.Enable(deck.state != DECK_STATE_EMPTY)
-        can_record = deck.state != DECK_STATE_EMPTY and not self._is_missing_local_deck_file(deck)
 
         menu.AppendSeparator()
-        if self.mixer.is_deck_recording(deck.deck_id):
-            record_deck_item = menu.Append(wx.ID_ANY, _("Stop Recording Deck") + "\tCtrl+Shift+R")
-        else:
-            record_deck_item = menu.Append(wx.ID_ANY, _("Start Recording Deck") + "\tCtrl+Shift+R")
-        record_deck_item.Enable(can_record)
+        record_deck_item = menu.Append(wx.ID_ANY, _("Deck &Recorder...") + "\tCtrl+Shift+R")
 
         self.Bind(wx.EVT_MENU, lambda e: self._on_deck_load_file(deck), load_file_item)
         self.Bind(wx.EVT_MENU, self._on_new_deck, new_deck_item)
@@ -962,7 +960,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_rename(), rename_item)
         self.Bind(wx.EVT_MENU, lambda e: self._on_active_unload(), unload_item)
         self.Bind(wx.EVT_MENU, self._on_show_deck_effects_dialog, deck_effects_item)
-        self.Bind(wx.EVT_MENU, lambda e: self._on_toggle_deck_recording(deck), record_deck_item)
+        self.Bind(wx.EVT_MENU, lambda e: self._show_recorder_dialog(deck.deck_id), record_deck_item)
 
         parent_widget.PopupMenu(menu)
         menu.Destroy()
@@ -1016,6 +1014,10 @@ class MainFrame(wx.Frame):
                 return
         if getattr(self, '_effects_dialog', None) and getattr(self._effects_dialog, 'deck_id', None) == deck.deck_id:
             self._effects_dialog.Close()
+        if getattr(self, '_recorder_dialog', None) and self._recorder_dialog.deck_id == deck.deck_id:
+            self._recorder_dialog.Close()
+        self.recording_scheduler.schedules.pop(deck.deck_id, None)
+        self.recording_scheduler.tick()
         removed_index = self.mixer.index_of_deck(deck.deck_id)
         self.mixer.remove_deck(deck.deck_id)
         if self.mixer.decks:
@@ -1497,6 +1499,10 @@ class MainFrame(wx.Frame):
         if getattr(self, '_effects_dialog', None):
             self._effects_dialog.Close()
 
+        if getattr(self, '_recorder_dialog', None):
+            self._recorder_dialog.Close()
+        self.recording_scheduler.reset()
+
         # Stop all playback
         self.mixer.stop_all()
 
@@ -1631,6 +1637,9 @@ class MainFrame(wx.Frame):
         return {
             'mixer': self.mixer.to_dict(),
             'decks': [deck.to_dict() for deck in self.mixer.decks],
+            'master_schedules': self.recording_scheduler.schedules.get(None, []),
+            'deck_schedules': [self.recording_scheduler.schedules.get(deck.deck_id, [])
+                               for deck in self.mixer.decks],
             'master_effects': self.mixer.get_master_effects_dict(),
             'deck_effects': [deck.get_effects_dict() for deck in self.mixer.decks],
         }
@@ -1641,6 +1650,11 @@ class MainFrame(wx.Frame):
         if len(self.mixer.decks) != deck_count:
             self.mixer.replace_decks(deck_count)
             self._setup_effect_change_tracking()
+
+        self.recording_scheduler.reset()
+        self.recording_scheduler.schedules[None] = project_data.get('master_schedules', [])
+        for deck, schedules in zip(self.mixer.decks, project_data.get('deck_schedules', [])):
+            self.recording_scheduler.schedules[deck.deck_id] = schedules
 
         # Load mixer settings
         if 'mixer' in project_data:
@@ -2294,8 +2308,59 @@ class MainFrame(wx.Frame):
         self.SetStatusText(message, 2)
         self.tts_manager.speak(message)
 
+    def _on_show_recorder_dialog(self, event):
+        self._show_recorder_dialog()
+
+    def _show_recorder_dialog(self, deck_id=None):
+        from gui.dialogs.recorder import RecorderDialog
+        dialog = getattr(self, '_recorder_dialog', None)
+        if dialog:
+            if dialog.deck_id == deck_id:
+                dialog.Raise()
+                dialog.SetFocus()
+                return
+            dialog.Close()
+        self._recorder_dialog = RecorderDialog(self, deck_id)
+        self._recorder_dialog.Show()
+
+    def _get_context_recorder(self, deck_id=None):
+        return self.recorder if deck_id is None else self.mixer.deck_recorders.get(deck_id)
+
+    def _stop_context_recording(self, deck_id=None):
+        if deck_id is None:
+            self.recorder.stop_recording()
+        else:
+            self.mixer.stop_deck_recording(deck_id)
+
+    def _start_scheduled_recording(self, deck_id):
+        # Timers must never open a modal directory picker or playback warning.
+        output_dir = self.config_manager.get('Recorder', 'output_directory', '')
+        if not output_dir:
+            message = _("Scheduled recording failed: choose an output directory in Recorder settings.")
+            logger.error(message)
+            self.SetStatusText(message, 0)
+            return False
+        if deck_id is None:
+            success = self.recorder.start_recording(output_directory=output_dir)
+        else:
+            deck = self.mixer.get_deck_by_id(deck_id)
+            if not deck or deck.state == DECK_STATE_EMPTY or self._is_missing_local_deck_file(deck):
+                success = False
+            else:
+                self.mixer.set_recorder_config(self._get_recorder_config())
+                success = self.mixer.start_deck_recording(deck_id, output_dir)
+        if not success:
+            message = _("Scheduled recording failed to start.")
+            logger.error("%s Target: %s", message, deck_id)
+            self.SetStatusText(message, 0)
+        return success
+
+    def _on_recording_timer(self, event):
+        self.recording_scheduler.tick()
+
     def _on_toggle_recording(self, event):
-        """Handle Ctrl+R for recording toggle"""
+        """Toggle direct master recording from the recorder dialog."""
+        self.recording_scheduler.release(None)
         if self.recorder.is_recording:
             self.recorder.stop_recording()
         else:
@@ -2317,16 +2382,12 @@ class MainFrame(wx.Frame):
         message = _("Recording: {}").format(os.path.basename(filepath))
         self.SetStatusText(message, 0)
         self.tts_manager.speak(message)
-        # Update menu item text
-        self.record_menu_item.SetItemLabel(_("Stop &Recording") + "\tCtrl+R")
 
     def _on_recording_stopped(self, filepath, frames):
         """Callback when recording stops"""
         message = _("Recording stopped: {}").format(os.path.basename(filepath))
         self.SetStatusText(message, 0)
         self.tts_manager.speak(message)
-        # Update menu item text
-        self.record_menu_item.SetItemLabel(_("Start &Recording") + "\tCtrl+R")
 
     def _on_streaming_started(self, stream_url):
         """Callback when livestreaming starts."""
@@ -2449,6 +2510,7 @@ class MainFrame(wx.Frame):
 
     def _on_toggle_deck_recording(self, deck):
         """Toggle recording for a specific deck."""
+        self.recording_scheduler.release(deck.deck_id)
         if self.mixer.is_deck_recording(deck.deck_id):
             self.mixer.stop_deck_recording(deck.deck_id)
         else:
@@ -2484,10 +2546,10 @@ class MainFrame(wx.Frame):
                 )
 
     def _on_toggle_deck_recording_shortcut(self, event):
-        """Handle Ctrl+Shift+R for per-deck recording toggle."""
+        """Open the selected deck recorder with Ctrl+Shift+R."""
         deck = self._get_selected_deck()
-        if deck and deck.state != DECK_STATE_EMPTY:
-            self._on_toggle_deck_recording(deck)
+        if deck:
+            self._show_recorder_dialog(deck.deck_id)
 
     def _on_deck_recording_started(self, deck_id, filepath):
         """Callback when a deck recording starts (called from audio thread)."""
@@ -2527,6 +2589,14 @@ class MainFrame(wx.Frame):
         if not self._check_unsaved_changes():
             event.Veto()
             return
+
+        if hasattr(self, '_recording_timer'):
+            self._recording_timer.Stop()
+        if getattr(self, '_recorder_dialog', None):
+            self._recorder_dialog.Close()
+        self.recording_scheduler.reset()
+        if self.recorder.is_recording:
+            self.recorder.stop_recording()
 
         # Stop position timer
         if self._position_timer.IsRunning():

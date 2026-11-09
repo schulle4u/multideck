@@ -118,7 +118,7 @@ The program window largely follows a standard layout, consisting of a menu bar, 
 * Rename Deck (F2): Allows you to assign a custom name to the deck.
 * Unload Deck (Del): Removes the file loaded on the selected deck.
 * Deck Audio Effects: Configures the built-in and VST3 effects belonging to the selected deck.
-* Start Deck Recording (Ctrl+Shift+R): Enables individual deck recording, independent of the selected operating mode.
+* Deck Recorder (Ctrl+Shift+R): Opens the recorder dialog for the selected deck, independent of the selected operating mode.
 
 #### Playback
 
@@ -138,7 +138,7 @@ The program window largely follows a standard layout, consisting of a menu bar, 
 
 #### Tools
 
-* Start/Stop Recording (Ctrl+R): Starts live recording of the output mixer. If no output directory has been set in the program options, the program will ask for a directory before starting the recording.
+* Recorder (Ctrl+R): Opens the master output recorder dialog. Recording controls offer Record/Pause, Resume and Stop. Pausing keeps the same file open. If no output directory is configured, you are asked to select one before recording starts.
 * Start/stop livestream (F8): Sends the mixer output to an Icecast server. Configure live streaming data in the program options first. 
 * Audio Effects (Ctrl+Shift+E): Opens a window for configuring the master built-in and VST3 effects.
 * Sleep timer (Ctrl+Shift+I): This allows you to stop the playback after a configured number of minutes and, optionally, shut down the computer.
@@ -212,6 +212,16 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 * Threshold (dB): The threshold value for automatic level-based switching.
 * Hysteresis (dB): This value provides a tolerance margin to prevent quickly switching between decks. Calculation: threshold minus Hysteresis.
 * Hold Time (seconds): After the level has decreased, this controls the minimum amount of time that must be spent on a deck before switching.
+
+### Recording planner
+
+The recorder dialog has Recording and Planner categories on the left. Opening it from Tools controls the master output; opening it from the Deck menu controls the selected deck.
+
+The Planner lets you add, edit, delete and enable or disable recording windows using the list checkboxes. Each window has an optional name, start and end times (HH:MM) and start weekdays (Monday through Sunday). Windows repeat weekly in local time. An end time earlier than the start time finishes the following day; equal times are invalid. Overlapping windows for the same target produce one continuous recording.
+
+Schedules run with the recorder dialog closed while MultiDeck remains open. They do not start deck playback. They use the format, pre-roll and output directory from Recorder settings. Adding or enabling a window asks for an output directory if none is configured. The planner never stops manually started recordings. Manually stopping a scheduled recording suppresses automatic restarts for the rest of that window.
+
+Schedules are saved and restored with the project. Moving a deck keeps its schedules attached to it. A new project clears previous schedules. Project files use `[MasterSchedules]` and `[Deck1Schedules]` etc., with `slot1_enabled`, `slot1_name`, `slot1_start_time`, `slot1_end_time` and `slot1_weekdays` (1 = Monday, 7 = Sunday).
 
 ### Recording
 

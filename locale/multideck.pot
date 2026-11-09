@@ -1543,3 +1543,117 @@ msgid ""
 "Invalid project file format: {}\n"
 "Expected .mdap file."
 msgstr ""
+
+msgid "Deck &Recorder..."
+msgstr ""
+
+msgid "&Recorder..."
+msgstr ""
+
+msgid "Recording Schedule"
+msgstr ""
+
+msgid "&Enabled"
+msgstr ""
+
+msgid "&Start time (HH:MM):"
+msgstr ""
+
+msgid "&End time (HH:MM):"
+msgstr ""
+
+msgid "Start on weekdays"
+msgstr ""
+
+msgid "Monday"
+msgstr ""
+
+msgid "Tuesday"
+msgstr ""
+
+msgid "Wednesday"
+msgstr ""
+
+msgid "Thursday"
+msgstr ""
+
+msgid "Friday"
+msgstr ""
+
+msgid "Saturday"
+msgstr ""
+
+msgid "Sunday"
+msgstr ""
+
+msgid "Local time. An end time before the start time ends on the following day."
+msgstr ""
+
+msgid "Enter valid, different start and end times in HH:MM format and select at least one weekday."
+msgstr ""
+
+msgid "Invalid Schedule"
+msgstr ""
+
+msgid "Recorder: {}"
+msgstr ""
+
+msgid "Recording"
+msgstr ""
+
+msgid "Planner"
+msgstr ""
+
+msgid "Stopped"
+msgstr ""
+
+msgid "&Record"
+msgstr ""
+
+msgid "&Stop"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "End"
+msgstr ""
+
+msgid "Weekdays"
+msgstr ""
+
+msgid "Recording Schedules"
+msgstr ""
+
+msgid "&Add..."
+msgstr ""
+
+msgid "&Edit..."
+msgstr ""
+
+msgid "&Delete"
+msgstr ""
+
+msgid "Schedules run while MultiDeck is open and are saved with the project. They use the output directory from Recorder settings. Deck playback must be started separately."
+msgstr ""
+
+msgid "&Resume"
+msgstr ""
+
+msgid "&Pause"
+msgstr ""
+
+msgid "Scheduled recording failed: choose an output directory in Recorder settings."
+msgstr ""
+
+msgid "Scheduled recording failed to start."
+msgstr ""
+
+msgid "&Name:"
+msgstr ""
+
+msgid "Name"
+msgstr ""

@@ -357,6 +357,7 @@ class RemainingRegressionTests(unittest.TestCase):
         )
         frame = SimpleNamespace(
             mixer=mixer,
+            recording_scheduler=mock.Mock(),
             config_manager=SimpleNamespace(
                 get=lambda section, option, default='': "recordings"
             ),
@@ -382,6 +383,7 @@ class RemainingRegressionTests(unittest.TestCase):
         )
         frame = SimpleNamespace(
             mixer=mixer,
+            recording_scheduler=mock.Mock(),
             config_manager=SimpleNamespace(
                 get=lambda section, option, default='': "recordings"
             ),
@@ -409,6 +411,7 @@ class RemainingRegressionTests(unittest.TestCase):
         )
         frame = SimpleNamespace(
             mixer=mixer,
+            recording_scheduler=mock.Mock(),
             config_manager=SimpleNamespace(
                 get=lambda section, option, default='': "recordings"
             ),
@@ -420,6 +423,15 @@ class RemainingRegressionTests(unittest.TestCase):
 
         message_box.assert_not_called()
         self.assertEqual(starts, [(deck.deck_id, "recordings")])
+
+    def test_failed_deck_recording_is_reported_and_removed(self):
+        mixer = self._make_mixer()
+        mixer.set_recorder_config({'format': 'wav'})
+        recorder = mock.Mock()
+        recorder.start_recording.return_value = False
+        with mock.patch('audio.mixer.Recorder', return_value=recorder):
+            self.assertFalse(mixer.start_deck_recording(mixer.decks[0].deck_id, 'recordings'))
+        self.assertEqual(mixer.deck_recorders, {})
 
     def test_livestream_audio_submission_never_waits_for_control_lock(self):
         streamer = IcecastStreamer(config={})
