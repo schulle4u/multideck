@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+* A new recording dialogue with direct recording controls and scheduled recordings has been added for master and individual decks. 
 * The hidden setting `force_dataview` has been replaced with `deck_list_type`, which allows you to select your desired deck list control directly.
 * Remove temporary InnoSetup accessibility fixes.
 
