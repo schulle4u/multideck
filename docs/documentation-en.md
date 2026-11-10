@@ -213,16 +213,6 @@ The options can be accessed via the Tools menu or by pressing Ctrl+P. Individual
 * Hysteresis (dB): This value provides a tolerance margin to prevent quickly switching between decks. Calculation: threshold minus Hysteresis.
 * Hold Time (seconds): After the level has decreased, this controls the minimum amount of time that must be spent on a deck before switching.
 
-### Recording planner
-
-The recorder dialog has Recording and Planner categories on the left. Opening it from Tools controls the master output; opening it from the Deck menu controls the selected deck.
-
-The Planner lets you add, edit, delete and enable or disable recording windows using the list checkboxes. Each window has an optional name, start and end times (HH:MM) and start weekdays (Monday through Sunday). Windows repeat weekly in local time. An end time earlier than the start time finishes the following day; equal times are invalid. Overlapping windows for the same target produce one continuous recording.
-
-Schedules run with the recorder dialog closed while MultiDeck remains open. Enable “Start playback with recording” to start the deck, or all loaded decks in the mixer, once recording begins. This option defaults to off. Playback continues when the recording ends. They use the format, pre-roll and output directory from Recorder settings. Adding or enabling a window asks for an output directory if none is configured. The planner never stops manually started recordings. Manually stopping a scheduled recording suppresses automatic restarts for the rest of that window.
-
-Schedules are saved and restored with the project. Moving a deck keeps its schedules attached to it. A new project clears previous schedules. Project files use `[MasterSchedules]` and `[Deck1Schedules]` etc., with `slot1_enabled`, `slot1_name`, `slot1_start_time`, `slot1_end_time` and `slot1_weekdays` (1 = Monday, 7 = Sunday).
-
 ### Recording
 
 * Format: The preferred audio format for recordings.
@@ -279,6 +269,16 @@ Additional options in `[Streaming]` section:
 * `level`: The program's logging level, e.g. DEBUG, INFO, WARNING, ERROR, CRITICAL (Default: `INFO`).
 * `file_logging`: Write log messages to file (Default: `True`)
 * `console_logging`: Print terminal messages (Default: `False`). 
+
+## Recording planner
+
+The recorder dialog has Recording and Planner categories on the left. Opening it from Tools controls the master output; opening it from the Deck menu controls the selected deck.
+
+The Planner lets you add, edit, delete and enable or disable recording windows using the list checkboxes. Each window has an optional name, start and end times (HH:MM) and start weekdays (Monday through Sunday). Windows repeat weekly in local time. An end time earlier than the start time finishes the following day; equal times are invalid. Overlapping windows for the same target produce one continuous recording.
+
+Schedules run with the recorder dialog closed while MultiDeck remains open. Enable “Start playback with recording” to start the deck, or all loaded decks in the mixer, once recording begins. This option defaults to off. Playback continues when the recording ends. They use the format, pre-roll and output directory from Recorder settings. Adding or enabling a window asks for an output directory if none is configured. The planner never stops manually started recordings. Manually stopping a scheduled recording suppresses automatic restarts for the rest of that window.
+
+Schedules are saved and restored with the project. Moving a deck keeps its schedules attached to it. A new project clears previous schedules. Project files use `[MasterSchedules]` and `[Deck1Schedules]` etc., with `slot1_enabled`, `slot1_name`, `slot1_start_time`, `slot1_end_time` and `slot1_weekdays` (1 = Monday, 7 = Sunday).
 
 ## Audio Effects
 

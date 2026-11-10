@@ -213,16 +213,6 @@ Die Optionen sind über das Menü Werkzeuge oder mittels STRG+Umschalt+O aufrufb
 * Hysterese (dB): Dieser Wert gibt der Umschaltung einen gewissen Spielraum, um allzu schnelles Umschalten zwischen den Decks zu verhindern. Berechnung: Schwellenwert Minus Hysterese.
 * Haltezeit (Sekunden): Kontrolliert nach erneutem Abfallen des Pegels die Mindestverweildauer auf dem Deck, bevor weitergeschaltet wird.
 
-### Aufnahmeplaner
-
-Der Aufnahmedialog bietet links die Kategorien Aufnahme und Planer. Im Werkzeugemenü bezieht er sich auf den Master-Ausgabemixer, im Deckmenü auf das ausgewählte Deck.
-
-Unter Planer lassen sich Aufnahmezeiten hinzufügen, bearbeiten, löschen und über die Checkboxen der Liste aktivieren oder deaktivieren. Jede Aufnahmezeit enthält einen frei wählbaren Namen, eine Startzeit, eine Endzeit (HH:MM) und die Wochentage des Starts (Montag bis Sonntag). Die Zeiten gelten wöchentlich in der lokalen Zeitzone. Liegt die Endzeit vor der Startzeit, läuft die Aufnahme über Mitternacht; gleiche Start- und Endzeiten sind nicht zulässig. Überlappende Zeiten desselben Ziels werden als zusammenhängende Aufnahme behandelt.
-
-Der Planer arbeitet auch bei geschlossenem Aufnahmedialog, solange MultiDeck geöffnet ist. Mit „Wiedergabe mit Aufnahme starten“ startet der Planer nach erfolgreichem Aufnahmestart auch die Wiedergabe des Decks oder aller geladenen Decks im Mixer. Die Option ist standardmäßig aus. Das Aufnahmeende lässt die Wiedergabe weiterlaufen. Es gelten das Format, der Vorabpuffer und das Ausgabeverzeichnis aus den Aufnahmeoptionen. Fehlt beim Anlegen oder Aktivieren einer Zeit ein Ausgabeverzeichnis, wird nach einem Ordner gefragt. Manuell gestartete Aufnahmen werden vom Planer nicht beendet. Nach manuellem Stopp wird innerhalb desselben Zeitfensters nicht automatisch neu gestartet.
-
-Aufnahmezeiten werden beim Speichern mit dem Projekt gespeichert und beim Laden wiederhergestellt. Sie bleiben bei Verschieben eines Decks diesem Deck zugeordnet. Ein neues Projekt verwirft die bisherigen Zeiten. Die Projektdatei enthält die Abschnitte `[MasterSchedules]` und `[Deck1Schedules]` usw. mit den Feldern `slot1_enabled`, `slot1_name`, `slot1_start_time`, `slot1_end_time` und `slot1_weekdays` (1 = Montag, 7 = Sonntag).
-
 ### Aufnahme
 
 * Format: Das bevorzugte Audioformat für Aufnahmen. 
@@ -279,6 +269,16 @@ Zusätzliche Optionen im Bereich `[Streaming]`:
 * `level`: Die Protokollstufe des Programms, z. B. DEBUG, INFO, WARNING, ERROR, CRITICAL (Standard: `INFO`).
 * `file_logging`: Protokollmeldungen in eine Datei schreiben (Standard: `True`)
 * `console_logging`: Meldungen im Terminal ausgeben (Standard: `False`). 
+
+## Aufnahmeplaner
+
+Der Aufnahmedialog bietet links die Kategorien Aufnahme und Planer. Im Werkzeugemenü bezieht er sich auf den Master-Ausgabemixer, im Deckmenü auf das ausgewählte Deck.
+
+Unter Planer lassen sich Aufnahmezeiten hinzufügen, bearbeiten, löschen und über die Checkboxen der Liste aktivieren oder deaktivieren. Jede Aufnahmezeit enthält einen frei wählbaren Namen, eine Startzeit, eine Endzeit (HH:MM) und die Wochentage des Starts (Montag bis Sonntag). Die Zeiten gelten wöchentlich in der lokalen Zeitzone. Liegt die Endzeit vor der Startzeit, läuft die Aufnahme über Mitternacht; gleiche Start- und Endzeiten sind nicht zulässig. Überlappende Zeiten desselben Ziels werden als zusammenhängende Aufnahme behandelt.
+
+Der Planer arbeitet auch bei geschlossenem Aufnahmedialog, solange MultiDeck geöffnet ist. Mit „Wiedergabe mit Aufnahme starten“ startet der Planer nach erfolgreichem Aufnahmestart auch die Wiedergabe des Decks oder aller geladenen Decks im Mixer. Die Option ist standardmäßig aus. Das Aufnahmeende lässt die Wiedergabe weiterlaufen. Es gelten das Format, der Vorabpuffer und das Ausgabeverzeichnis aus den Aufnahmeoptionen. Fehlt beim Anlegen oder Aktivieren einer Zeit ein Ausgabeverzeichnis, wird nach einem Ordner gefragt. Manuell gestartete Aufnahmen werden vom Planer nicht beendet. Nach manuellem Stopp wird innerhalb desselben Zeitfensters nicht automatisch neu gestartet.
+
+Aufnahmezeiten werden beim Speichern mit dem Projekt gespeichert und beim Laden wiederhergestellt. Sie bleiben bei Verschieben eines Decks diesem Deck zugeordnet. Ein neues Projekt verwirft die bisherigen Zeiten. Die Projektdatei enthält die Abschnitte `[MasterSchedules]` und `[Deck1Schedules]` usw. mit den Feldern `slot1_enabled`, `slot1_name`, `slot1_start_time`, `slot1_end_time` und `slot1_weekdays` (1 = Montag, 7 = Sonntag).
 
 ## Audioeffekte
 
