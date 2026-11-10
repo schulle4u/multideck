@@ -174,6 +174,7 @@ class RecorderDialog(wx.Dialog):
                                              (_("End"), 80), (_("Weekdays"), 360))):
             self.schedule_list.InsertColumn(col, label, width=width, checkbox=(col == 0))
         self.schedule_list.GetControl().SetName(_("Recording Schedules"))
+        self.schedule_list.GetControl().SetLabel(_("Recording Schedules"))
         self.schedule_list.GetControl().SetMinSize((740, 180))
         self.schedule_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self._update_selection)
         self.schedule_list.Bind(UniversalListCtrl.EVT_ITEM_CHECKED, self._on_checked)
