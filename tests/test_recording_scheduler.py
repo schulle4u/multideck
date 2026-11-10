@@ -49,7 +49,7 @@ class RecordingScheduleTests(unittest.TestCase):
         self.assertEqual(schedules_from_dict(data), [RecordingSchedule(weekdays=(1, 7))])
 
     def test_project_roundtrip_including_empty_deck(self):
-        schedules = [RecordingSchedule(name='Beispiel'),
+        schedules = [RecordingSchedule(name='Beispiel', start_playback=True),
                      RecordingSchedule('23:00', '01:00', (7,), False, name='Nachtaufnahme 100%')]
         data = {'decks': [{}, {}], 'master_schedules': schedules,
                 'deck_schedules': [[], schedules]}
@@ -84,7 +84,7 @@ class RecordingSchedulerTests(unittest.TestCase):
         self.scheduler = RecordingScheduler(self.recorders.get, self.start, self.stop)
         self.scheduler.schedules[None] = [RecordingSchedule()]
 
-    def start(self, target):
+    def start(self, target, start_playback):
         self.starts.append(target)
         self.recorders[target] = SimpleNamespace(is_recording=True)
         return True
@@ -114,6 +114,13 @@ class RecordingSchedulerTests(unittest.TestCase):
         self.tick(22)
         self.assertEqual(self.starts, [])
         self.assertEqual(self.stops, [])
+
+    def test_playback_requested_once_at_start_of_overlapping_windows(self):
+        self.scheduler.schedules[None].append(RecordingSchedule(start_playback=True))
+        self.scheduler._start = mock.Mock(side_effect=self.start)
+        self.tick(20)
+        self.tick(21)
+        self.scheduler._start.assert_called_once_with(None, True)
 
     def test_manual_stop_suppresses_restart_until_next_window(self):
         self.tick(20)
@@ -146,7 +153,7 @@ class RecordingSchedulerTests(unittest.TestCase):
         self.scheduler._start = mock.Mock(return_value=False)
         self.tick(20)
         self.tick(21)
-        self.scheduler._start.assert_called_once_with(None)
+        self.scheduler._start.assert_called_once_with(None, False)
         self.tick(22)
         self.tick(20)
         self.assertEqual(self.scheduler._start.call_count, 2)

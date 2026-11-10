@@ -1712,8 +1712,8 @@ msgstr "&Bearbeiten..."
 msgid "&Delete"
 msgstr "&Löschen"
 
-msgid "Schedules run while MultiDeck is open and are saved with the project. They use the output directory from Recorder settings. Deck playback must be started separately."
-msgstr "Zeitpläne werden ausgeführt, solange MultiDeck geöffnet ist, und mit dem Projekt gespeichert. Sie verwenden das Ausgabeverzeichnis aus den Aufnahmeoptionen. Die Deckwiedergabe muss separat gestartet werden."
+msgid "Schedules run while MultiDeck is open and are saved with the project. They use the output directory from Recorder settings."
+msgstr "Zeitpläne werden ausgeführt, solange MultiDeck geöffnet ist, und mit dem Projekt gespeichert. Sie verwenden das Ausgabeverzeichnis aus den Aufnahmeoptionen."
 
 msgid "&Resume"
 msgstr "&Fortsetzen"
@@ -1732,3 +1732,6 @@ msgstr "&Name:"
 
 msgid "Name"
 msgstr "Name"
+
+msgid "Start &playback with recording"
+msgstr "Wiedergabe mit Aufnahme &starten"

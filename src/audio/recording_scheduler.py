@@ -12,6 +12,7 @@ class RecordingSchedule:
     weekdays: tuple = (1, 2, 3, 4, 5, 6, 7)
     enabled: bool = True
     name: str = ''
+    start_playback: bool = False
 
     def __post_init__(self):
         for value in (self.start_time, self.end_time):
@@ -53,6 +54,8 @@ def schedules_from_dict(data):
                                   data[prefix + 'weekdays'].split('#', 1)[0].split(',')})),
             enabled=enabled in ('true', '1', 'yes', 'on'),
             name=data.get(prefix + 'name', ''),
+            start_playback=data.get(prefix + 'start_playback', '').strip().lower()
+            in ('true', '1', 'yes', 'on'),
         ))
     return result
 
@@ -63,6 +66,7 @@ def schedules_to_dict(schedules):
         prefix = f'slot{slot}_'
         data.update({prefix + 'enabled': str(schedule.enabled),
                      prefix + 'name': schedule.name,
+                     prefix + 'start_playback': str(schedule.start_playback),
                      prefix + 'start_time': schedule.start_time,
                      prefix + 'end_time': schedule.end_time,
                      prefix + 'weekdays': ','.join(map(str, schedule.weekdays))})
@@ -86,20 +90,23 @@ class RecordingScheduler:
 
     def tick(self, now=None):
         now = now or datetime.now()
-        active = {target for target, schedules in self.schedules.items()
-                  if any(schedule.is_active(now) for schedule in schedules)}
+        active = {}
+        for target, schedules in self.schedules.items():
+            windows = [schedule for schedule in schedules if schedule.is_active(now)]
+            if windows:
+                active[target] = any(schedule.start_playback for schedule in windows)
         for target in list(self._owned):
             if target not in active:
                 recorder = self._owned.pop(target)
                 if self._get_recorder(target) is recorder and recorder.is_recording:
                     self._stop(target)
         self._attempted.intersection_update(active)
-        for target in active - self._attempted:
+        for target in active.keys() - self._attempted:
             self._attempted.add(target)
             recorder = self._get_recorder(target)
             if recorder is not None and recorder.is_recording:
                 continue
-            if self._start(target):
+            if self._start(target, active[target]):
                 self._owned[target] = self._get_recorder(target)
 
     def release(self, target):

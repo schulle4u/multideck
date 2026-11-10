@@ -43,6 +43,9 @@ class ScheduleDialog(wx.Dialog):
             setattr(self, attribute, control)
             fields.Add(control, 1, wx.EXPAND)
         sizer.Add(fields, 0, wx.EXPAND | wx.ALL, 10)
+        self.start_playback = wx.CheckBox(panel, label=_("Start &playback with recording"))
+        self.start_playback.SetValue(self.schedule.start_playback)
+        sizer.Add(self.start_playback, 0, wx.ALL, 10)
         box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Start on weekdays"))
         self.days = []
         for number, name in enumerate(weekday_names(), 1):
@@ -71,7 +74,8 @@ class ScheduleDialog(wx.Dialog):
                 end_time=self.end.GetValue().strip(),
                 weekdays=tuple(i for i, check in enumerate(self.days, 1) if check.GetValue()),
                 enabled=self.enabled.GetValue(),
-                name=self.name.GetValue().strip())
+                name=self.name.GetValue().strip(),
+                start_playback=self.start_playback.GetValue())
         except ValueError:
             wx.MessageBox(_("Enter valid, different start and end times in HH:MM format "
                             "and select at least one weekday."),
@@ -185,8 +189,7 @@ class RecorderDialog(wx.Dialog):
         sizer.Add(buttons, 0, wx.LEFT | wx.RIGHT, 5)
         note = wx.StaticText(panel, label=_(
             "Schedules run while MultiDeck is open and are saved with the project. "
-            "They use the output directory from Recorder settings. "
-            "Deck playback must be started separately."))
+            "They use the output directory from Recorder settings."))
         note.Wrap(560)
         sizer.Add(note, 0, wx.EXPAND | wx.ALL, 10)
         panel.SetSizer(sizer)

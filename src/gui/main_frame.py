@@ -2332,7 +2332,7 @@ class MainFrame(wx.Frame):
         else:
             self.mixer.stop_deck_recording(deck_id)
 
-    def _start_scheduled_recording(self, deck_id):
+    def _start_scheduled_recording(self, deck_id, start_playback=False):
         # Timers must never open a modal directory picker or playback warning.
         output_dir = self.config_manager.get('Recorder', 'output_directory', '')
         if not output_dir:
@@ -2353,6 +2353,17 @@ class MainFrame(wx.Frame):
             message = _("Scheduled recording failed to start.")
             logger.error("%s Target: %s", message, deck_id)
             self.SetStatusText(message, 0)
+        elif start_playback:
+            try:
+                if deck_id is None:
+                    self.mixer.play_all()
+                    self._update_all_deck_panels()
+                elif not deck.is_playing and self._ensure_deck_ready_for_playback(deck):
+                    deck.play()
+                    self._update_deck_panel(deck_id)
+                self._update_global_play_button()
+            except Exception:
+                logger.exception("Could not start playback for scheduled recording. Target: %s", deck_id)
         return success
 
     def _on_recording_timer(self, event):
