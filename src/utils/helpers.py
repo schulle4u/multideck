@@ -7,6 +7,8 @@ from pathlib import Path
 from datetime import datetime
 from typing import Optional
 
+from utils.logger import get_logger
+
 def check_ffmpeg() -> bool:
     """Check if FFmpeg is available"""
     try:
@@ -17,6 +19,9 @@ def check_ffmpeg() -> bool:
         )
         return result.returncode == 0
     except FileNotFoundError:
+        return False
+    except OSError as exc:
+        get_logger('helpers').warning('Could not start FFmpeg: %s', exc)
         return False
 
 
